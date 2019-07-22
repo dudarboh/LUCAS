@@ -18,18 +18,17 @@
 class G4VPrimaryGenerator;
 class G4Event;
 
-class InputFileGenerator: public VPrimaryGenerator
-{
-public:
-  InputFileGenerator(G4String);
-  ~InputFileGenerator(void);
+class InputFileGenerator: public VPrimaryGenerator{
+    public:
+        InputFileGenerator(G4String);
+        ~InputFileGenerator(void);
 
-  void GeneratePrimaryVertex(G4Event *evt);
-  void PrintGeneratorInfo(void);
-  void SetupFileGenerator(G4String);
+        void GeneratePrimaryVertex(G4Event *evt);
+        void PrintGeneratorInfo(void);
+        void SetupFileGenerator(G4String);
 
-private:
-  G4VPrimaryGenerator *fGenerator;
+    private:
+        G4VPrimaryGenerator *fGenerator;
 };
 
 #endif

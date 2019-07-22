@@ -1,12 +1,8 @@
-/*
- * LCDetectorConstruction.hh
- * LumiCal
- *
- *  Created on: Mar 2, 2009
- *      Author: aguilar
- *
- */
-
+// LCDetectorConstruction.hh
+// LumiCal
+//
+//  Created on: Mar 2, 2009
+//      Author: aguilar
 
 #include <cstdlib> 
 #ifndef LCDETECTORCONSTRUCTION_HH_
@@ -16,7 +12,6 @@
 #include "globals.hh"
 #include "G4PVDivision.hh"
 #include "G4VPVParameterisation.hh"
-//#include "G4VNestedParameterisation.hh"
 #include "G4NistManager.hh"
 
 #include "LCSensitiveDetector.hh"
@@ -28,97 +23,99 @@ class G4VPhysicalVolume;
 class G4Material;
 class G4Region;
 
-class LCDetectorConstruction : public G4VUserDetectorConstruction
-{
-    // Constructor and destructors
-public:
-    LCDetectorConstruction();
-    ~LCDetectorConstruction();
+class LCDetectorConstruction : public G4VUserDetectorConstruction{
+    public:
+        LCDetectorConstruction();
+        ~LCDetectorConstruction();
 
+    public:
+        G4VPhysicalVolume *Construct();
+        void CreateTheWorld();
+        void InitDetectorParameters();
+        void BuildField();
+        void BuildBeamPipe();
+        void BuildLCal();
+        void BuildLHcal();
+        void BuildBCal();
+        void BuildMask();
+        void BuildTBeam();
+        void BuildTBeamPT();
+        void BuildTBeamPT16();
+        void SetRegionCuts();
+        void Print();
 
-// ================ Volumes ================
+    // ================ Volumes ================
+    private:
+        // world
+        G4LogicalVolume *logicWorld;
+        G4VPhysicalVolume *physiWorld;
 
-public:
-
-  G4VPhysicalVolume *Construct();
-  void CreateTheWorld();
-  void InitDetectorParameters();
-  void BuildField();
-  void BuildBeamPipe();
-  void BuildLCal();
-  void BuildLHcal();
-  void BuildBCal();
-  void BuildMask();
-  void BuildTBeam();
-  void BuildTBeamPT();
-  void BuildTBeamPT16();
-  void SetRegionCuts();
-  void Print();
-
-private:
-    // -------------- WORLD VOLUME
-    G4LogicalVolume     *logicWorld;     // world logical volume
-    G4VPhysicalVolume   *physiWorld;     // world physical volume
-
-    // -------------- Beam Pipe
-    G4LogicalVolume *logicLCalInnerTube, *logEndVac;
-
+        // Beam Pipe
+        G4LogicalVolume *logicLCalInnerTube;
+        G4LogicalVolume *logEndVac;
  
-    // -------------- LUMICAL SHELL
-    G4LogicalVolume     *logicWholeLC;   // LumiCal logical volume
+        // LumiCal Shell
+        G4LogicalVolume *logicWholeLC;
 
-    // -------------- LAYER ( = SENSORS + TUNGSTEN ABSORBER + SUPPORT )
-    G4LogicalVolume     *logicLayer;     // cell logical volume
-    // this volume is designed to put connect the sensors and support layer
-    // with the tungsten plate and then to be iterated inside the LumiCal
-    // (WholeLC) volume
+        // layer = SENSORS + TUNGSTEN ABSORBER + SUPPORT
+        // This volume is sensor, tungsten plate and connection between them.
+        // It is itterated inside LumiCal volume (logicWholeLC)
+        G4LogicalVolume *logicLayer;
 
-    // -------------- TUNGSTEN ABSORBER PLATE
-    G4LogicalVolume     *logicAbsorber;  // plate logical volume
+        // TUNGSTEN ABSORBER PLATE
+        G4LogicalVolume *logicAbsorber;
 
-    // -------------- FANOUT LAYERS
-    G4LogicalVolume     *logicFanoutFrnt; // front fanout log vol
+        // Front and back FANOUT LAYERS
+        G4LogicalVolume *logicFanoutFrnt;
+        G4LogicalVolume *logicFanoutBack;
 
-    G4LogicalVolume     *logicFanoutBack;  // back fanout log vol
+        // SENSOR
+        G4LogicalVolume *logicSensor;
+        G4LogicalVolume *logicSensorV;
+        G4LogicalVolume *logicSensorEnv;
 
-    // -------------- SENSOR
-  G4LogicalVolume     *logicSensor, *logicSensorV, *logicSensorEnv;    // Sensor logical volume
-    // -------------- Metallization mother volume
-  G4LogicalVolume     *logicMetSec, *logicMetalV;   
-    G4LogicalVolume     *MetSector1, *MetSector2, *MetSector4; 
+        // Metallization mother volume
+        G4LogicalVolume *logicMetSec;
+        G4LogicalVolume *logicMetalV;   
+        G4LogicalVolume *MetSector1;
+        G4LogicalVolume *MetSector2;
+        G4LogicalVolume *MetSector4; 
 
-    // -------------- SECTOR
-  G4LogicalVolume     *logicFESector, *logicChip, *logicPCB;    
-    G4LogicalVolume     *logicSector1, *logicSector2, *logicSector4; 
-    // 48 sectors per sensor; contains cells
+        // SECTOR
+        // 48 sectors per sensor; contains cells
+        G4LogicalVolume *logicFESector;
+        G4LogicalVolume *logicChip;
+        G4LogicalVolume *logicPCB;
+        G4LogicalVolume *logicSector1;
+        G4LogicalVolume *logicSector2;
+        G4LogicalVolume *logicSector4; 
 
-    // -------------- CELL
-    G4LogicalVolume     *logicCell;         // cell logical volume
-    G4LogicalVolume     *logicCellMet;      // pad metallization volume
-    // 64 cells per sector
-     // -------------- FE electronics
-    G4LogicalVolume     *logicFEmother;      // FE chips mother volume 
-  
- 
+        // Cell and pad metalization volumes
+        // 64 cells per sector
+        G4LogicalVolume *logicCell;
+        G4LogicalVolume *logicCellMet;
 
-// ================ Materials ================
+        // FE chips electronics mother volume
+        G4LogicalVolume *logicFEmother;
 
-private:
 
-    G4Material  *Vacuum,                // World
-                *Air,                   // Filler
-                *PLASTIC_SC,
-                *Silicon,               // Cell
-                *Aluminium,             // Cell metallization
-                *BeamPipeMat,           // central Beam pipe mat
-                *Iron,                  // lateral Beam pipe mat
-                *Tungsten,              // Absorber plate
-                *Copper,                // Fanout component
-                *Graphite,              // BCal front shield
-                *Kapton,                // Fanout component
-                *Epoxy,                 // Fanout component
-                *FanoutMatF,            // Front Fanout material
-                *FanoutMatB,            // Back Fanout material
+    // ================ Materials ==============
+
+    private:
+        G4Material  *Vacuum,                // World
+                    *Air,                   // Filler
+                    *PLASTIC_SC,
+                    *Silicon,               // Cell
+                    *Aluminium,             // Cell metallization
+                    *BeamPipeMat,           // central Beam pipe mat
+                    *Iron,                  // lateral Beam pipe mat
+                    *Tungsten,              // Absorber plate
+                    *Copper,                // Fanout component
+                    *Graphite,              // BCal front shield
+                    *Kapton,                // Fanout component
+                    *Epoxy,                 // Fanout component
+                    *FanoutMatF,            // Front Fanout material
+                    *FanoutMatB,            // Back Fanout material
                 *LHcalMat,
                 *BCalMat,
                 *Mask_Mat,

@@ -1,33 +1,3 @@
-//
-// ********************************************************************
-// * License and Disclaimer                                           *
-// *                                                                  *
-// * The  Geant4 software  is  copyright of the Copyright Holders  of *
-// * the Geant4 Collaboration.  It is provided  under  the terms  and *
-// * conditions of the Geant4 Software License,  included in the file *
-// * LICENSE and available at  http://cern.ch/geant4/license .  These *
-// * include a list of copyright holders.                             *
-// *                                                                  *
-// * Neither the authors of this software system, nor their employing *
-// * institutes,nor the agencies providing financial support for this *
-// * work  make  any representation or  warranty, express or implied, *
-// * regarding  this  software system or assume any liability for its *
-// * use.  Please see the license in the file  LICENSE  and URL above *
-// * for the full disclaimer and the limitation of liability.         *
-// *                                                                  *
-// * This  code  implementation is the result of  the  scientific and *
-// * technical work of the GEANT4 collaboration.                      *
-// * By using,  copying,  modifying or  distributing the software (or *
-// * any work based  on the software)  you  agree  to acknowledge its *
-// * use  in  resulting  scientific  publications,  and indicate your *
-// * acceptance of all terms of the Geant4 Software license.          *
-// ********************************************************************
-//
-//
-// $Id: G4HEPEvtInterface.hh,v 1.8 2006/06/29 18:08:36 gunter Exp $
-// GEANT4 tag $Name: geant4-09-01 $
-//
-
 #ifndef HEPEvtInterface_h
 #define HEPEvtInterface_h 1
 
@@ -41,12 +11,11 @@ class G4PrimaryVertex;
 class G4Event;
 
 // class description:
-//
-//  This is a concrete class of G4VPrimaryGenerator.
-//  This class object reads an ASCII file which contains particles generated
+// This is a concrete class of G4VPrimaryGenerator.
+// This class object reads an ASCII file which contains particles generated
 // by a physics generator which supports /HEPEVT/ common block.
-// 
-//  The format of ASCII file must be equivalent to the follwing sample fortran
+//
+//  The format of ASCII file must be equivalent to the following sample fortran
 // code.
 //***********************************************************
 //      SUBROUTINE HEP2G4
@@ -74,22 +43,19 @@ class G4Event;
 // set methods of G4VPrimaryGenerator base class, otherwise zero will be set.
 //
 
-class HEPEvtInterface:public G4VPrimaryGenerator
-{
-  public: // with description
-    HEPEvtInterface(char* evfile);
-    HEPEvtInterface(G4String evfile);
-    // Constructors, "evfile" is the file name (with directory path).
-  
-  public:
-    ~HEPEvtInterface();
+class HEPEvtInterface:public G4VPrimaryGenerator{
+    public: // with description
+        HEPEvtInterface(char* evfile);
+        HEPEvtInterface(G4String evfile);
+        // Constructors, "evfile" is the file name (with directory path).
+    public:
+        ~HEPEvtInterface();
+        void GeneratePrimaryVertex(G4Event* evt);
 
-    void GeneratePrimaryVertex(G4Event* evt);
-
-  private:
-    G4String fileName;
-    std::ifstream inputFile;
-    std::vector<G4HEPEvtParticle*> HPlist;
+    private:
+        G4String fileName;
+        std::ifstream inputFile;
+        std::vector<G4HEPEvtParticle*> HPlist;
 };
 
 #endif

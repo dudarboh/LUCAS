@@ -22,78 +22,79 @@
 
 #include <fstream>
 
-InputFileGenerator::InputFileGenerator(G4String fileName): 
-		VPrimaryGenerator(fileName)
-{ 
-  fGenerator = 0;
-  SetupFileGenerator(fileName);
-  Setup::Particle_Generator = fileName;
+using namespace std;
+
+InputFileGenerator::InputFileGenerator(G4String fileName):VPrimaryGenerator(fileName){ 
+    fGenerator = 0;
+    SetupFileGenerator(fileName);
+    Setup::Particle_Generator = fileName;
 }
 
-void InputFileGenerator::SetupFileGenerator(G4String generatorName)
-{
-    if (fGenerator) delete fGenerator; // dispose of the old generator
-
+void InputFileGenerator::SetupFileGenerator(G4String generatorName){
+    //Delete old generator
+    if(fGenerator) delete fGenerator;
     G4VPrimaryGenerator *newGenerator = 0;
 
-    // does the file exist?
-    std::ifstream generatorFile(generatorName); // simply try and open it!
-    if (!generatorFile) {
-      G4cout << "Could not open \"" << generatorName << "\", please choose another file." << G4endl;
-      return; // nothing has really happened yet, we can still exit here
-    } else {
-	generatorFile.close(); // one of the interfaces will open it again
+    //Try open the file
+    ifstream generatorFile(generatorName); 
+    if(!generatorFile){
+        G4cout<<"Could not open \""<<generatorName<<"\" , please choose another file."<<G4endl;
+        return;
+    }
+    else{
+        //One of the interfaces will open it again
+        generatorFile.close();
     }
 
-    // now we know the file exists, but what kind of file is it?
-    const size_t dotPosition = generatorName.rfind("."); // find the last dot (suffix separator)
-    const G4String nameSuffix = (dotPosition != std::string::npos) ? // found a dot?
-      generatorName(dotPosition, generatorName.length() - dotPosition) : // yes: get suffix
-      G4String(); // no: don't get anything
-
-
-
-    if(!newGenerator)
-      {
-	if (nameSuffix == ".HEPEvt") newGenerator = new HEPEvtInterface(generatorName);
-	/* ...insert any other interfaces here... */
-	else { // filename has an unknown suffix (or no suffix at all)
-	 G4Exception("InputFileGenerator:The generator has to be filename\n"
-		     "with suffix \".HEPEvt\", \".stdhep\", or \".pairs\".",
-		     nameSuffix,
-		     RunMustBeAborted,
-		     " unknown suffix !");
-	}
-      }
-    // now we know that the new generator is really valid
-  fGenerator = newGenerator; 
-  SetGeneratorName(generatorName);
-  // skip events in the generator file
-  if ( Setup::EventStartNumber > 0 ) {
-    G4cout << "Skipping first "<< Setup::EventStartNumber << " events..."<< G4endl;
-    for ( int i=0 ; i<Setup::EventStartNumber; i++){
-	G4Event *evt = new G4Event(); // just a dummy
-	fGenerator->GeneratePrimaryVertex(evt);
-	delete evt;
+    // Check file type
+    //Find last dot
+    const size_t dotPosition = generatorName.rfind(".");
+    
+    // If found a dot get suffix, otherwise get nothing
+    if(dotPosition != string::npos){
+        const G4String nameSuffix = generatorName(dotPosition, generatorName.length() - dotPosition)
     }
-  }
+    else{
+        G4String();  
+    }
 
+
+    if(!newGenerator){
+        if(nameSuffix == ".HEPEvt") newGenerator = new HEPEvtInterface(generatorName);
+        /* ...insert any other interfaces here... */
+        else{
+            // filename has an unknown suffix (or no suffix at all)
+            G4Exception("InputFileGenerator:The generator has to be filename\n"
+            "with suffix \".HEPEvt\", \".stdhep\", or \".pairs\".",
+            nameSuffix,
+            RunMustBeAborted,
+            " unknown suffix !");
+        }
+    }
+    
+    // Now we know that the new generator is really valid
+    fGenerator = newGenerator; 
+    SetGeneratorName(generatorName);
+    
+    // Skip events in the generator file
+    if(Setup::EventStartNumber>0){
+        G4cout << "Skipping first "<< Setup::EventStartNumber << " events..."<< G4endl;
+        for(int i=0; i<Setup::EventStartNumber; i++){
+            G4Event *evt = new G4Event(); // just a dummy
+            fGenerator->GeneratePrimaryVertex(evt);
+            delete evt;
+        }
+    }
 }
 
-InputFileGenerator::~InputFileGenerator(void)
-{
-  if (fGenerator) delete fGenerator;
+InputFileGenerator::~InputFileGenerator(void){ if(fGenerator) delete fGenerator;}
+
+void InputFileGenerator::GeneratePrimaryVertex(G4Event *evt){
+    // Read event from a file
+    if(fGenerator) fGenerator->GeneratePrimaryVertex(evt); 
 }
 
-void InputFileGenerator::GeneratePrimaryVertex(G4Event *evt)
-{
-  if (fGenerator)
-    fGenerator->GeneratePrimaryVertex(evt); // read event from a file
-}
-
-void InputFileGenerator::PrintGeneratorInfo(void)
-{
-  G4cout << "InputFileGenerator: generator file name is: " << GetGeneratorName()
-		 << G4endl;
-  // Additional info to be added
+void InputFileGenerator::PrintGeneratorInfo(void){
+    G4cout<<"InputFileGenerator: generator file name is: "<<GetGeneratorName()<<G4endl;
+    // Additional info to be added
 }

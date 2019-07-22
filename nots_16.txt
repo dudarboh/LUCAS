@@ -1,4 +1,4 @@
-some nots for changes to 2016 TB version : 
+some notes for changes to 2016 TB version : 
 ------------------------------------------------------
 1. change:  G4int Setup::LcalTBeam = 0; (G4bool -> G4int) 
 	0 : full 1: 2014 TB 2: 2016 TB 

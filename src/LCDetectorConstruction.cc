@@ -5,7 +5,6 @@
  *  Created on: Feb 27, 2009
  *     Authors: Jonathan Aguilar
  *              bogdan.pawlik@ifj.edu.pl
- *
  */
 
 #include "LCDetectorConstruction.hh"
