@@ -1,0 +1,4 @@
+#  batch  mode macro
+#
+/generator/generator Bhabha-SuperB-5gev.HEPEvt
+/run/beamOn  10000 

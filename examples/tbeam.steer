@@ -1,0 +1,86 @@
+#
+#---------------------------------------------------------------
+# This file contains list of all geometry setup
+# parameters with its default values
+# Only first two "black" fields in a line are
+# used by Setup program.
+# lines starting with "#" are treated as a comment
+# any black field after first two is also treated as a comments
+# parameter units must be: length -> [mm], angle ->[rad], field->[tesla]
+# parameter name/value  must not exceed 80 characters.
+#---------------------------------------------------------------
+#  globals
+#-----------------------------------
+##batchMode               0      /home/daq/Lucas/LUCASTMP/v1.0.0/vis_ev.mac   ##TPTBeam.mac
+batchMode               1      TPTBeam.mac
+##batchMode               1    /home/daq/Lucas/LUCASTMP/v1.0.0/vis_ev.mac
+#batchMode               1   ele50.mac
+#batchMode               1       pairs.mac
+PrintLevel              0
+EventStartNumber        0
+MaxStepsNumber          20
+StepSizeMin             0.
+LogFreq                 1                     // 0 = no EndOfEvent logging
+PhysicsListName         QGSP_BERT
+RootFileName            TPtest.root 
+RootFileMode          	RECREATE 
+AccumulateEvents	0                     // 0/1 -> no/yes 
+##rangeCut        	0.005
+Beam_Crossing_Angle     0.
+Nominal_field_value     0.                    // default 3.5
+Build_Beampipe          NO                    // YES
+Build_LHcal             No                    // YES
+Build_BCal              No                    // YES
+Build_Mask              No                    // YES
+#----------------------------------
+#  Cuts per regionSetup-RD.ini
+LCal_Region_Cut          0.005
+BCal_Region_Cut          1.000
+LHcal_Region_Cut         1.000
+Mask_Region_Cut          1.000
+
+#-----------------------------------
+#  for World
+#  world box dimensions [mm]
+#-----------------------------------
+world_hdx             1200.
+world_hdy             1200.
+world_hdz            10000.
+#--------------------------------------
+#  for beam pipe
+#--------------------------------------
+Beam_pipe_thickness           1.0 
+Lcal_to_BeamPipe_clearance    1.0 
+#-------------------------------------
+# for LCAL
+#-------------------------------------
+LcalTBeam                 1
+Lcal_layer_fan            0
+TBeam_senrio	          AA APS AA AA APS APS AA AA APS AA		
+Lcal_virtual_cells        1
+Lcal_n_layers             12            
+Lcal_n_tiles              12
+Lcal_n_sectors            48
+Lcal_n_rings              64
+#----
+Lcal_z_end              2635.0
+Lcal_inner_radius         76.
+Lcal_outer_radius        197.2               // [224.5] absorber outer radius
+Lcal_SensRadMin           80.           
+Lcal_SensRadMax          195.2 
+#---         
+Lcal_space_for_ears       25.5
+Lcal_sector_dead_gap       0.               //  default  1.2 mm 
+Lcal_layers_phi_offset     3.75             //  default [3.75 deg]
+Lcal_Phi_Offset            0.               
+Lcal_layer_gap             51.5
+Lcal_silicon_thickness     0.320
+Lcal_pad_metal_thickness   0.02
+Lcal_tungsten_thickness    3.5
+##Lcal_absorber_density     17.9
+#
+##Lcal_absorber_density     0.11856e21
+Lcal_use_absorber          1  
+Lcal_use_fanout            1
+Lcal_use_FE                0
+#end  
