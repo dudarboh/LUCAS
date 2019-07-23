@@ -25,146 +25,139 @@
 #include "G4SystemOfUnits.hh"
 
 
-ParticleGunGenerator::ParticleGunGenerator(void): 
-			VPrimaryGenerator("particleGun")
-{
-  fGunMessenger = new ParticleGunMessenger(this);
+ParticleGunGenerator::ParticleGunGenerator(void):VPrimaryGenerator("particleGun"){
+    fGunMessenger = new ParticleGunMessenger(this);
 
-  fParticleGun  = new G4ParticleGun(G4MuonPlus::MuonPlus());
-  fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0, 0, -1));
-  fParticleGun->SetParticlePosition(G4ThreeVector(0, 0, 0));
-  fParticleGun->SetParticleEnergy(100 * GeV);
+    fParticleGun  = new G4ParticleGun(G4MuonPlus::MuonPlus());
+    fParticleGun->SetParticleMomentumDirection(G4ThreeVector(0, 0, -1));
+    fParticleGun->SetParticlePosition(G4ThreeVector(0, 0, 0));
+    fParticleGun->SetParticleEnergy(100 * GeV);
 
-  fGunPositionStep = G4ThreeVector(0, 0, 0);
-  fGunPositionSmearing = G4ThreeVector(0, 0, 0);
-  fGunThetaStep = 0;
-  fGunThetaSmearing = 0;
-  fGunPhiStep = 0;
-  fGunPhiSmearing = 0;
-  fGunMomentumStep = 0;
-  fGunMomentumSmearing = 0;
-  fGunDirectionSmearingMode = kGaussian;
-  fGunPositionSmearingMode = kUniform;
+    fGunPositionStep = G4ThreeVector(0, 0, 0);
+    fGunPositionSmearing = G4ThreeVector(0, 0, 0);
+    fGunThetaStep = 0;
+    fGunThetaSmearing = 0;
+    fGunPhiStep = 0;
+    fGunPhiSmearing = 0;
+    fGunMomentumStep = 0;
+    fGunMomentumSmearing = 0;
+    fGunDirectionSmearingMode = kGaussian;
+    fGunPositionSmearingMode = kUniform;
 }
 
-ParticleGunGenerator::~ParticleGunGenerator(void)
-{
-  delete fParticleGun;
-  delete fGunMessenger;
+ParticleGunGenerator::~ParticleGunGenerator(void){
+    delete fParticleGun;
+    delete fGunMessenger;
 }
 
-void ParticleGunGenerator::SetGunMomentum(G4double gunMomentum)
-{
-  // The momentum is not a primary property (i.e. data member) of the gun,
-  // so it needs to be converted to the energy (using the given particle mass).
-  // Note: "energy" means kinetic energy in this context.
-  const G4double gunMass = fParticleGun->GetParticleDefinition()->GetPDGMass();
-  const G4double gunEnergy = sqrt(sqr(gunMomentum) + sqr(gunMass)) - gunMass;
-  fParticleGun->SetParticleEnergy(gunEnergy);
+void ParticleGunGenerator::SetGunMomentum(G4double gunMomentum){
+    // The momentum is not a primary property (i.e. data member) of the gun,
+    // so it needs to be converted to the energy (using the given particle mass).
+    // Note: "energy" means kinetic energy in this context.
+    const G4double gunMass = fParticleGun->GetParticleDefinition()->GetPDGMass();
+    const G4double gunEnergy = sqrt(sqr(gunMomentum) + sqr(gunMass)) - gunMass;
+    fParticleGun->SetParticleEnergy(gunEnergy);
 }
 
-G4double ParticleGunGenerator::GetGunMomentum(void)
-{
-  // The momentum is not a primary property (i.e. data member) of the gun,
-  // so it needs to be calculated from the energy (using the given particle mass).
-  // Note: "energy" means kinetic energy in this context.
-  const G4double gunMass = fParticleGun->GetParticleDefinition()->GetPDGMass();
-  const G4double gunEnergy = fParticleGun->GetParticleEnergy() + gunMass;
-  const G4double gunMomentum = sqrt(sqr(gunEnergy) - sqr(gunMass));
-  return gunMomentum;
+G4double ParticleGunGenerator::GetGunMomentum(void){
+    // The momentum is not a primary property (i.e. data member) of the gun,
+    // so it needs to be calculated from the energy (using the given particle mass).
+    // Note: "energy" means kinetic energy in this context.
+    const G4double gunMass = fParticleGun->GetParticleDefinition()->GetPDGMass();
+    const G4double gunEnergy = fParticleGun->GetParticleEnergy() + gunMass;
+    const G4double gunMomentum = sqrt(sqr(gunEnergy) - sqr(gunMass));
+    return gunMomentum;
 }
 
-void ParticleGunGenerator::GeneratePrimaryVertex(G4Event *evt)
-{
-  // save old properties (to undo the smearing later)
-  const G4ThreeVector savedPosition = fParticleGun->GetParticlePosition();
-  const G4ThreeVector savedDirection = fParticleGun->GetParticleMomentumDirection();
-  const G4double savedEnergy = fParticleGun->GetParticleEnergy();
-  const G4double savedMomentum = this->GetGunMomentum(); // needs to be calculated
+void ParticleGunGenerator::GeneratePrimaryVertex(G4Event *evt){
+    // save old properties (to undo the smearing later)
+    const G4ThreeVector savedPosition = fParticleGun->GetParticlePosition();
+    const G4ThreeVector savedDirection = fParticleGun->GetParticleMomentumDirection();
+    const G4double savedEnergy = fParticleGun->GetParticleEnergy();
+    const G4double savedMomentum = this->GetGunMomentum(); // needs to be calculated
 
-  // perform smearing of position, ...
-  G4ThreeVector smearedPosition(0, 0, 0); // dummy vector
-  switch (fGunPositionSmearingMode){
-   case kGaussian:
-     smearedPosition.setX(G4RandGauss::shoot(savedPosition.getX(), fGunPositionSmearing.getX()));
-     smearedPosition.setY(G4RandGauss::shoot(savedPosition.getY(), fGunPositionSmearing.getY()));
-     smearedPosition.setZ(G4RandGauss::shoot(savedPosition.getZ(), fGunPositionSmearing.getZ()));
-     break;
-   case kUniform:
-     smearedPosition.setX((savedPosition.getX() + (2*G4UniformRand()-1)*fGunPositionSmearing.getX()));
-     smearedPosition.setY((savedPosition.getY() + (2*G4UniformRand()-1)*fGunPositionSmearing.getY()));
-     smearedPosition.setZ((savedPosition.getZ() + (2*G4UniformRand()-1)*fGunPositionSmearing.getZ()));
-     break;
-  }
-
-  // ... direction, ...
-  G4ThreeVector smearedDirection(1, 0, 0); // dummy unit vector
-  switch (fGunDirectionSmearingMode) {
+    // perform smearing of position, ...
+    G4ThreeVector smearedPosition(0, 0, 0); // dummy vector
+    switch(fGunPositionSmearingMode){
     case kGaussian:
-      smearedDirection.setTheta(G4RandGauss::shoot(savedDirection.getTheta(), fGunThetaSmearing));
-      smearedDirection.setPhi(G4RandGauss::shoot(savedDirection.getPhi(), fGunPhiSmearing));
-      break;
+        smearedPosition.setX(G4RandGauss::shoot(savedPosition.getX(), fGunPositionSmearing.getX()));
+        smearedPosition.setY(G4RandGauss::shoot(savedPosition.getY(), fGunPositionSmearing.getY()));
+        smearedPosition.setZ(G4RandGauss::shoot(savedPosition.getZ(), fGunPositionSmearing.getZ()));
+        break;
     case kUniform:
-      smearedDirection.setTheta(savedDirection.getTheta() + (2 * G4UniformRand() - 1) * fGunThetaSmearing);
-      smearedDirection.setPhi(savedDirection.getPhi() + (2 * G4UniformRand() - 1) * fGunPhiSmearing);
-      break;
-  }
+        smearedPosition.setX((savedPosition.getX() + (2*G4UniformRand()-1)*fGunPositionSmearing.getX()));
+        smearedPosition.setY((savedPosition.getY() + (2*G4UniformRand()-1)*fGunPositionSmearing.getY()));
+        smearedPosition.setZ((savedPosition.getZ() + (2*G4UniformRand()-1)*fGunPositionSmearing.getZ()));
+        break;
+    }
 
-  // ... and momentum
-  const G4double smearedMomentum = G4RandGauss::shoot(savedMomentum, fGunMomentumSmearing);
+    // ... direction, ...
+    G4ThreeVector smearedDirection(1, 0, 0); // dummy unit vector
+    switch(fGunDirectionSmearingMode){
+    case kGaussian:
+        smearedDirection.setTheta(G4RandGauss::shoot(savedDirection.getTheta(), fGunThetaSmearing));
+        smearedDirection.setPhi(G4RandGauss::shoot(savedDirection.getPhi(), fGunPhiSmearing));
+        break;
+    case kUniform:
+        smearedDirection.setTheta(savedDirection.getTheta() + (2 * G4UniformRand() - 1) * fGunThetaSmearing);
+        smearedDirection.setPhi(savedDirection.getPhi() + (2 * G4UniformRand() - 1) * fGunPhiSmearing);
+        break;
+    }
 
-  // apply smeared properties
-  fParticleGun->SetParticlePosition(smearedPosition);
-  fParticleGun->SetParticleMomentumDirection(smearedDirection);
-  if (fGunMomentumSmearing) // avoid unnecessary back-and-forth calculations
-    this->SetGunMomentum(smearedMomentum);
+    // ... and momentum
+    const G4double smearedMomentum = G4RandGauss::shoot(savedMomentum, fGunMomentumSmearing);
 
-  // shoot one particle
-  fParticleGun->GeneratePrimaryVertex(evt);
+    // apply smeared properties
+    fParticleGun->SetParticlePosition(smearedPosition);
+    fParticleGun->SetParticleMomentumDirection(smearedDirection);
+    // avoid unnecessary back-and-forth calculations
+    if (fGunMomentumSmearing) this->SetGunMomentum(smearedMomentum);
 
-  // perform stepping of position, ...
-  const G4ThreeVector steppedPosition = savedPosition + fGunPositionStep;
+    // shoot one particle
+    fParticleGun->GeneratePrimaryVertex(evt);
 
-  // ... direction, ...
-  G4ThreeVector steppedDirection(1, 0, 0);
-  steppedDirection.setTheta(savedDirection.getTheta() + fGunThetaStep);
-  steppedDirection.setPhi(savedDirection.getPhi() + fGunPhiStep);
+    // perform stepping of position, ...
+    const G4ThreeVector steppedPosition = savedPosition + fGunPositionStep;
 
-  // ... and momentum
-  const G4double steppedMomentum = savedMomentum + fGunMomentumStep;
+    // ... direction, ...
+    G4ThreeVector steppedDirection(1, 0, 0);
+    steppedDirection.setTheta(savedDirection.getTheta() + fGunThetaStep);
+    steppedDirection.setPhi(savedDirection.getPhi() + fGunPhiStep);
 
-  // restore saved properties (plus the steps) without the smearing
-  fParticleGun->SetParticlePosition(steppedPosition);
-  fParticleGun->SetParticleMomentumDirection(steppedDirection);
-  if (fGunMomentumStep) // avoid unnecessary back-and-forth calculations
-    this->SetGunMomentum(steppedMomentum);
-  else // the old value is still valid
-    fParticleGun->SetParticleEnergy(savedEnergy);
+    // ... and momentum
+    const G4double steppedMomentum = savedMomentum + fGunMomentumStep;
+
+    // restore saved properties (plus the steps) without the smearing
+    fParticleGun->SetParticlePosition(steppedPosition);
+    fParticleGun->SetParticleMomentumDirection(steppedDirection);
+    // avoid unnecessary back-and-forth calculations
+    if(fGunMomentumStep) this->SetGunMomentum(steppedMomentum);
+    // the old value is still valid
+    else fParticleGun->SetParticleEnergy(savedEnergy);
 }
 
-void ParticleGunGenerator::PrintGeneratorInfo(void)
-{
-  const G4ParticleDefinition *particleDef = fParticleGun->GetParticleDefinition();
-  const G4ThreeVector direction = fParticleGun->GetParticleMomentumDirection();
+void ParticleGunGenerator::PrintGeneratorInfo(void){
+    const G4ParticleDefinition *particleDef = fParticleGun->GetParticleDefinition();
+    const G4ThreeVector direction = fParticleGun->GetParticleMomentumDirection();
 
-  // borrow G4UIcommand::ConvertToString(...) for a minute because it does exactly what we need
-  G4cout
-    << "Particle:       " << particleDef->GetParticleName()
-    << " (m = " << G4UIcommand::ConvertToString(particleDef->GetPDGMass(), "GeV") << ")"
-    << G4endl;
-  G4cout
-    << "Kinetic Energy: " << G4UIcommand::ConvertToString(fParticleGun->GetParticleEnergy(), "GeV")
-    << " (momentum = " << G4UIcommand::ConvertToString(this->GetGunMomentum(), "GeV") << ")"
-    << G4endl;
-  G4cout
-    << "Position:       " << G4UIcommand::ConvertToString(fParticleGun->GetParticlePosition(), "cm")
-    << G4endl;
-  G4cout << "Position smearing mode " << GetGunPositionSmearingMode() << G4endl;
-  G4cout
-    << "Direction:      " << G4UIcommand::ConvertToString(direction) // has no unit
-    << " (theta = " << G4UIcommand::ConvertToString(direction.getTheta(), "deg")
-    << ", phi = " << G4UIcommand::ConvertToString(direction.getPhi(), "deg") << ")"
-    << G4endl;
-  G4cout << "Direction smearing mode " << GetGunDirectionSmearingMode() << G4endl;
-  G4cout << "(Steps and smearing are not displayed.)" << G4endl;
+    // borrow G4UIcommand::ConvertToString(...) for a minute because it does exactly what we need
+    G4cout
+        << "Particle:       " << particleDef->GetParticleName()
+        << " (m = " << G4UIcommand::ConvertToString(particleDef->GetPDGMass(), "GeV") << ")"
+        << G4endl;
+    G4cout
+        << "Kinetic Energy: " << G4UIcommand::ConvertToString(fParticleGun->GetParticleEnergy(), "GeV")
+        << " (momentum = " << G4UIcommand::ConvertToString(this->GetGunMomentum(), "GeV") << ")"
+        << G4endl;
+    G4cout
+        << "Position:       " << G4UIcommand::ConvertToString(fParticleGun->GetParticlePosition(), "cm")
+        << G4endl;
+    G4cout << "Position smearing mode " << GetGunPositionSmearingMode() << G4endl;
+    G4cout
+        << "Direction:      " << G4UIcommand::ConvertToString(direction) // has no unit
+        << " (theta = " << G4UIcommand::ConvertToString(direction.getTheta(), "deg")
+        << ", phi = " << G4UIcommand::ConvertToString(direction.getPhi(), "deg") << ")"
+        << G4endl;
+    G4cout << "Direction smearing mode " << GetGunDirectionSmearingMode() << G4endl;
+    G4cout << "(Steps and smearing are not displayed.)" << G4endl;
 }

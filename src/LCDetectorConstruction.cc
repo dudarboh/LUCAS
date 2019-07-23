@@ -1,4 +1,3 @@
-//
 // LCDetectorConstruction.cc
 // LumiCal
 //
@@ -554,12 +553,8 @@ void LCDetectorConstruction::BuildTBeamPT16(){
 }
 
 
-
-
-void LCDetectorConstruction::BuildLCal()
-{
-    // LUMICAL DETECTOR
-    // Contains all 30 layers
+void LCDetectorConstruction::BuildLCal(){
+    // LUMICAL DETECTOR. Contains all 30 layers
     G4cout<<"Processing LCAL volume..."<<G4endl;
     assert(FECave_rmin >= SensRadMax);
 
@@ -568,19 +563,14 @@ void LCDetectorConstruction::BuildLCal()
     logicWholeLC = new G4LogicalVolume(solidWholeLC, Air, "logicWholeLC", 0, 0, 0);
     G4cout<<"...finished."<<G4endl;
 
-    // LAYER
-    // Basic component of LumiCal
-    // Contains sensors, absorbers, and fanout layers
+    // LAYER. Basic component of LumiCal. Contains sensors, absorbers, and fanout layers
     G4cout<<"Building Layer..."<<G4endl;
 
     G4Tubs *solidLayer = new G4Tubs("solidLayer", innerRad, SensRadMax, hLayerDZ, startPhi, endPhi);
     logicLayer = new G4LogicalVolume(solidLayer, Air, "logicLayer", 0, 0, 0);
     G4cout<<"...finished."<<G4endl;
 
-    // ABSORBER
-    // tungsten plate
-    // goes in back layer
-
+    // ABSORBER. tungsten plate. Placed in the back of the layer
     if(Setup::Lcal_use_absorber){
         G4cout<<"Building Absorber..."<<G4endl;
 
@@ -589,8 +579,7 @@ void LCDetectorConstruction::BuildLCal()
         G4cout<<"...finished."<<G4endl;
     }
 
-    // FANOUT
-    // Funout plates solids
+    // FANOUT. Funout plates solids
 
     if(Setup::Lcal_use_fanout ){
         G4cout<<"Building Fanout..."<<G4endl;
@@ -601,8 +590,7 @@ void LCDetectorConstruction::BuildLCal()
         G4cout<<"...finished."<<G4endl;
     }
 
-    // Lumical support
-    // EARS
+    // Lumical support. EARS
     if(Setup::Lcal_support){
         G4double MechSpaceRmax = SensRadMax + Lcal_extra_size;
         G4double EarsBaseRmax = SensRadMax + 2.*mm;
@@ -688,8 +676,8 @@ void LCDetectorConstruction::BuildLCal()
         new G4PVDivision("FE-sector", logicFESector, logicChipEnv, kPhi, nFE_Sectors, 0);
 
         // a chip
-        G4double hx = (FErmax - FErmin)/2.;
-        G4double hy = FErmin*tan( FE_Sec_dphi/2.) - 1.*mm;
+        G4double hx = (FErmax - FErmin) / 2.;
+        G4double hy = FErmin*tan( FE_Sec_dphi / 2.) - 1.*mm;
         G4double hz = FEChip_hDZ;
         G4Box *solidChip = new G4Box("solidChip", hx, hy, hz);
         logicChip = new G4LogicalVolume(solidChip, Silicon, "logicFEChip", 0, 0, 0);
@@ -701,538 +689,395 @@ void LCDetectorConstruction::BuildLCal()
         G4double Zpos = FECave_hDZ - PCB_hDZ;
         new G4PVPlacement(0, G4ThreeVector(0., 0., Zpos), logicPCB, "LcalPCB", logicFEmother, false, 0);
         Zpos = FECave_hDZ - 2. * PCB_hDZ - FEChip_hDZ;
-        new G4PVPlacement ( 0, G4ThreeVector(0.,0.,Zpos), logicChipEnv, "FE-Set", logicFEmother, false, 0);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., Zpos), logicChipEnv, "FE-Set", logicFEmother, false, 0);
 
-      G4VisAttributes *PCBVisAtt = new G4VisAttributes(G4Colour(0.0, 0.5, 0.0));
-      logicPCB->SetVisAttributes(PCBVisAtt);
-      logicFEmother->SetVisAttributes( G4VisAttributes::Invisible );
-      logicChipEnv->SetVisAttributes( G4VisAttributes::Invisible );
-      logicFESector->SetVisAttributes( G4VisAttributes::Invisible );
+        G4VisAttributes *PCBVisAtt = new G4VisAttributes(G4Colour(0.0, 0.5, 0.0));
+        logicPCB->SetVisAttributes(PCBVisAtt);
+        logicFEmother->SetVisAttributes(G4VisAttributes::Invisible);
+        logicChipEnv->SetVisAttributes(G4VisAttributes::Invisible);
+        logicFESector->SetVisAttributes(G4VisAttributes::Invisible);
 
-   //-------------------------------
-   // put Front-End into mech layer
-   //-------------------------------     
-    if( Setup::Lcal_use_FE ) {
-      G4double FE_z = hLayerDZ - 2.*ear_hdz - FECave_hDZ;
-      ear_phi = supAng;
-      for ( int k=0; k< nBolts ; k++ ){
+        // put Front-End into mech layer
+        if(Setup::Lcal_use_FE){
+            G4double FE_z = hLayerDZ - 2. * ear_hdz - FECave_hDZ;
+            ear_phi = supAng;
+            for(int k=0; k<nBolts; k++){
+                G4Transform3D FErot1(G4RotationMatrix().rotateZ(ear_phi), G4ThreeVector(0., 0., FE_z).rotateZ(ear_phi));
+                G4Transform3D FErot2(G4RotationMatrix().rotateZ(ear_phi+180.*deg), G4ThreeVector(0., 0., FE_z).rotateZ(ear_phi+180.*deg));
+                new G4PVPlacement(FErot1, logicFEmother, "FrontEndChips", logicMechLay, false, k);
+                new G4PVPlacement(FErot2, logicFEmother, "FrontEndChips", logicMechLay, false, k+nBolts);
+                ear_phi += dphi_rot;
+            }
+        }
 
-    G4Transform3D FErot1 ( G4RotationMatrix().rotateZ( ear_phi ), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi ));
-    G4Transform3D FErot2 ( G4RotationMatrix().rotateZ( ear_phi +180.*deg), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi +180.*deg));
-    new G4PVPlacement ( FErot1 , logicFEmother, "FrontEndChips", logicMechLay, false, k);
-    new G4PVPlacement ( FErot2 , logicFEmother, "FrontEndChips", logicMechLay, false, k+nBolts );
-        ear_phi += dphi_rot;
-      }
+        // put mechanics into LCAL
+        new G4PVPlacement(0, G4ThreeVector(0., 0., -tolDZ), logicMechSpace, "LcalSupport", logicWholeLC, false, 1);
+
+        // visual attributes
+        G4VisAttributes *FanoutVisAtt = new G4VisAttributes(G4Colour(0.0, 0.7, 0.0));
+        G4VisAttributes *FEVisAtt = new G4VisAttributes(G4Colour(0.3, 0.2, 0.5));
+        G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
+        G4VisAttributes *IronVisAtt = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
+        FEVisAtt->SetForceWireframe(true);
+        logicEarsBase->SetVisAttributes(AbsorberVisAtt);
+        logicEar->SetVisAttributes(AbsorberVisAtt);
+        logicBolt->SetVisAttributes(IronVisAtt);
+        logicMechLay->SetVisAttributes(G4VisAttributes::Invisible); 
+        logicMechSpace->SetVisAttributes(G4VisAttributes::Invisible);      
+        logicFanoutFrnt->SetVisAttributes(FanoutVisAtt);
+        logicFanoutBack->SetVisAttributes(FanoutVisAtt);
+        logicChip->SetVisAttributes(FEVisAtt);
     }
-      // put mechanics into LCAL
- 
-      new G4PVPlacement ( 0, G4ThreeVector(0.,0.,-tolDZ), logicMechSpace, "LcalSupport", logicWholeLC, false, 1);
-      //
-      // visual attributes
-      //
-       G4VisAttributes *FanoutVisAtt = new G4VisAttributes(G4Colour(0.0, 0.7, 0.0));
-       G4VisAttributes *FEVisAtt = new G4VisAttributes(G4Colour(0.3, 0.2, 0.5));
-       G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
-       G4VisAttributes *IronVisAtt     = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
-       FEVisAtt->SetForceWireframe(true);
-     logicEarsBase->SetVisAttributes(AbsorberVisAtt);
-     logicEar->SetVisAttributes(AbsorberVisAtt);
-     logicBolt->SetVisAttributes(IronVisAtt);
-     logicMechLay ->SetVisAttributes(G4VisAttributes::Invisible); 
-     logicMechSpace ->SetVisAttributes(G4VisAttributes::Invisible);      
-         logicFanoutFrnt->SetVisAttributes(FanoutVisAtt);
-         logicFanoutBack->SetVisAttributes(FanoutVisAtt);
-         logicChip->SetVisAttributes(FEVisAtt);
-   
 
-          }// endif Lcal_support
+    // SENSOR. Contains sectors and cells. Move this into Layer when finished
+    G4cout<<"Building sensor..."<<G4endl;
+    G4Tubs *solidSensor0 = new G4Tubs("Sensortmp", 0.,SensRadMax, hSensorDZ, startPhi, endPhi);
+    G4Tubs *solidSensor1 = new G4Tubs("SensortSi", 0.,SensRadMax, hSiliconDZ, startPhi, endPhi);
+    G4double rcorner[2], zcorner[2];
+    G4double r0[2] = {0., 0.};
+    rcorner[0] = SensRadMin*cos(tilePhi/2.);
+    rcorner[1] = rcorner[0];
+    zcorner[0] = -2.*hSiliconDZ;
+    zcorner[1] =  2.*hSiliconDZ;
+    G4Polyhedra *puncher0 = new G4Polyhedra("puncher0", startPhi-Setup::Lcal_Phi_Offset, endPhi, nTiles, 2, zcorner, r0, rcorner);
 
+    G4double dphiRot = endPhi/G4double(nTiles);
+    G4double phiRot = -Setup::Lcal_Phi_Offset;
 
-    //---------------
-    // SENSOR
-    //---------------
-    // contains sectors and cells
-    // move this into Layer when finished
-          G4cout << " Building sensor  ....."<< G4endl;
-   G4Tubs *solidSensor0 = new G4Tubs("Sensortmp", 0.,SensRadMax, hSensorDZ, startPhi, endPhi);
-   G4Tubs *solidSensor1 = new G4Tubs("SensortSi", 0.,SensRadMax, hSiliconDZ, startPhi, endPhi);
-   G4double rcorner[2], zcorner[2];
-   G4double r0[2] = {0., 0.};
-   rcorner[0] = SensRadMin*cos(tilePhi/2.);
-   rcorner[1] = rcorner[0];
-   zcorner[0] = -2.*hSiliconDZ;
-   zcorner[1] =  2.*hSiliconDZ;
-   G4Polyhedra *puncher0 = new G4Polyhedra("puncher0",
-                       startPhi - Setup::Lcal_Phi_Offset,
-                       endPhi, nTiles, 2, zcorner, r0, rcorner);
-   //
-   G4double dphiRot = endPhi/G4double( nTiles );
-   G4double phiRot = -Setup::Lcal_Phi_Offset;
-   // final solid sensor mother volume
-   G4SubtractionSolid *solidSensorEnv = new G4SubtractionSolid("solidSensor" , solidSensor0, puncher0, 0, G4ThreeVector( 0., 0., 0.));
-   G4SubtractionSolid *solidSensorSi = new G4SubtractionSolid("solidSensor" , solidSensor1, puncher0, 0, G4ThreeVector( 0., 0., 0.));
-   // and logical volume
-     logicSensorEnv = new G4LogicalVolume(solidSensorEnv, Air, "logicSensorEnv", 0,0,0); 
-     logicSensor = new G4LogicalVolume(solidSensorSi, Silicon, "logicSensor", 0,0,0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0.,0.,hSensorDZ - hSiliconDZ), logicSensor, "SiliconWafer", logicSensorEnv, false,0);
-   
-   
-   
-   if ( VirtualCell ) {
+    // Final solid and logical sensor mother volumes
+    G4SubtractionSolid *solidSensorEnv = new G4SubtractionSolid("solidSensor", solidSensor0, puncher0, 0, G4ThreeVector(0., 0., 0.));
+    G4SubtractionSolid *solidSensorSi = new G4SubtractionSolid("solidSensor", solidSensor1, puncher0, 0, G4ThreeVector(0., 0., 0.));
 
-     G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin + deadPhi ,SensRadMax - deadPhi, hSiliconDZ, startPhi, endPhi);
-     G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin + deadPhi ,SensRadMax - deadPhi, hMetalDZ, startPhi, endPhi);
-     logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0,0,0);
-     logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0,0,0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0.,0.,0.), logicSensorV, "SensorV", logicSensor, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0.,0.,-hSensorDZ+hMetalDZ), logicMetalV, "PadMetal", logicSensorEnv, false, 0);
-     //
-     // dead gap
-     //
-     if ( deadPhi > 0. ){
-       G4double dx = (SensRadMax - SensRadMin - 2.*deadPhi);
-       G4double hdy = deadPhi + 0.05 *mm;
-       G4double sn  = sin ( hdy/dx ); 
-       G4double hdx = sqrt( 1. - sn*sn )*dx/2.;  // must be a bit shorter not to extend outside sensor 
-     G4Box *solidAirGap1     = new G4Box("dAirGap", hdx, 0.05*mm, hSiliconDZ );
-     G4Box *solidDeadGap1    = new G4Box("DeadGap", hdx, deadPhi + 0.05*mm, hSiliconDZ );
-     G4Box *solidAirGap2     = new G4Box("dAirGap", hdx, deadPhi/2.+0.05*mm, hMetalDZ );
-     G4Box *solidDeadGap2    = new G4Box("DeadGap", hdx, deadPhi  + 0.05*mm, hMetalDZ );
-     G4LogicalVolume *logicAirGap1 = new G4LogicalVolume( solidAirGap1, Air, "logAirGap1", 0,0,0);
-     G4LogicalVolume *logicAirGap2 = new G4LogicalVolume( solidAirGap2, Air, "logAirGap2", 0,0,0);
-     G4LogicalVolume *logicDeadGap1 = new G4LogicalVolume( solidDeadGap1, Silicon, "logDeadGap1", 0,0,0);
-     G4LogicalVolume *logicDeadGap2 = new G4LogicalVolume( solidDeadGap2, Aluminium, "logDeadGap2", 0,0,0);
-     //
-     new G4PVPlacement ( 0, G4ThreeVector( 0.,0.,0.), logicAirGap1, "AirGap1", logicDeadGap1, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0.,0.,0.), logicAirGap2, "AirGap2", logicDeadGap2, false, 0);
-     //
-     //
-     G4double xpos = (SensRadMin + SensRadMax)/2.;
+    logicSensorEnv = new G4LogicalVolume(solidSensorEnv, Air, "logicSensorEnv", 0, 0, 0); 
+    logicSensor = new G4LogicalVolume(solidSensorSi, Silicon, "logicSensor", 0, 0, 0);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., hSensorDZ-hSiliconDZ), logicSensor, "SiliconWafer", logicSensorEnv, false, 0);
+   
+    if(VirtualCell){
+        G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin+deadPhi, SensRadMax-deadPhi, hSiliconDZ, startPhi, endPhi);
+        G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin+deadPhi, SensRadMax-deadPhi, hMetalDZ, startPhi, endPhi);
+        logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0, 0, 0);
+        logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0, 0, 0);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicSensorV, "SensorV", logicSensor, false, 0);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., -hSensorDZ+hMetalDZ), logicMetalV, "PadMetal", logicSensorEnv, false, 0);
+
+        // Dead gap
+        if(deadPhi>0.){
+            G4double dx = (SensRadMax - SensRadMin - 2. * deadPhi);
+            G4double hdy = deadPhi + 0.05*mm;
+            G4double sn  = sin(hdy / dx);
+            G4double hdx = sqrt(1. - sn * sn) * dx / 2.; // must be a bit shorter not to extend outside sensor
+            G4Box *solidAirGap1 = new G4Box("dAirGap", hdx, 0.05*mm, hSiliconDZ );
+            G4Box *solidDeadGap1 = new G4Box("DeadGap", hdx, deadPhi+0.05*mm, hSiliconDZ);
+            G4Box *solidAirGap2 = new G4Box("dAirGap", hdx, deadPhi/2.+0.05*mm, hMetalDZ);
+            G4Box *solidDeadGap2 = new G4Box("DeadGap", hdx, deadPhi+0.05*mm, hMetalDZ);
+            G4LogicalVolume *logicAirGap1 = new G4LogicalVolume(solidAirGap1, Air, "logAirGap1", 0, 0, 0);
+            G4LogicalVolume *logicAirGap2 = new G4LogicalVolume(solidAirGap2, Air, "logAirGap2", 0, 0, 0);
+            G4LogicalVolume *logicDeadGap1 = new G4LogicalVolume(solidDeadGap1, Silicon, "logDeadGap1", 0, 0, 0);
+            G4LogicalVolume *logicDeadGap2 = new G4LogicalVolume(solidDeadGap2, Aluminium, "logDeadGap2", 0, 0, 0);
+
+            new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicAirGap1, "AirGap1", logicDeadGap1, false, 0);
+            new G4PVPlacement(0, G4ThreeVector(0., 0., 0.), logicAirGap2, "AirGap2", logicDeadGap2, false, 0);
+
+            G4double xpos = (SensRadMin + SensRadMax) / 2.;
      
-     for ( G4int it = 0; it < nTiles; it++) {
-       //      G4cout << it << " phi "<< phiRot /deg << G4endl;
-      G4Transform3D zrot1 ( G4RotationMatrix().rotateZ( phiRot ), G4ThreeVector( xpos, 0., 0.).rotateZ( phiRot ));
-     new G4PVPlacement( zrot1, logicDeadGap1, "deadGap1", logicSensorV, false, it+1);
-     new G4PVPlacement( zrot1, logicDeadGap2, "deadGap2", logicMetalV, false, it+1);     
-       phiRot += dphiRot;
-     }
-     }
-   }
-
-   if ( !VirtualCell ) {
-   //---------------
-    // SECTORS
-    //---------------
-    // we have three types of sectors 
-    //  1. first in a tile - dead area at startPhi ( LCCellParam1 )
-    //  2  second and third in a tile - no dead area ( regular replicating )
-    //  3  forth in a tile - dead are at endPhi ( LCCellParam2 )
-    //  Contains cells
-
-    G4Tubs *solidSector = new G4Tubs("solidSector",
-                                 SensRadMin,     // LumiCal rad
-                                 SensRadMax,     // LumiCal rad
-                                 hSiliconDZ,    // same as cell thickness
-                 startPhi - Setup::Lcal_Phi_Offset,
-                                 sectorPhi);   // width of a sector, 7.5deg
-    G4Tubs *solidMetSec = new G4Tubs("solidMetSec",
-                                 SensRadMin,     // LumiCal rad
-                                 SensRadMax,     // LumiCal rad
-                                 hMetalDZ,    // same as cell thickness
-                                 startPhi- Setup::Lcal_Phi_Offset,
-                                 sectorPhi);   // width of a sector, 7.5deg
-
-    MetSector1 = new G4LogicalVolume(solidMetSec, Air, "MetSector1", 0, 0, 0);
-    MetSector2 = new G4LogicalVolume(solidMetSec, Air, "MetSector2", 0, 0, 0);
-    MetSector4 = new G4LogicalVolume(solidMetSec, Air, "MetSector4", 0, 0, 0);
-
-    logicSector1 = new G4LogicalVolume(solidSector, Silicon, "logicSector1", 0, 0, 0);
-    logicSector2 = new G4LogicalVolume(solidSector, Silicon, "logicSector2", 0, 0, 0);
-    logicSector4 = new G4LogicalVolume(solidSector, Silicon, "logicSector4", 0, 0, 0);
-    //
-    // populate sensor with sectors replica
-    //
-         G4String SectorName;
-     G4ThreeVector z0( 0., 0., hSensorDZ - hSiliconDZ);
-     G4ThreeVector zm( 0., 0.,-hSensorDZ + hMetalDZ);
-         G4int sec_per_tile = nSectors/nTiles;
-         assert ( nSectors%nTiles == 0 );
-     G4int SectorNum = 0;
-     //  G4double phiFix = Setup::Lcal_Phi_Offset;
-     G4double phiFix = 0.;
-    for ( int itile=0; itile < nTiles; itile++){
-      SectorNum++;
-      G4RotationMatrix *zrot1 = new G4RotationMatrix();
-      zrot1->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.) );      
-      std::stringstream strsec1;
-      strsec1 << SectorNum;
-      SectorName = G4String("Sector") + G4String(strsec1.str());
-      new G4PVPlacement( zrot1, z0, logicSector1, SectorName, logicSensor, false, SectorNum);
-      SectorName = G4String("MetSect") + G4String(strsec1.str());
-      new G4PVPlacement( zrot1, zm, MetSector1, SectorName, logicSensor, false, SectorNum);
-      for ( int nsec = 2; nsec < sec_per_tile; nsec++ ) {
-    SectorNum++;
-    G4RotationMatrix *zrot2 = new G4RotationMatrix();
-        zrot2->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.));
-        std::stringstream strsec;
-        strsec << SectorNum;
-        SectorName = G4String("Sector") + G4String(strsec.str());
-        new G4PVPlacement( zrot2, z0, logicSector2, SectorName, logicSensor, false, SectorNum);
-       SectorName = G4String("MetSect") + G4String(strsec.str());
-       new G4PVPlacement( zrot2, zm, MetSector2, SectorName, logicSensor, false, SectorNum);
-      }
-    SectorNum++;
-    std::stringstream strsec4;
-    strsec4 << SectorNum;
-    SectorName = G4String("Sector") + G4String(strsec4.str());
-    G4RotationMatrix *zrot4 = new G4RotationMatrix();  
-    zrot4->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.) );
-    new G4PVPlacement( zrot4, z0, logicSector4, SectorName, logicSensor, false, SectorNum);
-        SectorName = G4String("MetSect") + G4String(strsec4.str());
-        new G4PVPlacement( zrot4, zm, MetSector4, SectorName, logicSensor, false, SectorNum);
-
+            for(G4int it = 0; it<nTiles; it++){
+                G4Transform3D zrot1(G4RotationMatrix().rotateZ(phiRot), G4ThreeVector(xpos, 0., 0.).rotateZ(phiRot));
+                new G4PVPlacement(zrot1, logicDeadGap1, "deadGap1", logicSensorV, false, it+1);
+                new G4PVPlacement(zrot1, logicDeadGap2, "deadGap2", logicMetalV, false, it+1);     
+                phiRot += dphiRot;
+            }
+        }
     }
 
-   //---------------
-    // CELL
-    //---------------
-    // Replicate inside Sector volumes
-    // Parameterized to maintain constant separation in radial and phi dir.
-    // Sensitive
-    G4Tubs *solidCell = new G4Tubs("solidCell",
-                           81.3 *mm,           //<----
-                           83.0 *mm,           // all dummy arguments the actual ones
-               0.160 *mm,          // will be computed by CellParam
-                           0.0,                 // 
-                           7.5*deg);           //<------
-    G4Tubs *solidCellMet = new G4Tubs("solidCellMet",
-                           81.3 *mm,           //<----
-                           83.0 *mm,           // all dummy arguments the actual ones
-               0.01 *mm,          // will be computed by CellParam
-                           0.0,                 // 
-                           7.5*deg);           //<------
-    logicCell = new G4LogicalVolume(solidCell, Silicon, "logicCell", 0, 0, 0);
-    logicCellMet = new G4LogicalVolume(solidCellMet, Aluminium, "logicCellMet", 0, 0, 0);
+    if(!VirtualCell){
+        // SECTORS
+        // we have three types of sectors 
+        // 1).first in a tile - dead area at startPhi (LCCellParam1)
+        // 2) second and third in a tile - no dead area (regular replicating)
+        // 3) forth in a tile - dead are at endPhi (LCCellParam2)
+        // Contains cells
 
-    LCCellParam *CellParam = new LCCellParam(nCells,                             // # cells/sector
-                                             SensRadMin,                         // LC inner rad
-                                             SensRadMax,                         // LC outer rad
-                         hSensorDZ,
-                                             hSiliconDZ,                         // Si thickness
-                                             hMetalDZ,                          // pad metal thickness
-                                             deadPhi,                            // clipSize in phi
-                                             startPhi - Setup::Lcal_Phi_Offset,  // start angle
-                                             sectorPhi);                         // sector angle
+        G4Tubs *solidSector = new G4Tubs("solidSector", SensRadMin, SensRadMax, hSiliconDZ, startPhi-Setup::Lcal_Phi_Offset, sectorPhi);
+        G4Tubs *solidMetSec = new G4Tubs("solidMetSec", SensRadMin, SensRadMax, hMetalDZ, startPhi-Setup::Lcal_Phi_Offset, sectorPhi);
 
-    // Replicate cells:
-    new G4PVParameterised("Cell", logicCell, logicSector1,
-                          kZAxis, nCells, CellParam);
+        MetSector1 = new G4LogicalVolume(solidMetSec, Air, "MetSector1", 0, 0, 0);
+        MetSector2 = new G4LogicalVolume(solidMetSec, Air, "MetSector2", 0, 0, 0);
+        MetSector4 = new G4LogicalVolume(solidMetSec, Air, "MetSector4", 0, 0, 0);
 
-    new G4PVParameterised("Cell", logicCell, logicSector2,
-                          kZAxis, nCells, CellParam);
-                          
-    new G4PVParameterised("Cell", logicCell, logicSector4,
-                          kZAxis, nCells, CellParam);
-    // cell metalization
-    new G4PVParameterised("CellMet", logicCellMet, MetSector1,
-                          kZAxis, nCells, CellParam);
+        logicSector1 = new G4LogicalVolume(solidSector, Silicon, "logicSector1", 0, 0, 0);
+        logicSector2 = new G4LogicalVolume(solidSector, Silicon, "logicSector2", 0, 0, 0);
+        logicSector4 = new G4LogicalVolume(solidSector, Silicon, "logicSector4", 0, 0, 0);
+        
+        // Populate sensor with sectors replica
+        G4String SectorName;
+        G4ThreeVector z0(0., 0., hSensorDZ-hSiliconDZ);
+        G4ThreeVector zm(0., 0., -hSensorDZ+hMetalDZ);
+        G4int sec_per_tile = nSectors / nTiles;
+        assert(nSectors%nTiles==0);
+        G4int SectorNum = 0;
+        G4double phiFix = 0.;
+        for(int itile=0; itile<nTiles; itile++){
+            SectorNum++;
+            G4RotationMatrix *zrot1 = new G4RotationMatrix();
+            zrot1->rotateZ(phiFix-sectorPhi*((G4double)SectorNum-1.));      
+            std::stringstream strsec1;
+            strsec1<<SectorNum;
 
-    new G4PVParameterised("CellMet", logicCellMet, MetSector2,
-                          kZAxis, nCells, CellParam);
-                          
-    new G4PVParameterised("CellMet", logicCellMet, MetSector4,
-                          kZAxis, nCells, CellParam);
+            SectorName = G4String("Sector") + G4String(strsec1.str());
+            new G4PVPlacement(zrot1, z0, logicSector1, SectorName, logicSensor, false, SectorNum);
 
+            SectorName = G4String("MetSect") + G4String(strsec1.str());
+            new G4PVPlacement(zrot1, zm, MetSector1, SectorName, logicSensor, false, SectorNum);
 
-   } // end if !VirtualCell
-    G4cout << "                    ...done.    " << G4endl;
+            for(int nsec=2; nsec<sec_per_tile; nsec++){
+                SectorNum++;
+                G4RotationMatrix *zrot2 = new G4RotationMatrix();
+                zrot2->rotateZ(phiFix-sectorPhi*((G4double)SectorNum-1.));
+                std::stringstream strsec;
+                strsec<<SectorNum;
 
-    //
-    //
-    G4cout << " Assembling Layer ....."<< G4endl;
+                SectorName = G4String("Sector") + G4String(strsec.str());
+                new G4PVPlacement(zrot2, z0, logicSector2, SectorName, logicSensor, false, SectorNum);
+
+                SectorName = G4String("MetSect") + G4String(strsec.str());
+                new G4PVPlacement(zrot2, zm, MetSector2, SectorName, logicSensor, false, SectorNum);
+            }
+            SectorNum++;
+
+            std::stringstream strsec4;
+            strsec4<<SectorNum;
+            G4RotationMatrix *zrot4 = new G4RotationMatrix();  
+            zrot4->rotateZ(phiFix-sectorPhi*((G4double)SectorNum-1.));
+
+            SectorName = G4String("Sector") + G4String(strsec4.str());
+            new G4PVPlacement(zrot4, z0, logicSector4, SectorName, logicSensor, false, SectorNum);
+            
+            SectorName = G4String("MetSect") + G4String(strsec4.str());
+            new G4PVPlacement(zrot4, zm, MetSector4, SectorName, logicSensor, false, SectorNum);
+        }
+
+        // CELL. Replicate inside Sector volumes
+        // Parameterized to maintain constant separation in radial and phi dir.
+        // Sensitive
+
+        // All dummy arguments the actual ones. 4th argument is computed by CellParam
+        G4Tubs *solidCell = new G4Tubs("solidCell", 81.3*mm, 83.0*mm, 0.160*mm, 0.0, 7.5*deg);
+        G4Tubs *solidCellMet = new G4Tubs("solidCellMet", 81.3*mm, 83.0*mm, 0.01*mm, 0.0, 7.5*deg);
+        
+        logicCell = new G4LogicalVolume(solidCell, Silicon, "logicCell", 0, 0, 0);
+        logicCellMet = new G4LogicalVolume(solidCellMet, Aluminium, "logicCellMet", 0, 0, 0);
+
+        LCCellParam *CellParam = new LCCellParam(nCells, SensRadMin, SensRadMax, hSensorDZ, hSiliconDZ, hMetalDZ, deadPhi, startPhi-Setup::Lcal_Phi_Offset, sectorPhi);
+
+        // Replicate cells:
+        new G4PVParameterised("Cell", logicCell, logicSector1, kZAxis, nCells, CellParam);
+        new G4PVParameterised("Cell", logicCell, logicSector2, kZAxis, nCells, CellParam);
+        new G4PVParameterised("Cell", logicCell, logicSector4, kZAxis, nCells, CellParam);
+
+        // Replicate cell metalization
+        new G4PVParameterised("CellMet", logicCellMet, MetSector1, kZAxis, nCells, CellParam);
+        new G4PVParameterised("CellMet", logicCellMet, MetSector2, kZAxis, nCells, CellParam);
+        new G4PVParameterised("CellMet", logicCellMet, MetSector4, kZAxis, nCells, CellParam);
+    }
+
+    G4cout<<"...done."<<G4endl;
+    G4cout<<"Assembling Layer..."<<G4endl;
+
     G4int ordnum = 1;
-    //---------------
+
     // TUNGSTEN ABSORBER
-    //---------------
-    // 
     G4double absorberZ = hLayerDZ - hTungstenDZ;
-
-    if ( Setup::Lcal_use_absorber ){
-
-      G4cout << "               " << ordnum << ". Tungsten Absorber " << G4endl;   
-                    new G4PVPlacement(0,
-                                      G4ThreeVector(0, 0, absorberZ),
-                                      logicAbsorber,
-                                      "Absorber",
-                                      logicLayer,
-                                      false,
-                                      0);
-            ordnum++;
+    if(Setup::Lcal_use_absorber){
+        G4cout<<ordnum<<". Tungsten Absorber"<<G4endl;
+        new G4PVPlacement(0, G4ThreeVector(0, 0, absorberZ), logicAbsorber, "Absorber", logicLayer, false, 0);
+        ordnum++;
     }
 
-   //---------------
     // FANOUTBACK
-    //---------------
-    // 
-    G4double fanoutbackZ = absorberZ - hTungstenDZ - hFanoutBackDZ;
-    
-    if ( Setup::Lcal_use_fanout ) {
-      G4cout << "               " << ordnum << ". FanOut back " << G4endl;
-
-      new G4PVPlacement(0, G4ThreeVector(0, 0, fanoutbackZ), logicFanoutBack, "FanoutBack", logicLayer, false, 0);
-      ordnum++;
+    G4double fanoutbackZ = absorberZ - hTungstenDZ - hFanoutBackDZ;    
+    if(Setup::Lcal_use_fanout){
+        G4cout<<ordnum<<". FanOut back"<<G4endl;
+        new G4PVPlacement(0, G4ThreeVector(0, 0, fanoutbackZ), logicFanoutBack, "FanoutBack", logicLayer, false, 0);
+        ordnum++;
     }
  
-    //---------------
     // SENSOR
-    //--------------- 
-      G4cout << "               " << ordnum << ". Sensor plane " << G4endl;
-      G4double sensorZ = fanoutbackZ - hFanoutBackDZ - hSensorDZ;
-      SensZ0  = 2.*( hLayerDZ - hTungstenDZ - hFanoutBackDZ ) - hSiliconDZ;
-
+    G4double sensorZ = fanoutbackZ - hFanoutBackDZ - hSensorDZ;
+    G4cout<<ordnum<<". Sensor plane"<<G4endl;
+    SensZ0 = 2. * (hLayerDZ - hTungstenDZ - hFanoutBackDZ) - hSiliconDZ;
     new G4PVPlacement(0, G4ThreeVector(0, 0, sensorZ), logicSensorEnv, "LcalSensor", logicLayer, false, 0);
     ordnum++;
 
-    //---------------
     // FANOUTFRONT
-    //---------------
-    G4double fanoutfrntZ = sensorZ - hSensorDZ  - hFanoutFrontDZ;
-
-    if ( Setup::Lcal_use_fanout ) {
-      G4cout << "               " << ordnum << ". FanOut front " << G4endl;
-   
-      new G4PVPlacement(0, G4ThreeVector(0, 0, fanoutfrntZ), logicFanoutFrnt, "FanoutFront", logicLayer, false, 0);
-      }
-
-
-    G4cout << " Placing layers in LCAL .... "<< G4endl;
-    //---------------
-    // LAYERS PLACEMENT
-    //---------------
-
-    // Rotate every odd layer by 1/2 the sector angle
-    // Rotation matrix
-    // Thanks Bogdan
-    // First layer position
-    G4double placeLayer = -(hLumiCalDZ+tolDZ) + hLayerDZ;
-    G4double PhiRot = -Setup::Lcal_layers_phi_offset;
-    if ( !Setup::Lcal_layer_fan ){
-      G4RotationMatrix *layerRotation = new G4RotationMatrix;
-      layerRotation->rotateZ( PhiRot );
-    // Place layers into LumiCal
-      for (int i = 0; i < nLayers; i++) {
-        // Keep track of the names of the different layers
-        std::stringstream strlayer;
-    strlayer << i+1;
-        G4String LayerName = G4String("Layer") + G4String(strlayer.str());
-        if ((i+1)%2) { // odd do rotation!
-            new G4PVPlacement(layerRotation,
-                              G4ThreeVector(0, 0, placeLayer),
-                              logicLayer,
-                              LayerName, // an updated string
-                              logicWholeLC,
-                              0,
-                              i+1); // copy number
-        } else {
-            new G4PVPlacement(0,
-                              G4ThreeVector(0, 0, placeLayer),
-                              logicLayer,
-                              LayerName, // an updated string
-                              logicWholeLC,
-                              0,
-                              i+1); // copy number
-        }
-
-    //  G4cout << LayerName << " z-pos = " << placeLayer / mm << " [mm]"<< G4endl;
-    
-        // update the placecement for the next layer
-        placeLayer += 2.*hLayerDZ;
-      }
-    }else{
-      // layers "fanlike" configuration
-      G4double rotang = 0.;
-      for (int i = 0; i < nLayers; i++) {
-        //
-    G4RotationMatrix *layerRotation = new G4RotationMatrix;
-    layerRotation->rotateZ( rotang );
-        std::stringstream strlayer;
-        strlayer << i+1;
-        G4String LayerName = G4String("Layer") + G4String(strlayer.str());
-    //
-            new G4PVPlacement(layerRotation,
-                              G4ThreeVector(0, 0, placeLayer),
-                              logicLayer,
-                              LayerName, 
-                              logicWholeLC,
-                              0,
-                              i+1); 
-     //
-    rotang += PhiRot;
-        placeLayer += 2.*hLayerDZ;
-      }
-
+    G4double fanoutfrntZ = sensorZ - hSensorDZ - hFanoutFrontDZ;
+    if(Setup::Lcal_use_fanout){
+        G4cout<<ordnum<<". FanOut front"<<G4endl;
+        new G4PVPlacement(0, G4ThreeVector(0, 0, fanoutfrntZ), logicFanoutFrnt, "FanoutFront", logicLayer, false, 0);
     }
-          G4cout << "                   ...LCAL  done!    " << G4endl;
- 
-    //
-    //------------------------------------------------------------------------------
-    //
-    //  whole LCAL placement
-    //
-    Setup::Lcal_sens_Z0 = Lcal_zbegin + SensZ0; 
 
+
+    // LAYERS PLACEMENT. Rotate every odd layer by 1/2 the sector angle
+    G4cout<<"Placing layers in LCAL..."<<G4endl;
+
+    G4double placeLayer = -(hLumiCalDZ+tolDZ)+hLayerDZ;
+    G4double PhiRot = -Setup::Lcal_layers_phi_offset;
+    
+    if(!Setup::Lcal_layer_fan){
+        G4RotationMatrix *layerRotation = new G4RotationMatrix;
+        layerRotation->rotateZ(PhiRot);
+        
+        // Place layers into LumiCal
+        for(int i=0; i<nLayers; i++){
+            // Keep track of the names of the different layers
+            std::stringstream strlayer;
+            strlayer<<i+1;
+            G4String LayerName = G4String("Layer") + G4String(strlayer.str());
+            // if odd - rotate!
+            if((i+1)%2){
+                new G4PVPlacement(layerRotation, G4ThreeVector(0, 0, placeLayer), logicLayer, LayerName, logicWholeLC, 0, i+1);
+            }
+            else{
+                new G4PVPlacement(0, G4ThreeVector(0, 0, placeLayer), logicLayer, LayerName, logicWholeLC, 0, i+1);
+            }
+    
+            // update the placecement for the next layer
+            placeLayer += 2.*hLayerDZ;
+        }
+    }
+    else{
+        // layers "fanlike" configuration
+        G4double rotang = 0.;
+        for(int i=0; i<nLayers; i++){
+            G4RotationMatrix *layerRotation = new G4RotationMatrix;
+            layerRotation->rotateZ(rotang);
+            std::stringstream strlayer;
+            strlayer<<i+1;
+            G4String LayerName = G4String("Layer") + G4String(strlayer.str());
+
+            new G4PVPlacement(layerRotation, G4ThreeVector(0, 0, placeLayer), logicLayer, LayerName, logicWholeLC, 0, i+1); 
+
+            rotang += PhiRot;
+            placeLayer += 2.*hLayerDZ;
+        }
+    }
+    G4cout<<"...LCAL is done!"<<G4endl;
+ 
+    // whole LCAL placement
+    Setup::Lcal_sens_Z0 = Lcal_zbegin + SensZ0; 
     G4double zpos = Lcal_zbegin + hLumiCalDZ + tolDZ;
 
-    G4Transform3D trans1( G4RotationMatrix().rotateY(rotAng1),
-                          G4ThreeVector( 0., 0., zpos).rotateY(rotAng1));
-    G4Transform3D trans2( G4RotationMatrix().rotateY(rotAng2),
-                          G4ThreeVector( 0., 0., zpos).rotateY(rotAng2));
+    G4Transform3D trans1(G4RotationMatrix().rotateY(rotAng1), G4ThreeVector(0., 0., zpos).rotateY(rotAng1));
+    G4Transform3D trans2(G4RotationMatrix().rotateY(rotAng2), G4ThreeVector(0., 0., zpos).rotateY(rotAng2));
 
-                  new G4PVPlacement( trans1 ,
-                                     logicWholeLC,
-                                     "LumiCalDetector1",
-                                     logicWorld,
-                                     false,
-                                     1);
-                  new G4PVPlacement( trans2,
-                                     logicWholeLC,
-                                     "LumiCalDetector2",
-                                     logicWorld,
-                                     false,
-                                     2);
-    //  LCAL region 
+    new G4PVPlacement(trans1, logicWholeLC, "LumiCalDetector1", logicWorld, false, 1);
+    new G4PVPlacement(trans2, logicWholeLC, "LumiCalDetector2", logicWorld, false, 2);
+
+    // LCAL region 
     regionLCal = new G4Region("LCAL");
     logicWholeLC->SetRegion(regionLCal);
     regionLCal->AddRootLogicalVolume( logicWholeLC );
 
-    //---------------
     // SENSITIVE DETECTOR
-    //---------------
     G4SDManager* SDman = G4SDManager::GetSDMpointer();
 
     // Initialize the Sensitive Detector
-    SensDet = new LCSensitiveDetector("LumiCalSD",  // name
-                                      Cell0_Rad,    // inner LC radius
-                                      startPhi,     // start angle
-                                      CellPitch,    // radial cell size
-                                      sectorPhi,    // angular cell width
-                                      nCells,       // # cells in the rad dir
-                                      nSectors,     // # cells in the phi dir
-                      VirtualCell); // cell type real/virtual =  false/true
-        
+    SensDet = new LCSensitiveDetector("LumiCalSD", Cell0_Rad, startPhi, CellPitch, sectorPhi, nCells, nSectors, VirtualCell);
     SDman->AddNewDetector(SensDet);
+
     // the Cells are the sensitive detectors
-    G4cout << " Make logicCell sensitive detector .... " << G4endl;
+    G4cout<<"Make logicCell sensitive detector..."<<G4endl;
 
-    if ( !VirtualCell )  logicCell->SetSensitiveDetector(SensDet);
-    else logicSensorV->SetSensitiveDetector( SensDet );
+    if(!VirtualCell) logicCell->SetSensitiveDetector(SensDet);
+    else logicSensorV->SetSensitiveDetector(SensDet);
 
-    G4cout << "                                .... done! " << G4endl;
+    G4cout<<"...done!"<<G4endl;
  
-    //----------------------------------------
-    //--------------- LCAL VISUALIZATION ATTRIBUTES
-    //----------------------------------------
-
-
+    // LCAL VISUALIZATION ATTRIBUTES
   
-    //  whole LCAL 
-     G4VisAttributes *WholeLCVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
-     //         logicWholeLC->SetVisAttributes(G4VisAttributes::Invisible);
-     //         WholeLCVisAtt->SetDaughtersInvisible(true);
-     WholeLCVisAtt->SetForceWireframe ( true );
-         logicWholeLC->SetVisAttributes(WholeLCVisAtt);
-       
+    // whole LCAL
+    G4VisAttributes *WholeLCVisAtt = new G4VisAttributes(G4Colour(1.0, 1.0, 0.0));
+    WholeLCVisAtt->SetForceWireframe(true);
+    logicWholeLC->SetVisAttributes(WholeLCVisAtt);
 
-     G4VisAttributes *LayerVisAtt = new G4VisAttributes(false, G4Colour(1.0, 1.0, 1.0));
-         LayerVisAtt->SetForceWireframe (true);
-         logicLayer->SetVisAttributes(LayerVisAtt);
+    G4VisAttributes *LayerVisAtt = new G4VisAttributes(false, G4Colour(1.0, 1.0, 1.0));
+    LayerVisAtt->SetForceWireframe(true);
+    logicLayer->SetVisAttributes(LayerVisAtt);
 
+    G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
+    G4VisAttributes *IronVisAtt = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
+    if(Setup::Lcal_VisAbsSolid){
+        AbsorberVisAtt->SetForceSolid(true);
+        IronVisAtt->SetForceSolid(true);
+    }
+    else{
+        AbsorberVisAtt->SetForceWireframe(true);
+        IronVisAtt->SetForceWireframe(true);
+    }
     
-     G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
-     G4VisAttributes *IronVisAtt     = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
-     if(Setup::Lcal_VisAbsSolid ){
-       AbsorberVisAtt->SetForceSolid(true);
-       IronVisAtt->SetForceSolid(true);
-     }
-     else {
-       AbsorberVisAtt->SetForceWireframe(true);
-       IronVisAtt->SetForceWireframe(true);
-     }
-     if ( Setup::Lcal_use_absorber ) logicAbsorber->SetVisAttributes(AbsorberVisAtt);
+    if(Setup::Lcal_use_absorber) logicAbsorber->SetVisAttributes(AbsorberVisAtt);
 
-       G4VisAttributes *SensorVisAtt = new G4VisAttributes(G4Colour(1., 0., 0.));
-    if ( Setup::Lcal_VisSensSolid ) SensorVisAtt->SetForceSolid(true);
+    G4VisAttributes *SensorVisAtt = new G4VisAttributes(G4Colour(1., 0., 0.));
+
+    if(Setup::Lcal_VisSensSolid) SensorVisAtt->SetForceSolid(true);
     else SensorVisAtt->SetForceWireframe(true);
+
     logicSensor->SetVisAttributes(SensorVisAtt);
 
-    G4VisAttributes *SectorVisAtt = new G4VisAttributes(G4Colour(1. , 0., 0.));
+    G4VisAttributes *SectorVisAtt = new G4VisAttributes(G4Colour(1., 0., 0.));
     G4VisAttributes *CellVisAtt = new G4VisAttributes(true, G4Colour(0.6, 0.3, 0.02));
-    if ( !VirtualCell ){
-    SectorVisAtt->SetDaughtersInvisible(true);
-    SectorVisAtt->SetForceWireframe(true);
-    logicSector1->SetVisAttributes( SectorVisAtt );
-    logicSector2->SetVisAttributes( SectorVisAtt );
-    logicSector4->SetVisAttributes( SectorVisAtt );
-    //
-    MetSector1->SetVisAttributes(G4VisAttributes::Invisible);
-    MetSector2->SetVisAttributes(G4VisAttributes::Invisible);
-    MetSector4->SetVisAttributes(G4VisAttributes::Invisible);
- 
-    CellVisAtt->SetForceWireframe(true);
-    logicCell->SetVisAttributes(CellVisAtt);
-    }else{
-      logicSensorV->SetVisAttributes(CellVisAtt);
+    if(!VirtualCell){
+        SectorVisAtt->SetDaughtersInvisible(true);
+        SectorVisAtt->SetForceWireframe(true);
+        logicSector1->SetVisAttributes(SectorVisAtt);
+        logicSector2->SetVisAttributes(SectorVisAtt);
+        logicSector4->SetVisAttributes(SectorVisAtt);
+
+        MetSector1->SetVisAttributes(G4VisAttributes::Invisible);
+        MetSector2->SetVisAttributes(G4VisAttributes::Invisible);
+        MetSector4->SetVisAttributes(G4VisAttributes::Invisible);
+
+        CellVisAtt->SetForceWireframe(true);
+        logicCell->SetVisAttributes(CellVisAtt);
+    }
+    else{
+        logicSensorV->SetVisAttributes(CellVisAtt);
     }
 
 
-    G4cout << " Mass of the LCAL: " <<   logicWholeLC->GetMass()/ kg << G4endl;
-
-    //--------------- DONE BUILDING!
+    G4cout<<"Mass of the LCAL:"<<logicWholeLC->GetMass()/kg<<G4endl;
 }
 
 
-
-
-void LCDetectorConstruction::BuildField()
-{
-    //--------------------------------------------------
-    //                Magnetic Field
-    //--------------------------------------------------
-  G4cout<< "LCDetectorConstrucion::Construct(): Building Field ...."<< G4endl;;
+void LCDetectorConstruction::BuildField(){
+    //Magnetic Field
+    G4cout<<"LCDetectorConstrucion::Construct(): Building Field..."<<G4endl;;
     static G4bool fieldIsInitialized = false;
-  if(!fieldIsInitialized)
-  {
-    G4FieldManager* fieldMgr
-      = G4TransportationManager::GetTransportationManager()
-        ->GetFieldManager();
-    if( Setup::Beam_Crossing_Angle == 0. ) {
-      LCField* myField = new LCField();
+    if(!fieldIsInitialized){
+        G4FieldManager *fieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+        if(Setup::Beam_Crossing_Angle == 0.){
+            LCField *myField = new LCField();
 
-      fieldMgr->SetDetectorField(myField);
-      fieldMgr->CreateChordFinder(myField);
-              }else{
-      G4cout << "LCDDetectorConstructor:: Using DID field map "<<G4endl;
-          LCFieldX14* myField = new LCFieldX14("did_field.data"); // anti-DID field map for 14mr 
-         fieldMgr->SetDetectorField(myField);
-         fieldMgr->CreateChordFinder(myField);
+            fieldMgr->SetDetectorField(myField);
+            fieldMgr->CreateChordFinder(myField);
+        }
+        else{
+            G4cout<<"LCDDetectorConstructor:: Using DID field map"<<G4endl;
+            LCFieldX14 *myField = new LCFieldX14("did_field.data"); // anti-DID field map for 14mr 
+            fieldMgr->SetDetectorField(myField);
+            fieldMgr->CreateChordFinder(myField);
        }
-    fieldIsInitialized = true;
-  }
-     G4cout<< "             Field done. " << G4endl;
+        fieldIsInitialized = true;
+    }
+    G4cout<<"Field is done."<<G4endl;
 }
 
-void LCDetectorConstruction::BuildBeamPipe()
-{
-
-     //-----------------------------------------
-    //---    Beam pipe 
-    //-----------------------------------------
-
-     //
-     //  beam pipe vis attributes 
-     //  
-    G4VisAttributes *BeamPipeVisAtt = new G4VisAttributes(G4Colour(0.26,0.33,0.41));
-    G4VisAttributes *VacuumVisAtt = new G4VisAttributes(false); // just vacuum nothing to see
+// *** I DIDNT MAKE THIS FANCY YET
+void LCDetectorConstruction::BuildBeamPipe(){
+    // Beam pipe 
+    //  beam pipe vis attributes 
+    G4VisAttributes *BeamPipeVisAtt = new G4VisAttributes(G4Colour(0.26, 0.33, 0.41));
+    G4VisAttributes *VacuumVisAtt = new G4VisAttributes(false);
+    
     if ( Setup::Beam_pipe_VisSolid ) BeamPipeVisAtt->SetForceSolid(true);
     else BeamPipeVisAtt->SetForceWireframe(true);
  
@@ -1540,10 +1385,8 @@ void LCDetectorConstruction::BuildBeamPipe()
      G4cout << G4endl;
 }
 
-
-
-void LCDetectorConstruction::BuildLHcal()
-{
+// *** I DIDNT MAKE THIS FANCY YET
+void LCDetectorConstruction::BuildLHcal(){
   G4cout <<  " Building LHCAL ..." << G4endl; 
     G4double zpos = LHcal_zbegin + LHcal_hDZ;
 
@@ -1584,8 +1427,8 @@ void LCDetectorConstruction::BuildLHcal()
   G4cout <<  "                   .....done ! " << G4endl; 
 }
 
-void LCDetectorConstruction::BuildBCal()
-{
+// *** I DIDNT MAKE THIS FANCY YET
+void LCDetectorConstruction::BuildBCal(){
 
   G4cout <<  " Building BCAL ..." ; 
   // whole BCAL set ( PM, Shielding, BCAL
@@ -1702,8 +1545,8 @@ void LCDetectorConstruction::BuildBCal()
   G4cout <<  "                   .....done ! " << G4endl; 
 }
 
-void LCDetectorConstruction::BuildMask()
-{
+// *** I DIDNT MAKE THIS FANCY YET
+void LCDetectorConstruction::BuildMask(){
   G4cout <<  " Building Mask...              " ; 
   G4double Mask_hDZ = (Setup::world_hdz - Mask_zstart )/2.;
   G4double zFrnt = Mask_zstart+Mask_thickness/2.;  
@@ -1742,80 +1585,75 @@ void LCDetectorConstruction::BuildMask()
   G4cout <<  "                   .....done ! " << G4endl; 
 }
 
-
-// =========== CELL PARAMETERIZATION ============
-LCCellParam::LCCellParam(G4int    NoCells,
-                         G4double startR,
-                         G4double endR,
-             G4double SensHalfZ,
-                         G4double SihalfZ,
-                         G4double AlhalfZ,
-                         G4double clipSize,
-                         G4double startPhi,
-                         G4double deltaPhi)
-{
-    lNoCells  = NoCells;
-    lstartR   = startR + clipSize;
-    lendR     = endR - clipSize;
+// CELL PARAMETERIZATION
+LCCellParam::LCCellParam(G4int NoCells,
+    G4double startR,
+    G4double endR,
+    G4double SensHalfZ,
+    G4double SihalfZ,
+    G4double AlhalfZ,
+    G4double clipSize,
+    G4double startPhi,
+    G4double deltaPhi){
+    lNoCells = NoCells;
+    lstartR = startR + clipSize;
+    lendR = endR - clipSize;
     lSenshalfZ= SensHalfZ;
-    lSihalfZ  = SihalfZ;
-    lAlhalfZ  = AlhalfZ;
+    lSihalfZ = SihalfZ;
+    lAlhalfZ = AlhalfZ;
     lstartPhi = startPhi;
     ldeltaPhi = deltaPhi;
-    lclipSize = ( clipSize > 0. ) ?  clipSize + 0.05: 0.;
-    ldeltaR   = (lendR - lstartR)/(G4double)NoCells;
+    lclipSize = (clipSize > 0.) ? clipSize + 0.05 : 0.;
+    ldeltaR = (lendR - lstartR) / (G4double)NoCells;
 }
 
 LCCellParam::~LCCellParam() {}
 
-void LCCellParam::ComputeTransformation(const G4int, G4VPhysicalVolume *physVol ) const
-{
-  physVol->SetTranslation(  G4ThreeVector(0., 0., 0));
-  physVol->SetRotation(0);
+void LCCellParam::ComputeTransformation(const G4int, G4VPhysicalVolume *physVol) const{
+    physVol->SetTranslation(G4ThreeVector(0., 0., 0));
+    physVol->SetRotation(0);
 }
 
-void LCCellParam::ComputeDimensions(G4Tubs &Cell, const G4int copyNo,
-                                    const G4VPhysicalVolume* physVol ) const
-{
+void LCCellParam::ComputeDimensions(G4Tubs &Cell, const G4int copyNo, const G4VPhysicalVolume* physVol) const{
     G4double innerRad = lstartR + copyNo * ldeltaR;
-    G4double midRad   = innerRad + ldeltaR/2;
+    G4double midRad = innerRad + ldeltaR / 2;
     G4double outerRad = innerRad + ldeltaR;
-    G4double cutPhi   = atan(lclipSize / midRad) *rad ;
-    G4double delPhi   = ldeltaPhi - cutPhi;
+    G4double cutPhi = atan(lclipSize / midRad)*rad ;
+    G4double delPhi = ldeltaPhi - cutPhi;
     G4double startPhi = lstartPhi;
-    G4double metPhi   = atan(0.05/midRad)*rad;
-    G4double halfZ    = lSihalfZ;
+    G4double metPhi = atan(0.05 / midRad)*rad;
+    G4double halfZ = lSihalfZ;
 
     G4String MotherLogName = physVol->GetMotherLogical()->GetName();
 
-    if ( MotherLogName.contains("MetSector") ){
-       innerRad +=  0.05;
-       outerRad -=  0.05;
-           delPhi   -= metPhi;
-           startPhi += metPhi;
-           halfZ     = lAlhalfZ; 
-     }
+    if(MotherLogName.contains("MetSector")){
+        innerRad +=  0.05;
+        outerRad -=  0.05;
+        delPhi -= metPhi;
+        startPhi += metPhi;
+        halfZ = lAlhalfZ;
+    }
 
     Cell.SetInnerRadius(innerRad);
     Cell.SetOuterRadius(outerRad);
     Cell.SetZHalfLength(halfZ); 
 
-    if ( MotherLogName.contains("Sector1") )
-      {      Cell.SetStartPhiAngle( lstartPhi + cutPhi);
-         Cell.SetDeltaPhiAngle( delPhi    ); }
-    else if ( MotherLogName.contains("Sector4") )
-      {      Cell.SetStartPhiAngle( lstartPhi );
-         Cell.SetDeltaPhiAngle( delPhi    ); }
-    else 
-      {      Cell.SetStartPhiAngle( lstartPhi );
-         Cell.SetDeltaPhiAngle( ldeltaPhi ); }
-
+    if(MotherLogName.contains("Sector1")){
+        Cell.SetStartPhiAngle(lstartPhi + cutPhi);
+        Cell.SetDeltaPhiAngle(delPhi);
+    }
+    else if(MotherLogName.contains("Sector4")){
+        Cell.SetStartPhiAngle(lstartPhi);
+        Cell.SetDeltaPhiAngle(delPhi);
+    }
+    else{
+        Cell.SetStartPhiAngle(lstartPhi);
+        Cell.SetDeltaPhiAngle(ldeltaPhi);
+    }
 }
 
 
-
-void LCDetectorConstruction::Print()
-  {
+void LCDetectorConstruction::Print(){
     G4double Sens_zbeg = Setup::Lcal_sens_Z0;
     G4double Sens_zend = Setup::Lcal_sens_Z0 + G4double(nLayers)*SensDZ ;    
     G4double theta_min = (SensRadMin+deadPhi+CellPitch/2.)/Sens_zend;
@@ -1824,10 +1662,10 @@ void LCDetectorConstruction::Print()
     G4double theta_fid_max = (SensRadMax-deadPhi-CellPitch/2.)/Sens_zend;
     G4double FE_space_thetamin = FECave_rmin / Sens_zend;
     G4double FE_space_thetamax = FECave_rmax / Sens_zbeg;
-    G4double  dphi = 360.*sectorPhi / CLHEP::twopi;
-    G4double  tile_gap = 2.*(Setup::Lcal_sector_dead_gap + 0.05);
+    G4double dphi = 360.*sectorPhi / CLHEP::twopi;
+    G4double tile_gap = 2.*(Setup::Lcal_sector_dead_gap + 0.05);
 
-    G4cout << G4endl;
+    G4cout<<G4endl;
     printf ("%s\n"," ======================================================");
     printf ("%s\n"," |         LCAL parameters used in this run           |");
     printf ("%s\n"," ======================================================");
@@ -1879,6 +1717,6 @@ void LCDetectorConstruction::Print()
     printf ("%s%10.3f%s\n"," | FE-theta_min  |   ",FE_space_thetamin,"                       |"); 
     printf ("%s%10.3f%s\n"," | FE-theta_max  |   ",FE_space_thetamax,"                       |"); 
     printf ("%s\n"," ======================================================");
-    G4cout << G4endl;
-  }
+    G4cout<<G4endl;
+}
 

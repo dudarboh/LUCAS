@@ -292,9 +292,9 @@ void Setup::SetBaseParameters()
   std::ifstream inputFile;
   inputFile.open( Setup::SetupFile );
   if ( !inputFile.is_open() ) G4Exception("Setup:: cannot open file: ",
-					  Setup::SetupFile,
-					  RunMustBeAborted,
-					  " Aborting !");
+                      Setup::SetupFile,
+                      RunMustBeAborted,
+                      " Aborting !");
 
   G4String aLine;
   char parName[80] ;
@@ -308,70 +308,70 @@ void Setup::SetBaseParameters()
     if ( aLine.find("#") == 0 ) continue; //skip comments
     if ( Setup::PrintLevel == 1 ) G4cout << aLine << G4endl;
      sscanf( aLine,"%s %s %s",parName, sDum, sDum);
- 	//
+    //
      if ( !strcmp(parName,"batchMode") ){ sscanf( aLine, "%s%d%s", parName, &iDum , sDum );
        if( iDum != 0 ) Setup::batchMode = true;
        if ( Setup::macroName == "" ) Setup::macroName = sDum;}
-	  // globals   
-	else if ( !strcmp(parName,"EventStartNumber") )   sscanf( aLine,"%s %d", sDum, &(Setup::EventStartNumber)); 
-	else if ( !strcmp(parName,"LogFreq") )            sscanf( aLine,"%s %d", sDum, &(Setup::LogFreq)); 
-	else if ( !strcmp(parName,"MaxStepsNumber") )     sscanf( aLine,"%s %d", sDum, &(Setup::MaxStepsNumber)); 
-	else if ( !strcmp(parName,"StepSizeMin") )     sscanf( aLine,"%s %lf", sDum, &(Setup::StepSizeMin)); 
-	else if ( !strcmp(parName,"PrintLevel") )  G4cout << " parameter PrintLevel in Setup file ignored "<< G4endl; 
-	else if ( !strcmp(parName,"PhysicsListName") ) {sscanf( aLine,"%s %s", sDum, sDum); Setup::PhysicsListName = sDum;} 
-	else if ( !strcmp(parName,"RootFileName") ) { if( Setup::RootFileName == ""){
-	                                                 sscanf( aLine,"%s %s", sDum, sDum );  Setup::RootFileName = sDum;}}
-	else if ( !strcmp(parName,"RootFileMode") )    {if( Setup::RootFileMode == ""){
-	                                                 sscanf( aLine,"%s %s", sDum, sDum); Setup::RootFileMode = sDum;}}
-	else if ( !strcmp(parName,"AccumulateEvents")) {
-	                                                 sscanf( aLine,"%s %d", sDum, &iDum); 
+      // globals   
+    else if ( !strcmp(parName,"EventStartNumber") )   sscanf( aLine,"%s %d", sDum, &(Setup::EventStartNumber)); 
+    else if ( !strcmp(parName,"LogFreq") )            sscanf( aLine,"%s %d", sDum, &(Setup::LogFreq)); 
+    else if ( !strcmp(parName,"MaxStepsNumber") )     sscanf( aLine,"%s %d", sDum, &(Setup::MaxStepsNumber)); 
+    else if ( !strcmp(parName,"StepSizeMin") )     sscanf( aLine,"%s %lf", sDum, &(Setup::StepSizeMin)); 
+    else if ( !strcmp(parName,"PrintLevel") )  G4cout << " parameter PrintLevel in Setup file ignored "<< G4endl; 
+    else if ( !strcmp(parName,"PhysicsListName") ) {sscanf( aLine,"%s %s", sDum, sDum); Setup::PhysicsListName = sDum;} 
+    else if ( !strcmp(parName,"RootFileName") ) { if( Setup::RootFileName == ""){
+                                                     sscanf( aLine,"%s %s", sDum, sDum );  Setup::RootFileName = sDum;}}
+    else if ( !strcmp(parName,"RootFileMode") )    {if( Setup::RootFileMode == ""){
+                                                     sscanf( aLine,"%s %s", sDum, sDum); Setup::RootFileMode = sDum;}}
+    else if ( !strcmp(parName,"AccumulateEvents")) {
+                                                     sscanf( aLine,"%s %d", sDum, &iDum); 
                                                          if ( iDum == 1 ) Setup::AccumulateEvents = true;}
-	else if ( !strcmp(parName,"Build_Beampipe")) { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_Beampipe = sDum; }
-	else if ( !strcmp(parName,"Build_LHcal"))    { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_LHcal = sDum; } 
-	else if ( !strcmp(parName,"Build_BCal"))     { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_BCal = sDum; } 
-	else if ( !strcmp(parName,"Build_Mask"))     { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_Mask = sDum; } 
-	else if ( !strcmp(parName,"rangeCut")) {if( Setup::rangeCut == 0.005 ) sscanf( aLine,"%s %lf", sDum, &(Setup::rangeCut));}
-	else if ( !strcmp(parName,"LCal_Region_Cut")) {if( Setup::LCal_Region_Cut == 0.005 )
-	                                               sscanf( aLine,"%s %lf", sDum, &(Setup::LCal_Region_Cut));}
-	else if ( !strcmp(parName,"BCal_Region_Cut")) {if( Setup::BCal_Region_Cut == 1.000 )
-	                                               sscanf( aLine,"%s %lf", sDum, &(Setup::BCal_Region_Cut));}
-	else if ( !strcmp(parName,"LHcal_Region_Cut")) {if( Setup::LHcal_Region_Cut == 1.000 )
-	                                               sscanf( aLine,"%s %lf", sDum, &(Setup::LHcal_Region_Cut));}
-	else if ( !strcmp(parName,"Mask_Region_Cut")) {if( Setup::Mask_Region_Cut == 1.000 )
-	                                               sscanf( aLine,"%s %lf", sDum, &(Setup::Mask_Region_Cut));}
-	else if ( !strcmp(parName,"Beam_Crossing_Angle")) { 
-	                                          sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_Crossing_Angle)) ;
-	                                          Setup::lorentzTransAngle = Setup::Beam_Crossing_Angle / 2. *mrad;
-	                                          Setup::Beam_Crossing_Angle *= mrad;
+    else if ( !strcmp(parName,"Build_Beampipe")) { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_Beampipe = sDum; }
+    else if ( !strcmp(parName,"Build_LHcal"))    { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_LHcal = sDum; } 
+    else if ( !strcmp(parName,"Build_BCal"))     { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_BCal = sDum; } 
+    else if ( !strcmp(parName,"Build_Mask"))     { sscanf( aLine,"%s %s", sDum, sDum ); Setup::Build_Mask = sDum; } 
+    else if ( !strcmp(parName,"rangeCut")) {if( Setup::rangeCut == 0.005 ) sscanf( aLine,"%s %lf", sDum, &(Setup::rangeCut));}
+    else if ( !strcmp(parName,"LCal_Region_Cut")) {if( Setup::LCal_Region_Cut == 0.005 )
+                                                   sscanf( aLine,"%s %lf", sDum, &(Setup::LCal_Region_Cut));}
+    else if ( !strcmp(parName,"BCal_Region_Cut")) {if( Setup::BCal_Region_Cut == 1.000 )
+                                                   sscanf( aLine,"%s %lf", sDum, &(Setup::BCal_Region_Cut));}
+    else if ( !strcmp(parName,"LHcal_Region_Cut")) {if( Setup::LHcal_Region_Cut == 1.000 )
+                                                   sscanf( aLine,"%s %lf", sDum, &(Setup::LHcal_Region_Cut));}
+    else if ( !strcmp(parName,"Mask_Region_Cut")) {if( Setup::Mask_Region_Cut == 1.000 )
+                                                   sscanf( aLine,"%s %lf", sDum, &(Setup::Mask_Region_Cut));}
+    else if ( !strcmp(parName,"Beam_Crossing_Angle")) { 
+                                              sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_Crossing_Angle)) ;
+                                              Setup::lorentzTransAngle = Setup::Beam_Crossing_Angle / 2. *mrad;
+                                              Setup::Beam_Crossing_Angle *= mrad;
         }
-	else if ( !strcmp(parName,"Nominal_field_value")) { sscanf( aLine,"%s %lf", sDum, &(Setup::Nominal_Field_value)); 
-	                                                     Setup::Nominal_Field_value *= tesla;
-	}
-	  // world
-	else if ( !strcmp(parName,"world_hdx")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdx ));  
-	else if ( !strcmp(parName,"world_hdy")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdy ));  
-	else if ( !strcmp(parName,"world_hdz")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdz ));
-	//  Beam Pipe
-	else if ( !strcmp(parName,"Beam_pipe_thickness" ))         sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_pipe_thickness )); 
-	else if ( !strcmp(parName,"Beam_pipe_zend" ))              sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_pipe_zend )); 
-	else if ( !strcmp(parName,"Lcal_to_BeamPipe_clearance" ))  sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_to_BeamPipe_clearance )); 
+    else if ( !strcmp(parName,"Nominal_field_value")) { sscanf( aLine,"%s %lf", sDum, &(Setup::Nominal_Field_value)); 
+                                                         Setup::Nominal_Field_value *= tesla;
+    }
+      // world
+    else if ( !strcmp(parName,"world_hdx")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdx ));  
+    else if ( !strcmp(parName,"world_hdy")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdy ));  
+    else if ( !strcmp(parName,"world_hdz")) sscanf( aLine,"%s %lf", sDum, &(Setup::world_hdz ));
+    //  Beam Pipe
+    else if ( !strcmp(parName,"Beam_pipe_thickness" ))         sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_pipe_thickness )); 
+    else if ( !strcmp(parName,"Beam_pipe_zend" ))              sscanf( aLine,"%s %lf", sDum, &(Setup::Beam_pipe_zend )); 
+    else if ( !strcmp(parName,"Lcal_to_BeamPipe_clearance" ))  sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_to_BeamPipe_clearance )); 
         else if ( !strcmp(parName,"Beam_pipe_VisSolid" ))          sscanf( aLine,"%s %d", sDum, &(Setup::Beam_pipe_VisSolid));
         else if ( !strcmp(parName,"LHcal_VisSolid" ))         sscanf( aLine,"%s %d", sDum, &(Setup::LHcal_VisSolid));
         else if ( !strcmp(parName,"BCal_VisSolid" ))          sscanf( aLine,"%s %d", sDum, &(Setup::BCal_VisSolid));
         else if ( !strcmp(parName,"Mask_VisSolid" ))          sscanf( aLine,"%s %d", sDum, &(Setup::Mask_VisSolid));
-      	  //  LCAL 
-	else if ( !strcmp(parName,"Lcal_virtual_cells"     )){sscanf( aLine,"%s %d", sDum, &iDum); 
-	  if ( iDum == 1 ) Setup::Lcal_virtual_cells = true;
-	  else Setup::Lcal_virtual_cells = false; }
+          //  LCAL 
+    else if ( !strcmp(parName,"Lcal_virtual_cells"     )){sscanf( aLine,"%s %d", sDum, &iDum); 
+      if ( iDum == 1 ) Setup::Lcal_virtual_cells = true;
+      else Setup::Lcal_virtual_cells = false; }
         else if ( !strcmp(parName,"LcalTBeam"))  sscanf( aLine,"%s %d", sDum, &(Setup::LcalTBeam)); // after change  LcalTBeam to int 
-//	else if ( !strcmp(parName,"LcalTBeam")) { sscanf( aLine,"%s %d", sDum, &iDum); 
+//  else if ( !strcmp(parName,"LcalTBeam")) { sscanf( aLine,"%s %d", sDum, &iDum); 
 //                                                       if ( iDum == 1 ) Setup::LcalTBeam = true; } 
 
-	else if ( !strcmp(parName,"Lcal_layer_fan"     )){sscanf( aLine,"%s %d", sDum, &iDum); if ( iDum != 0 ) Setup::Lcal_layer_fan = true;}
-	else if ( !strcmp(parName,"Lcal_n_layers"     ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_layers));
-	else if ( !strcmp(parName,"Lcal_n_tiles"    ))        sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_tiles)); 
-	else if ( !strcmp(parName,"Lcal_n_sectors"    ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_sectors)); 
-	else if ( !strcmp(parName,"Lcal_n_rings"      ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_rings)); 
+    else if ( !strcmp(parName,"Lcal_layer_fan"     )){sscanf( aLine,"%s %d", sDum, &iDum); if ( iDum != 0 ) Setup::Lcal_layer_fan = true;}
+    else if ( !strcmp(parName,"Lcal_n_layers"     ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_layers));
+    else if ( !strcmp(parName,"Lcal_n_tiles"    ))        sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_tiles)); 
+    else if ( !strcmp(parName,"Lcal_n_sectors"    ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_sectors)); 
+    else if ( !strcmp(parName,"Lcal_n_rings"      ))      sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_n_rings)); 
 
         else if ( !strcmp(parName,"Lcal_z_end" ))             sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_z_end)); 
         else if ( !strcmp(parName,"Lcal_inner_radius"))       sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_inner_radius)); 
@@ -379,53 +379,53 @@ void Setup::SetBaseParameters()
         else if ( !strcmp(parName,"Lcal_SensRadMin"))         sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_SensRadMin)); 
         else if ( !strcmp(parName,"Lcal_SensRadMax"))         sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_SensRadMax)); 
         else if ( !strcmp(parName,"Lcal_space_for_ears"))     sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_space_for_ears)); 
-	else if ( !strcmp(parName,"Lcal_sector_dead_gap"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_sector_dead_gap));  
-	else if ( !strcmp(parName,"Lcal_layers_phi_offset" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_layers_phi_offset));
-	                                                                                Setup::Lcal_layers_phi_offset *= deg; } 
-	else if ( !strcmp(parName,"Lcal_start_phi" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_start_phi));
-	                                                                                Setup::Lcal_start_phi *= deg; } 
-	else if ( !strcmp(parName,"Lcal_end_phi" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_end_phi));
-	                                                                                Setup::Lcal_end_phi *= deg; } 
-	else if ( !strcmp(parName,"Lcal_Phi_Offset"   )) {
-	  sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_Phi_Offset));
-	  Setup::Lcal_Phi_Offset *= deg;
-	} 
-	else if ( !strcmp(parName,"Lcal_layer_gap" ))      sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_layer_gap  )); 
-	else if ( !strcmp(parName,"Lcal_silicon_thickness" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_silicon_thickness )); 
-	else if ( !strcmp(parName,"Lcal_pad_metal_thickness" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_pad_metal_thickness )); 
-	else if ( !strcmp(parName,"Lcal_tungsten_thickness")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_tungsten_thickness )); 
-	else if ( !strcmp(parName,"Lcal_absorber_pitch")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_absorber_pitch )); 
-	else if ( !strcmp(parName,"Lcal_absorber_density")) {sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_absorber_density)); 
-												Setup::Lcal_absorber_density *= g/cm3;}
-												
-	else if ( !strcmp(parName,"Lcal_PCB_thickness")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_PCB_thickness )); 
+    else if ( !strcmp(parName,"Lcal_sector_dead_gap"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_sector_dead_gap));  
+    else if ( !strcmp(parName,"Lcal_layers_phi_offset" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_layers_phi_offset));
+                                                                                    Setup::Lcal_layers_phi_offset *= deg; } 
+    else if ( !strcmp(parName,"Lcal_start_phi" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_start_phi));
+                                                                                    Setup::Lcal_start_phi *= deg; } 
+    else if ( !strcmp(parName,"Lcal_end_phi" )) { sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_end_phi));
+                                                                                    Setup::Lcal_end_phi *= deg; } 
+    else if ( !strcmp(parName,"Lcal_Phi_Offset"   )) {
+      sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_Phi_Offset));
+      Setup::Lcal_Phi_Offset *= deg;
+    } 
+    else if ( !strcmp(parName,"Lcal_layer_gap" ))      sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_layer_gap  )); 
+    else if ( !strcmp(parName,"Lcal_silicon_thickness" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_silicon_thickness )); 
+    else if ( !strcmp(parName,"Lcal_pad_metal_thickness" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_pad_metal_thickness )); 
+    else if ( !strcmp(parName,"Lcal_tungsten_thickness")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_tungsten_thickness )); 
+    else if ( !strcmp(parName,"Lcal_absorber_pitch")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_absorber_pitch )); 
+    else if ( !strcmp(parName,"Lcal_absorber_density")) {sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_absorber_density)); 
+                                                Setup::Lcal_absorber_density *= g/cm3;}
+                                                
+    else if ( !strcmp(parName,"Lcal_PCB_thickness")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_PCB_thickness )); 
 
-	else if ( !strcmp(parName,"Lcal_FEChip_space"))        sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_FEChip_space )); 
-	else if ( !strcmp(parName,"Lcal_FEChip_rmax"))        sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_FEChip_rmax )); 
-	else if ( !strcmp(parName,"Lcal_ChipCaveDepth"))      sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_ChipCaveDepth )); 
+    else if ( !strcmp(parName,"Lcal_FEChip_space"))        sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_FEChip_space )); 
+    else if ( !strcmp(parName,"Lcal_FEChip_rmax"))        sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_FEChip_rmax )); 
+    else if ( !strcmp(parName,"Lcal_ChipCaveDepth"))      sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_ChipCaveDepth )); 
 
-	else if ( !strcmp(parName,"Lcal_use_absorber"))       sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_absorber));	
-	else if ( !strcmp(parName,"Lcal_support"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_support));
-	else if ( !strcmp(parName,"Lcal_use_fanout"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_fanout));
-	else if ( !strcmp(parName,"Lcal_use_FE"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_FE));
-	else if ( !strcmp(parName,"Lcal_VisSensSolid"))       sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_VisSensSolid));
-	else if ( !strcmp(parName,"Lcal_VisAbsSolid"))        sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_VisAbsSolid));
-	  //epoxy
-	else if ( !strcmp(parName,"Lcal_epoxy_heightF" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_heightF)); 
-	else if ( !strcmp(parName,"Lcal_epoxy_heightB" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_heightB)); 
-	else if ( !strcmp(parName,"Lcal_epoxy_propF"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_propF));    
-	else if ( !strcmp(parName,"Lcal_epoxy_propB"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_propB)); 
-	  // kapton
-	else if ( !strcmp(parName,"Lcal_kapton_heightF")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_heightF)); 
-	else if ( !strcmp(parName,"Lcal_kapton_heightB")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_heightB));  
-	else if ( !strcmp(parName,"Lcal_kapton_prop"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_prop));
-	  // copper   
-	else if ( !strcmp(parName,"Lcal_copper_heightF")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_heightF)); 
-	else if ( !strcmp(parName,"Lcal_copper_heightB")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_heightB));  
-	else if ( !strcmp(parName,"Lcal_copper_propF"  )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_propF));  
-	else if ( !strcmp(parName,"Lcal_copper_propB"  )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_propB)); 
+    else if ( !strcmp(parName,"Lcal_use_absorber"))       sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_absorber));    
+    else if ( !strcmp(parName,"Lcal_support"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_support));
+    else if ( !strcmp(parName,"Lcal_use_fanout"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_fanout));
+    else if ( !strcmp(parName,"Lcal_use_FE"))         sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_use_FE));
+    else if ( !strcmp(parName,"Lcal_VisSensSolid"))       sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_VisSensSolid));
+    else if ( !strcmp(parName,"Lcal_VisAbsSolid"))        sscanf( aLine,"%s %d", sDum, &(Setup::Lcal_VisAbsSolid));
+      //epoxy
+    else if ( !strcmp(parName,"Lcal_epoxy_heightF" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_heightF)); 
+    else if ( !strcmp(parName,"Lcal_epoxy_heightB" )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_heightB)); 
+    else if ( !strcmp(parName,"Lcal_epoxy_propF"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_propF));    
+    else if ( !strcmp(parName,"Lcal_epoxy_propB"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_epoxy_propB)); 
+      // kapton
+    else if ( !strcmp(parName,"Lcal_kapton_heightF")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_heightF)); 
+    else if ( !strcmp(parName,"Lcal_kapton_heightB")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_heightB));  
+    else if ( !strcmp(parName,"Lcal_kapton_prop"   )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_kapton_prop));
+      // copper   
+    else if ( !strcmp(parName,"Lcal_copper_heightF")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_heightF)); 
+    else if ( !strcmp(parName,"Lcal_copper_heightB")) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_heightB));  
+    else if ( !strcmp(parName,"Lcal_copper_propF"  )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_propF));  
+    else if ( !strcmp(parName,"Lcal_copper_propB"  )) sscanf( aLine,"%s %lf", sDum, &(Setup::Lcal_copper_propB)); 
         else if ( !strcmp(parName,"TBeam_senrio"       )) { Setup::TBeam_senrio = aLine.substr(aLine.find(" ")) ;}   
-	else G4cout << " ****** Unknown parameter name : " << parName << G4endl;
+    else G4cout << " ****** Unknown parameter name : " << parName << G4endl;
   }
  
   inputFile.close();
@@ -446,18 +446,18 @@ void Setup::SetDerivedParameters()
   Setup::Lcal_FEChip_rmin = Setup::Lcal_FEChip_rmax - Setup::Lcal_FEChip_space; 
   Setup::Lcal_CellPitch  = (   Setup::Lcal_SensRadMax 
                           -    Setup::Lcal_SensRadMin
-			  - 2.*Setup::Lcal_sector_dead_gap )/G4double(Setup::Lcal_n_rings);
+              - 2.*Setup::Lcal_sector_dead_gap )/G4double(Setup::Lcal_n_rings);
   Setup::Lcal_Cell0_radius = Setup::Lcal_SensRadMin
                            + Setup::Lcal_sector_dead_gap + Setup::Lcal_CellPitch/2.;
   Setup::Lcal_surface_area = (sqr(Lcal_outer_radius)-sqr(Lcal_SensRadMin))*CLHEP::twopi / 2. ;
   // fanout
   Setup::Lcal_fanoutF_thickness = ( Setup::Lcal_epoxy_heightF 
                                     + Setup::Lcal_kapton_heightF
-				    + Setup::Lcal_copper_heightF ) *mm;
+                    + Setup::Lcal_copper_heightF ) *mm;
   Setup::Lcal_fanoutF_hdz = Setup::Lcal_fanoutF_thickness / 2.;
   Setup::Lcal_fanoutB_thickness = (   Setup::Lcal_epoxy_heightB 
                                     + Setup::Lcal_kapton_heightB
-				    + Setup::Lcal_copper_heightB ) *mm;
+                    + Setup::Lcal_copper_heightB ) *mm;
   Setup::Lcal_fanoutB_hdz = Setup::Lcal_fanoutB_thickness / 2.;
   //
   if ( Setup::Lcal_FEChip_rmin < Setup::Lcal_SensRadMax ) {
@@ -524,36 +524,36 @@ void Setup::AddMaterials()
         Setup::Epoxy->AddElement(C, fractionmass=0.5357);
         Setup::Epoxy->AddElement(O, fractionmass=0.3333);
     // fiber glass
-	G4Material* fiberglass = new G4Material( "fiberglass",density=2.61*g/cm3,ncomponents=2);
-	fiberglass -> AddElement(Si, natoms=1);
-	fiberglass -> AddElement(O, natoms=2);
+    G4Material* fiberglass = new G4Material( "fiberglass",density=2.61*g/cm3,ncomponents=2);
+    fiberglass -> AddElement(Si, natoms=1);
+    fiberglass -> AddElement(O, natoms=2);
     // PCBoard material FR4
-	Setup::FR4 = new G4Material("FR4",density=1.85*g/cm3,ncomponents=2);
-	Setup::FR4 ->AddMaterial( Setup::Epoxy, fractionmass=0.39);
-	Setup::FR4 ->AddMaterial( fiberglass, fractionmass=0.61);
-	// nickel
-	//G4Element* Ni = new G4Element("Nickel",symbol="Ni", z=28, a=58.69348*g/mole);
-	G4Material * Ni =materials->FindOrBuildMaterial("G4_Ni");
-	 //Setup::Silicon     = materials->FindOrBuildMaterial("G4_Si");
+    Setup::FR4 = new G4Material("FR4",density=1.85*g/cm3,ncomponents=2);
+    Setup::FR4 ->AddMaterial( Setup::Epoxy, fractionmass=0.39);
+    Setup::FR4 ->AddMaterial( fiberglass, fractionmass=0.61);
+    // nickel
+    //G4Element* Ni = new G4Element("Nickel",symbol="Ni", z=28, a=58.69348*g/mole);
+    G4Material * Ni =materials->FindOrBuildMaterial("G4_Ni");
+     //Setup::Silicon     = materials->FindOrBuildMaterial("G4_Si");
    // material for absorber
-	Setup::Wabsorber = new G4Material("Wabsorber",Setup::Lcal_absorber_density, ncomponents=3);
-	Setup::Wabsorber->AddMaterial(Setup::Tungsten, fractionmass=95.0*perCent); //93
-	Setup::Wabsorber->AddMaterial(Ni, fractionmass=3.75*perCent); //5.25
-	Setup::Wabsorber->AddMaterial(Setup::Copper, fractionmass=1.25*perCent); //1.75 
-	// for the 2014 TB plate 
-	Setup::Wabsorber_MGS = new G4Material("Wabsorber_MGS",17.7*g/cm3 , ncomponents=3);
-	Setup::Wabsorber_MGS->AddMaterial(Setup::Tungsten, fractionmass=93.0*perCent); 
-	Setup::Wabsorber_MGS->AddMaterial(Ni, fractionmass=5.25*perCent); 
-	Setup::Wabsorber_MGS->AddMaterial(Setup::Copper, fractionmass=1.75*perCent); 
-	// for the 2014 TB plate 
-	Setup::Wabsorber_PL = new G4Material("Wabsorber_PL", 18.0*g/cm3 ,ncomponents=3);
-	Setup::Wabsorber_PL->AddMaterial(Setup::Tungsten, fractionmass=95.0*perCent); 
-	Setup::Wabsorber_PL->AddMaterial(Ni, fractionmass=2.5*perCent); 
-	Setup::Wabsorber_PL->AddMaterial(Setup::Copper, fractionmass=2.5*perCent);  
-	// for the 2016 TB cerry-on
-	Setup::C_fiber = new G4Material("C_fiber", 1.6*g/cm3 ,ncomponents=2);
- 	Setup::C_fiber->AddMaterial(Setup::Carbon, fractionmass=50.0*perCent);
- 	Setup::C_fiber->AddMaterial(Setup::Epoxy, fractionmass=50.0*perCent);
+    Setup::Wabsorber = new G4Material("Wabsorber",Setup::Lcal_absorber_density, ncomponents=3);
+    Setup::Wabsorber->AddMaterial(Setup::Tungsten, fractionmass=95.0*perCent); //93
+    Setup::Wabsorber->AddMaterial(Ni, fractionmass=3.75*perCent); //5.25
+    Setup::Wabsorber->AddMaterial(Setup::Copper, fractionmass=1.25*perCent); //1.75 
+    // for the 2014 TB plate 
+    Setup::Wabsorber_MGS = new G4Material("Wabsorber_MGS",17.7*g/cm3 , ncomponents=3);
+    Setup::Wabsorber_MGS->AddMaterial(Setup::Tungsten, fractionmass=93.0*perCent); 
+    Setup::Wabsorber_MGS->AddMaterial(Ni, fractionmass=5.25*perCent); 
+    Setup::Wabsorber_MGS->AddMaterial(Setup::Copper, fractionmass=1.75*perCent); 
+    // for the 2014 TB plate 
+    Setup::Wabsorber_PL = new G4Material("Wabsorber_PL", 18.0*g/cm3 ,ncomponents=3);
+    Setup::Wabsorber_PL->AddMaterial(Setup::Tungsten, fractionmass=95.0*perCent); 
+    Setup::Wabsorber_PL->AddMaterial(Ni, fractionmass=2.5*perCent); 
+    Setup::Wabsorber_PL->AddMaterial(Setup::Copper, fractionmass=2.5*perCent);  
+    // for the 2016 TB cerry-on
+    Setup::C_fiber = new G4Material("C_fiber", 1.6*g/cm3 ,ncomponents=2);
+    Setup::C_fiber->AddMaterial(Setup::Carbon, fractionmass=50.0*perCent);
+    Setup::C_fiber->AddMaterial(Setup::Epoxy, fractionmass=50.0*perCent);
     // FANOUT
     // fractional mass =
     // (density * volume occupied by the material)/total mass of the layer
@@ -571,7 +571,7 @@ void Setup::AddMaterials()
     G4double copperfracB = Setup::Lcal_copper_heightB / Setup::Lcal_fanoutB_thickness;
     G4double backDensity = ( 2.* epoxydensB  * epoxyfracB    // two layers of epoxy
                                + kaptondens  * kaptonfracB
-		               + copperdensB * copperfracB);
+                       + copperdensB * copperfracB);
     Setup::FanoutMatB = new G4Material("BackFanoutMaterial",
                                 backDensity,
                                 ncomponents=3);
@@ -588,7 +588,7 @@ void Setup::AddMaterials()
     G4double copperfracF = Setup::Lcal_copper_heightF / Setup::Lcal_fanoutF_thickness;
     G4double frontDensity = (  epoxydensF  * epoxyfracF    // one layers of epoxy
                              + kaptondens  * kaptonfracF
-		             + copperdensF * copperfracF);
+                     + copperdensF * copperfracF);
  
     Setup::FanoutMatF = new G4Material("FrontFanoutMaterial",
                                 frontDensity,
@@ -596,11 +596,11 @@ void Setup::AddMaterials()
         Setup::FanoutMatF->AddMaterial(Setup::Copper, fractionmass=epoxyfracF);
         Setup::FanoutMatF->AddMaterial(Setup::Kapton, fractionmass=kaptonfracF);
         Setup::FanoutMatF->AddMaterial(Setup::Epoxy,  fractionmass=copperfracF);
-	//
-	//	if ( Setup::PrintLevel == 2 ){
+    //
+    //  if ( Setup::PrintLevel == 2 ){
     G4cout << G4endl << "Setup::AddMaterials : New materials defined are: " << G4endl << G4endl;
     G4cout << *(G4Material::GetMaterialTable()) << G4endl;
-    //	}
+    //  }
 
 }
 
