@@ -22,21 +22,20 @@ class G4UIcmdWithoutParameter;
 class G4UIcmdWithAString;
 class G4UIcmdWithADoubleAndUnit;
 
-class PrimaryGeneratorMessenger: public G4UImessenger
-{
-public:
-  PrimaryGeneratorMessenger(PrimaryGeneratorAction *primaryGenerator);
-  ~PrimaryGeneratorMessenger(void);
+class PrimaryGeneratorMessenger: public G4UImessenger{
+    public:
+        PrimaryGeneratorMessenger(PrimaryGeneratorAction *primaryGenerator);
+        ~PrimaryGeneratorMessenger(void);
     
-  void SetNewValue(G4UIcommand *command, G4String newValues);
-  G4String GetCurrentValue(G4UIcommand *command);
+        void SetNewValue(G4UIcommand *command, G4String newValues);
+        G4String GetCurrentValue(G4UIcommand *command);
 
-private:
-  PrimaryGeneratorAction    *fPrimaryGenerator;
+    private:
+        PrimaryGeneratorAction *fPrimaryGenerator;
     
-  G4UIdirectory             *fGeneratorDir;
-  G4UIcmdWithAString        *fGeneratorNameCmd;
-  G4UIcmdWithoutParameter   *fGeneratorInfoCmd;
+        G4UIdirectory *fGeneratorDir;
+        G4UIcmdWithAString *fGeneratorNameCmd;
+        G4UIcmdWithoutParameter *fGeneratorInfoCmd;
 };
 
 #endif

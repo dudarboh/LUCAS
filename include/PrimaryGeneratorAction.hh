@@ -19,24 +19,20 @@ class PrimaryGeneratorMessenger;
 class VPrimaryGenerator;
 class G4Event;
 
-class PrimaryGeneratorAction: public G4VUserPrimaryGeneratorAction
-{
-public:
-  PrimaryGeneratorAction(void);
-  ~PrimaryGeneratorAction(void);
+class PrimaryGeneratorAction: public G4VUserPrimaryGeneratorAction{
+    public:
+        PrimaryGeneratorAction(void);
+        ~PrimaryGeneratorAction(void);
 
-  void GeneratePrimaries(G4Event *evt);
-  void SetGeneratorWithName(G4String generatorName);
-  void ApplyLorentzTransformation(G4Event *evt);
+        void GeneratePrimaries(G4Event *evt);
+        void SetGeneratorWithName(G4String generatorName);
+        void ApplyLorentzTransformation(G4Event *evt);
 
+        VPrimaryGenerator *GetPrimaryGenerator(void) {return fPrimaryGenerator;}
 
-
-  VPrimaryGenerator* GetPrimaryGenerator(void) { return fPrimaryGenerator; }
-
-private:
-
-  PrimaryGeneratorMessenger *fMessenger;
-  VPrimaryGenerator *fPrimaryGenerator;
+    private:
+        PrimaryGeneratorMessenger *fMessenger;
+        VPrimaryGenerator *fPrimaryGenerator;
 
 };
 

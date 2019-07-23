@@ -1,11 +1,23 @@
-/*
- * LCDetectorConstruction.cc
- * LumiCal
- *
- *  Created on: Feb 27, 2009
- *     Authors: Jonathan Aguilar
- *              bogdan.pawlik@ifj.edu.pl
- */
+//
+// LCDetectorConstruction.cc
+// LumiCal
+//
+//  Created on: Feb 27, 2009
+//     Authors: Jonathan Aguilar
+//              bogdan.pawlik@ifj.edu.pl
+//---------------------------------------------
+//      sensor stracture from front to back  :
+//          1. 0.150 kapton front.
+//          1.2. 0.010 epoxy glue
+//          2.1. 0.020 AL on sensor
+//          2.2. 0.320 Si sensor
+//          2.3. 0.020 AL on sensor
+//          3.1. 0.040 epoxy (condactive - not take into acount)
+//          3.2. 0.025 cupper (on kapton)
+//          3.3. 0.065 kapton back
+//          3.4. 0.020 epoxy glue
+//          total 0.670  
+//---------------------------------------------
 
 #include "LCDetectorConstruction.hh"
 #include "Setup.hh"
@@ -53,1080 +65,492 @@
 #include "G4SystemOfUnits.hh"
 
 
-// Constructor
 LCDetectorConstruction::LCDetectorConstruction()
-  : logicWorld(0),      physiWorld(0),           // World
-    logicWholeLC(0),                             // WholeLC
+    :logicWorld(0),
+    physiWorld(0),
+    logicWholeLC(0),
     logicSensor(0),
-    logicCell(0)                                 // Cell
-{
-}
+    logicCell(0){}
 
-// Destructor
-LCDetectorConstruction::~LCDetectorConstruction()
-{
-}
+LCDetectorConstruction::~LCDetectorConstruction(){}
 
-G4VPhysicalVolume* LCDetectorConstruction::Construct()
-{
+G4VPhysicalVolume* LCDetectorConstruction::Construct(){
+    G4cout<<"LCDetectorConstrucion::Construct(): Building Detector SubSets ...."<<G4endl;
+    InitDetectorParameters();
 
-      G4cout<< "LCDetectorConstrucion::Construct(): Building Detector SubSets ...." << G4endl;
-  InitDetectorParameters();
+    CreateTheWorld();
+    G4cout<<" Setup::LcalTBeam "<<Setup::LcalTBeam<<G4endl;
 
-  CreateTheWorld();          // makes World and sets logicWorld and physiWorld
-  G4cout << " Setup::LcalTBeam " << Setup::LcalTBeam << G4endl;
+    //if 2016 desy test beam. I removed 2014 TB option from the code. It's 2k19 already.
+    if(Setup::LcalTBeam > 0) BuildTBeamPT16(); 
+    else{
+        if(Setup::Nominal_Field_value > 0.) BuildField();
+        if(Setup::Build_Beampipe == "Yes") BuildBeamPipe();
 
-  if(Setup::LcalTBeam >0 ){
-	if (Setup::LcalTBeam == 1)
-  		  BuildTBeamPT(); // for 2014 cern test beam 
-	else 
-		BuildTBeamPT16(); // for 2016 desy test beam 
-  }else{
+        BuildLCal();
 
-    if( Setup::Nominal_Field_value > 0. ) BuildField();
+        if(Setup::Build_LHcal == "Yes") BuildLHcal();
+        if(Setup::Build_BCal == "Yes") BuildBCal();
+        if(Setup::Build_Mask == "Yes") BuildMask();
 
-    if( Setup::Build_Beampipe == "Yes" ) BuildBeamPipe();
-
-    BuildLCal();
-
-    if( Setup::Build_LHcal == "Yes" ) BuildLHcal();
-
-    if( Setup::Build_BCal  == "Yes" ) BuildBCal();
-
-    if( Setup::Build_Mask  == "Yes" ) BuildMask();
-
-    SetRegionCuts();
-
-    Print();
+        SetRegionCuts();
+        Print();
     }
-  return physiWorld;
+    G4cout<<"LCDetectorConstruction::Construct completed."<<G4endl;
 
-  G4cout << " ==== " << G4endl;
-    G4cout << "LCDetectorConstruction::Construct completed." << G4endl;
-
+    return physiWorld;
 }
 
-void LCDetectorConstruction::SetRegionCuts()
-{
-  //  LCAL
-  G4ProductionCuts *cutsLCal = new G4ProductionCuts();
-  cutsLCal->SetProductionCut( Setup::LCal_Region_Cut *mm);
-  regionLCal->SetProductionCuts(cutsLCal);
-  //  LHCAL
-  if( Setup::Build_LHcal == "Yes" ){
-  G4ProductionCuts *cutsLHcal = new G4ProductionCuts();
-  cutsLHcal->SetProductionCut( Setup::LHcal_Region_Cut *mm);
-  regionLHcal->SetProductionCuts(cutsLHcal);
-  }
-  //  BCAL
-  if( Setup::Build_BCal  == "Yes" ){
-  G4ProductionCuts *cutsBCal = new G4ProductionCuts();
-  cutsBCal->SetProductionCut( Setup::BCal_Region_Cut *mm);
-  regionBCal->SetProductionCuts(cutsBCal);
-  }
-  //  MASK
-  if( Setup::Build_Mask  == "Yes" ) {
-  G4ProductionCuts *cutsMask = new G4ProductionCuts();
-  cutsMask->SetProductionCut( Setup::Mask_Region_Cut *mm);
-  regionMask->SetProductionCuts(cutsMask);
-  }
+void LCDetectorConstruction::SetRegionCuts(){
+    // LCAL
+    G4ProductionCuts *cutsLCal = new G4ProductionCuts();
+    cutsLCal->SetProductionCut(Setup::LCal_Region_Cut*mm);
+    regionLCal->SetProductionCuts(cutsLCal);
+    // LHCAL
+    if(Setup::Build_LHcal == "Yes"){
+        G4ProductionCuts *cutsLHcal = new G4ProductionCuts();
+        cutsLHcal->SetProductionCut(Setup::LHcal_Region_Cut*mm);
+        regionLHcal->SetProductionCuts(cutsLHcal);
+    }
+    // BCAL
+    if(Setup::Build_BCal == "Yes"){
+        G4ProductionCuts *cutsBCal = new G4ProductionCuts();
+        cutsBCal->SetProductionCut(Setup::BCal_Region_Cut*mm);
+        regionBCal->SetProductionCuts(cutsBCal);
+    }
+    // MASK
+    if(Setup::Build_Mask == "Yes"){
+        G4ProductionCuts *cutsMask = new G4ProductionCuts();
+        cutsMask->SetProductionCut(Setup::Mask_Region_Cut*mm);
+        regionMask->SetProductionCuts(cutsMask);
+    }
 }
 
-void LCDetectorConstruction::InitDetectorParameters()
-{
+void LCDetectorConstruction::InitDetectorParameters(){
+    // Initialize LCAL local parameters
+    Vacuum = Setup::Vacuum; // beam pipe filler
+    Air = Setup::Air; // world filler
+    PLASTIC_SC = Setup::PLASTIC_SC; // world filler
+    Silicon = Setup::Silicon; // Sensor Cell
+    Iron = Setup::Iron; // material for lateral beam tubes
+    Aluminium = Setup::Alu; // material for LCAL mechanical parts
+    Tungsten = Setup::Wabsorber; // Absorber plate
+    Graphite = Setup::Graphite;
+    FanoutMatF = Setup::FanoutMatF; // Front Fanout material
+    FanoutMatB = Setup::FanoutMatB; // Back Fanout material
+    BeamPipeMat = Setup::Beryllium;
+    LHcalMat = Setup::Tungsten;
+    BCalMat = Setup::Tungsten;
+    Mask_Mat = Setup::Tungsten;
+    if(Setup::Build_Beampipe == "Yes") WorldMat = Air;
+    else WorldMat = Vacuum;
+    if(Setup::LcalTBeam >0) WorldMat = Air;
+    rotAng = Setup::Beam_Crossing_Angle / 2.;
+    rotAng1 = 180.*deg - rotAng;
+    rotAng2 = rotAng;
 
-  // Initialize LCAL local parameters
+    // geometric parameters
+    // LCAL
+    VirtualCell = Setup::Lcal_virtual_cells; // cell type 
+    nLayers = Setup::Lcal_n_layers;
+    nSectors = Setup::Lcal_n_sectors;
+    nTiles = Setup::Lcal_n_tiles;
+    nCells = Setup::Lcal_n_rings;
 
-  Vacuum      = Setup::Vacuum;                // beam pipe filler
-  Air         = Setup::Air;                   // world filler
-  PLASTIC_SC  = Setup::PLASTIC_SC;                   // world filler
-  Silicon     = Setup::Silicon;               // Sensor Cell
-  Iron        = Setup::Iron;                  // material for lateral beam tubes
-  Aluminium   = Setup::Alu;                   // material for LCAL mechanical parts
-  Tungsten    = Setup::Wabsorber;              // Absorber plate
-  Graphite    = Setup::Graphite;
-  FanoutMatF  = Setup::FanoutMatF;            // Front Fanout material
-  FanoutMatB  = Setup::FanoutMatB;            // Back Fanout material
-  BeamPipeMat = Setup::Beryllium;
-  LHcalMat    = Setup::Tungsten;
-  BCalMat     = Setup::Tungsten;
-  Mask_Mat    = Setup::Tungsten;
-  if ( Setup::Build_Beampipe == "Yes" ) WorldMat  = Air;
-  else WorldMat = Vacuum;
-  if(Setup::LcalTBeam >0 ) WorldMat  = Air;
-  rotAng      = Setup::Beam_Crossing_Angle / 2.;
-  rotAng1     = 180.*deg - rotAng;
-  rotAng2     = rotAng;
-  // geometric parameters
-  // LCAL
-  VirtualCell = Setup::Lcal_virtual_cells;                // cell type 
-  nLayers    = Setup::Lcal_n_layers;
-  nSectors   = Setup::Lcal_n_sectors;
-  nTiles     = Setup::Lcal_n_tiles;;
-  nCells     = Setup::Lcal_n_rings;
+    Lcal_zend = Setup::Lcal_z_end;
+    innerRad = Setup::Lcal_inner_radius;
+    Cell0_Rad = Setup::Lcal_Cell0_radius;
+    SensRadMin = Setup::Lcal_SensRadMin; // silicon sensor r-min including dead edges
+    SensRadMax = Setup::Lcal_SensRadMax; // silicon sensor r-max
 
-  Lcal_zend  = Setup::Lcal_z_end;
-  innerRad   = Setup::Lcal_inner_radius;
-  Cell0_Rad  = Setup::Lcal_Cell0_radius;
-  SensRadMin = Setup::Lcal_SensRadMin;        // silicon sensor r-min including dead edges
-  SensRadMax = Setup::Lcal_SensRadMax;        // silicon sensor r-max
-
-  deadPhi    = Setup::Lcal_sector_dead_gap;
-  phi_offset = Setup::Lcal_layers_phi_offset;
- // derived
-  hLumiCalDZ     = Setup::Lcal_hdz;          // half length of LCAL
-  Lcal_zbegin    = Lcal_zend - 2.*hLumiCalDZ ;
-  SensDZ         = Setup::Lcal_sensor_dz;
-  CellPitch      = Setup::Lcal_CellPitch;
-  layer_gap      = Setup::Lcal_layer_gap;         // air gap between layers
-  hSiliconDZ     = Setup::Lcal_silicon_hdz;       // half thickness of the silicon
-  hMetalDZ      = Setup::Lcal_pad_metal_thickness/2.; // half thickness of the pad metallization
-  hFanoutFrontDZ = Setup::Lcal_fanoutF_hdz;       // half thickness fanout front
-  hFanoutBackDZ  = Setup::Lcal_fanoutB_hdz;       // half thickness fanout back 
-  hTungstenDZ    = Setup::Lcal_tungsten_hdz;      // half thickness absorber
-  hLayerDZ       = Setup::Lcal_layer_hdz;         // half thickness of the layer
-  hSensorDZ      = hSiliconDZ + hMetalDZ;        // sensor half thickness including metallization
-  hAbsorberPitchDZ = Setup::Lcal_absorber_pitch / 2.; // half pitch between absorber layer (defulte 1 mm) 
-  startPhi  = Setup::Lcal_start_phi;
-  endPhi    = Setup::Lcal_end_phi;
-  sectorPhi = Setup::Lcal_sector_dphi;
-  tilePhi   = endPhi / G4double( nTiles );
-  assert ( SensRadMin >= (innerRad / cos ( tilePhi /2. )));
-  // FE - space
-  FECave_hDZ =   Setup::Lcal_ChipCaveDepth/2.;
-  FECave_rmin =  Setup::Lcal_SensRadMax ;
-  FECave_rmax =  Setup::Lcal_FEChip_rmax;
-  PCB_hDZ     =  Setup::Lcal_PCB_thickness / 2.;
-  FEChip_hDZ  =  Setup::Lcal_FEChip_space / 2. ; 
-  G4double  FE_size = FECave_rmax - FECave_rmin;
-  Lcal_extra_size = (  FE_size > Setup::Lcal_space_for_ears ) ? FE_size : Setup::Lcal_space_for_ears;
-  outerRad   = SensRadMax + Lcal_extra_size;
-  assert ( FECave_hDZ >= ( PCB_hDZ + FEChip_hDZ )); 
-  // LHcal
-  LHcalToLCalDist = 45. *mm;
-  LHcal_zbegin = Lcal_zend + LHcalToLCalDist ;
-  LHcal_rmin  =   93.0 *mm;
-  LHcal_rmax  =  330.0 *mm;
-  LHcal_hDZ   = (525.0 /2.) *mm;
-  LHcal_zend = LHcal_zbegin + 2.*LHcal_hDZ ;
-  // BCal
-  BCalToLHcalDist = 390. *mm;
-  BCal_rmin       =  25. *mm;
-  BCal_rmax       = 150. *mm;
-  BCal_zbegin     = LHcal_zend + BCalToLHcalDist;
-  BCal_dPairMoni  =   1. *mm;   
-  BCal_dgraphite  = 100. *mm;   
-  BCal_zlength    = 117. *mm;
-  BCal_sphi       = 200. *deg;    
-  BCal_dphi       = 320. *deg;    
-  
-  // beam
-  pipe_th       = Setup::Beam_pipe_thickness;
-  Lcal_inner_pipe_zend     = BCal_zbegin - 5.0*mm; 
-  LcalToBeamTol = Setup::Lcal_to_BeamPipe_clearance; 
-  BCal_inner_outube_rmax = BCal_rmin - 2.*mm;
-  BCal_inner_intube_rmax = 15. *mm;
-  // mask
-  Mask_zstart = LHcal_zend + 5.*mm;
-  Mask_thickness = 50.*mm;
-  Mask_hDX  = 290.*mm;
-  Mask_hDY  = 290.*mm;
-  Mask_rmin_at_zstart = Setup::Lcal_inner_radius + Setup::Lcal_to_BeamPipe_clearance;
+    deadPhi = Setup::Lcal_sector_dead_gap;
+    phi_offset = Setup::Lcal_layers_phi_offset;
+    
+    // derived
+    hLumiCalDZ = Setup::Lcal_hdz; // half length of LCAL
+    Lcal_zbegin = Lcal_zend - 2.*hLumiCalDZ ;
+    SensDZ = Setup::Lcal_sensor_dz;
+    CellPitch = Setup::Lcal_CellPitch;
+    layer_gap = Setup::Lcal_layer_gap; // air gap between layers
+    hSiliconDZ = Setup::Lcal_silicon_hdz; // half thickness of the silicon
+    hMetalDZ = Setup::Lcal_pad_metal_thickness/2.; // half thickness of the pad metallization
+    hFanoutFrontDZ = Setup::Lcal_fanoutF_hdz; // half thickness fanout front
+    hFanoutBackDZ = Setup::Lcal_fanoutB_hdz; // half thickness fanout back 
+    hTungstenDZ = Setup::Lcal_tungsten_hdz; // half thickness absorber
+    hLayerDZ = Setup::Lcal_layer_hdz; // half thickness of the layer
+    hSensorDZ = hSiliconDZ + hMetalDZ; // sensor half thickness including metallization
+    hAbsorberPitchDZ = Setup::Lcal_absorber_pitch / 2.; // half pitch between absorber layer (defulte 1 mm) 
+    startPhi = Setup::Lcal_start_phi;
+    endPhi = Setup::Lcal_end_phi;
+    sectorPhi = Setup::Lcal_sector_dphi;
+    tilePhi = endPhi / G4double( nTiles );
+    assert(SensRadMin >= (innerRad / cos(tilePhi /2.)));
+    // FE - space
+    FECave_hDZ = Setup::Lcal_ChipCaveDepth/2.;
+    FECave_rmin = Setup::Lcal_SensRadMax;
+    FECave_rmax = Setup::Lcal_FEChip_rmax;
+    PCB_hDZ = Setup::Lcal_PCB_thickness / 2.;
+    FEChip_hDZ = Setup::Lcal_FEChip_space / 2.; 
+    G4double FE_size = FECave_rmax - FECave_rmin;
+    Lcal_extra_size = (FE_size > Setup::Lcal_space_for_ears) ? FE_size : Setup::Lcal_space_for_ears;
+    outerRad = SensRadMax + Lcal_extra_size;
+    assert(FECave_hDZ >= (PCB_hDZ + FEChip_hDZ)); 
+    // LHcal
+    LHcalToLCalDist = 45.*mm;
+    LHcal_zbegin = Lcal_zend + LHcalToLCalDist;
+    LHcal_rmin = 93.0*mm;
+    LHcal_rmax = 330.0*mm;
+    LHcal_hDZ = (525.0 /2.)*mm;
+    LHcal_zend = LHcal_zbegin + 2.*LHcal_hDZ;
+    // BCal
+    BCalToLHcalDist = 390.*mm;
+    BCal_rmin = 25.*mm;
+    BCal_rmax = 150.*mm;
+    BCal_zbegin = LHcal_zend + BCalToLHcalDist;
+    BCal_dPairMoni = 1.*mm;
+    BCal_dgraphite = 100.*mm;
+    BCal_zlength = 117.*mm;
+    BCal_sphi = 200.*deg;
+    BCal_dphi = 320.*deg;  
+    // beam
+    pipe_th = Setup::Beam_pipe_thickness;
+    Lcal_inner_pipe_zend = BCal_zbegin - 5.0*mm; 
+    LcalToBeamTol = Setup::Lcal_to_BeamPipe_clearance; 
+    BCal_inner_outube_rmax = BCal_rmin - 2.*mm;
+    BCal_inner_intube_rmax = 15. *mm;
+    // mask
+    Mask_zstart = LHcal_zend + 5.*mm;
+    Mask_thickness = 50.*mm;
+    Mask_hDX = 290.*mm;
+    Mask_hDY = 290.*mm;
+    Mask_rmin_at_zstart = Setup::Lcal_inner_radius + Setup::Lcal_to_BeamPipe_clearance;
 }
 
-void LCDetectorConstruction::CreateTheWorld()
-{
-    //---------------
+void LCDetectorConstruction::CreateTheWorld(){
     // WORLD
-    //---------------
     // Top level
-    G4cout<< "LCDetectorConstrucion::Construct(): creating World ....";
-    G4cout<< "The paramters : dx dy dz WorldMat = " <<Setup::world_hdx <<"- "  << Setup::world_hdy<<" -  "  << Setup::world_hdz << "- .... " << WorldMat ;
+    G4cout<<"LCDetectorConstrucion::Construct(): creating World ....";
+    G4cout<<"The paramters : dx dy dz WorldMat = "<<Setup::world_hdx<<"- "<<Setup::world_hdy<<" -  "<<Setup::world_hdz<<"- .... "<<WorldMat;
 
-    G4Box *solidWorld = new G4Box("World", Setup::world_hdx, Setup::world_hdy, Setup::world_hdz );
-         logicWorld = new G4LogicalVolume(solidWorld, WorldMat, "World", 0, 0, 0);
-	 physiWorld = new G4PVPlacement(0,               // no rotation
-                                       G4ThreeVector(), // origin
-                                       logicWorld,      // its logical volume
-                                       "World",         // name
-                                       0,               // no mother log; null ptr
-                                       false,           // no boolean ops
-                                       0);              // copy #
+    G4Box *solidWorld = new G4Box("World", Setup::world_hdx, Setup::world_hdy, Setup::world_hdz);
+    logicWorld = new G4LogicalVolume(solidWorld, WorldMat, "World", 0, 0, 0);
+    physiWorld = new G4PVPlacement(0, // no rotation
+                                    G4ThreeVector(), // origin
+                                    logicWorld, // its logical volume
+                                    "World", // name
+                                    0, // no mother log; null ptr
+                                    false, // no boolean ops
+                                    0); // copy
 
-         logicWorld->SetVisAttributes(G4VisAttributes::Invisible);
-
-	 G4cout<< ".......... done! " << G4endl;
-}
-//----------------------------------------
-//// 2011 test beam
-//----------------------------------------
-void LCDetectorConstruction::BuildTBeam(){
-  // air Box for DUT
-  /*
-  G4double LChx = 120.5 *mm;
-  G4double LChy = 120.5 *mm;
-  G4double LChz = 40.0 *mm;
-  //
-  G4Box *solidLC = new G4Box ( "solidLC", LChx, LChy, LChz );
-  G4LogicalVolume *logicLC = new G4LogicalVolume (solidLC, Air, "logicLC", 0, 0, 0);
-  logicLC->SetVisAttributes( G4VisAttributes::Invisible );
-  */
-
-  // alu box for sensors
-  G4double aluhx = 110.0 *mm;
-  G4double aluhy = 110.0 *mm;
-  G4double aluhz = 10.5 *mm;
-
-  G4Box *solidSpacer = new G4Box ( "solidSpacer", aluhx, aluhy, aluhz );
-  G4LogicalVolume *logicSpacer = new G4LogicalVolume (solidSpacer, Aluminium, "logicSpacer", 0, 0, 0);
-
-  // PCB
-  G4double pcbhx = 110.0 *mm;
-  G4double pcbhy = 110.0 *mm;
-  G4double pcbhz = 1.238 *mm;
-
-  G4Box *solidPCB = new G4Box ( "solidPCB", pcbhx, pcbhy, pcbhz );
-  G4LogicalVolume *logicPCB = new G4LogicalVolume (solidPCB, Setup::FR4, "logicPCB", 0, 0, 0);
-  // copper surface on PCB
-  G4double Cuhz = 0.019 *mm;
-
-  G4Box *solidCu = new G4Box ( "solidCu", pcbhx, pcbhy, Cuhz );
-  G4LogicalVolume *logicCu = new G4LogicalVolume (solidCu, Setup::Copper, "logicCu", 0, 0, 0);
-  // Copper layers on PCB
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., (pcbhz - Cuhz)), logicCu, "CuLayer", logicPCB, false, 1);
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., (-pcbhz + Cuhz)), logicCu, "CuLayer", logicPCB, false, 0);
-  // PCB into alu box
-  G4double PCBdistZ = 8.0*mm;
-  G4double zposPCB0 = -aluhz + pcbhz;
-  G4double zposPCB1 = -aluhz + 2.*pcbhz + PCBdistZ + pcbhz ; 
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., zposPCB0 ), logicPCB, "PCB0", logicSpacer, false, 0);
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., zposPCB1 ), logicPCB, "PCB1", logicSpacer, false, 0);
-  // sensor air spaces
-  G4double space0hz = 1.0 *mm;
-  G4double space1hz = 4.0 *mm;
-  G4double spaceWhz = 2.25 *mm;
-  G4double space0hy = 105.0 *mm;
-  G4double space0hx = 105.0 *mm;
-  G4Box *solidLayer0 = new G4Box ( "solidLayer0", space0hx, space0hy, space0hz );
-  G4Box *solidLayer1 = new G4Box ( "solidLayer1", space0hx, space0hy, space1hz );
-  G4Box *solidLayerW = new G4Box ( "solidLayerW", space0hx, space0hy, spaceWhz );
-  //
-  G4LogicalVolume *logicLayer0 = new G4LogicalVolume (solidLayer0, Air, "logicLayer0", 0, 0, 0);
-  G4LogicalVolume *logicLayer1 = new G4LogicalVolume (solidLayer1, Air, "logicLayer1", 0, 0, 0);
-  G4LogicalVolume *logicLayerW = new G4LogicalVolume (solidLayerW, Air, "logicLayerW", 0, 0, 0);
-  // sensor
-  G4double sPhi = 75. *deg;
-  G4double dPhi = 30. *deg;
-     G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin + deadPhi ,SensRadMax - deadPhi, hSiliconDZ, sPhi, dPhi);
-     G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin + deadPhi ,SensRadMax - deadPhi, hMetalDZ, sPhi, dPhi);
-     G4Tubs *solidFanoutFrnt  = new G4Tubs("solidFanoutFrnt",SensRadMin, SensRadMax, hFanoutFrontDZ, sPhi,dPhi);
-     logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0,0,0);
-     logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0,0,0);
-     logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF,"logicFanoutFront", 0, 0, 0);  
-     //
-     // sensor layer 0
-     //
-     G4double zSi0 = -space0hz + hSiliconDZ;
-     G4double zAl0 = zSi0 + hSiliconDZ + hMetalDZ;
-     G4double zFun0 = zAl0 + hMetalDZ + hFanoutFrontDZ;
-     G4double ypos = -( SensRadMin + 0.5*(SensRadMax-SensRadMin));
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zSi0), logicSensorV, "SensorV0", logicLayer0, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zAl0), logicMetalV, "PadMetal0", logicLayer0, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zFun0), logicFanoutFrnt, "FunOut0", logicLayer0, false, 0);
-     //
-     // sensor layer 1
-     //
-     G4double zSi1 = -space1hz + hSiliconDZ;
-     G4double zAl1 = zSi1+ hSiliconDZ + hMetalDZ;
-     G4double zFun1 = zAl1 + hMetalDZ + hFanoutFrontDZ;
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zSi1), logicSensorV, "SensorV1", logicLayer1, false, 1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zAl1), logicMetalV, "PadMetal1", logicLayer1, false, 1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zFun1), logicFanoutFrnt, "FunOut1", logicLayer1, false, 1);
-     //
-     // absorber (fixed) non existent in run 2 of 2011
-     //
-     if ( nLayers > 0){
-     G4double zposAbs0 = -spaceWhz + hTungstenDZ;
-     G4Box *solidAbs0 = new G4Box("solidAbs0", 60.*mm, 60.*mm, hTungstenDZ );
-     G4LogicalVolume *logicAbs0 = new G4LogicalVolume(solidAbs0, Tungsten, "logicAbs0", 0, 0, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 ), logicAbs0, "Absorber0", logicLayerW, false, 1);
-     }
-     //
-     // put layers to alubox
-     //
-     G4double dwall = 1.5 *mm;
-     G4double zpos0 = zposPCB0 + pcbhz + space0hz;
-     G4double zpos1 = zpos0 + space0hz + dwall + spaceWhz;
-     G4double zpos2 = zposPCB1 + pcbhz + space1hz;
-     new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos0 ), logicLayer0, "layer0", logicSpacer, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos1 ), logicLayerW, "layerW", logicSpacer, false, 0);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos2 ), logicLayer1, "layer1", logicSpacer, false, 1);
-     //
-     // put LCAL to world
-     //
-     G4double zposLC = -1000. *mm;
-     new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposLC ), logicSpacer, "DUT", logicWorld, false, 1);
-
-     //
-     // absorber ( variable thicknes )
-     //
-     if ( nLayers> 0 ) {
-       G4double absorberhz = (double)nLayers * hTungstenDZ ;
-       G4Box *solidAbs1 = new G4Box("solidAbs1", 60.*mm, 60.*mm, absorberhz );
-       G4LogicalVolume *logicAbs1 = new G4LogicalVolume(solidAbs1, Tungsten, "logicAbs1", 0, 0, 0);
-       new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposLC+aluhz+absorberhz ), logicAbs1, "Absorber1", logicWorld, false, 0);
-     }
-
-   //---------------
-    // SENSITIVE DETECTOR
-    //---------------
-    G4SDManager* SDman = G4SDManager::GetSDMpointer();
-
-    // Initialize the Sensitive Detector
-    SensDet = new LCSensitiveDetector("LumiCalSD",  // name
-                                      Cell0_Rad,    // inner LC radius
-                                      startPhi,     // start angle
-                                      CellPitch,    // radial cell size
-                                      sectorPhi,    // angular cell width
-                                      nCells,       // # cells in the rad dir
-                                      nSectors,     // # cells in the phi dir
-				      VirtualCell); // cell type real/virtual =  false/true
-        
-    SDman->AddNewDetector(SensDet);
-    // the Cells are the sensitive detectors
-   
-    logicSensorV->SetSensitiveDetector( SensDet );
-
-
-
-  G4cout <<  " Test Beam setup done !  "  << G4endl;
+    logicWorld->SetVisAttributes(G4VisAttributes::Invisible);
+    G4cout<< ".......... done! " << G4endl;
 }
 
-//----------------------------------------
-//// CERN 2014 Prototype test beam
-//----------------------------------------
-
-void LCDetectorConstruction::BuildTBeamPT(){
-  // air Box for DUT
-  /*
-  G4double LChx = 120.5 *mm;
-  G4double LChy = 120.5 *mm;
-  G4double LChz = 40.0 *mm;
-  //
-  G4Box *solidLC = new G4Box ( "solidLC", LChx, LChy, LChz );
-  G4LogicalVolume *logicLC = new G4LogicalVolume (solidLC, Air, "logicLC", 0, 0, 0);
-  logicLC->SetVisAttributes( G4VisAttributes::Invisible );
-  */
-   //
-   // base units : 1.  base unit with absorber PSB and sensor - "APS", 5.5 mm gup, 2 slot, total = 9mm 
-   //              2.  base unit with only sensor - "JS", no gup, no slot, total wide= 1 mm        
-   //              3.  base unit with only absorber and 1 slot gup -"AA", 5.5 mm gup, 2 slot, total =9mm
-   //		   4.  base unit with absorber and sensor - "AS", 1 mm gup, 1 slot, total =4.5mm
-   //  		   5.  base unit with only absorber - "A", 1 mm gup, 1 slot, total =4.5mm
-   //---------------------------------
-   G4cout<< " Building Test Beam 2014 ene..." << G4endl;
-   
-  // dim of calorimeter base Unit if c=1mm (disstence between absorber)Lcal_absorber_pitch
-  G4double CCpitchhz = 9 *mm; //regular pitch 2 slots = 9 mm  
-  G4double pitchhz = 2 * (hAbsorberPitchDZ + 2* hTungstenDZ);
-  if (pitchhz != CCpitchhz  )
-    std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ problem pitchhz != 9mm $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$44"<<std::endl;
-  G4double pitchhz1slot = pitchhz / 2.; //pitch for 1 slots = 4.5 mm  
-  G4double airhx = 150.0 *mm;
-  G4double airhy = 150.0 *mm;
-  G4double airhz = pitchhz / 2. ; // need to defint that  as Lcal_tungsten_hdz + C (spacer) = 2 slots = 3.5 mm +1 mm gup x 2
-  G4double airhz1slot = pitchhz1slot/2.; // for 1 mm gap = 1 slot = 3.5 mm +1 mm gup 
-  //G4double pitchhzJS = 1 *mm;
-  G4double pitchhzJS = hAbsorberPitchDZ;
-  G4double airhzJS = pitchhzJS / 2.;
-  
-  //G4double pitchhzAB = 5.5 *mm; 
-  G4double pitchhzAB = (2 * hAbsorberPitchDZ) + (2* hTungstenDZ);
-  //G4double pitchhz1mm = 4.5 *mm;
-  G4double pitchhz1mm =  hAbsorberPitchDZ +  (2* hTungstenDZ);
-  G4Box *solidBaseUnit = new G4Box ( "solidBaseUnit", airhx, airhy, airhz );
-  G4Box *solidBaseUnit_PL = new G4Box ( "solidBaseUnit_PL", airhx, airhy, airhz );  
-  G4LogicalVolume *logicBaseUnit = new G4LogicalVolume (solidBaseUnit, Air, "logicBaseUnit", 0, 0, 0);//1
-  G4LogicalVolume *logicBaseUnit_PL = new G4LogicalVolume (solidBaseUnit_PL, Air, "logicBaseUnit_PL", 0, 0, 0);//1
-  logicBaseUnit->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnit_PL->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4Box *solidBaseUnitNoAB = new G4Box ( "solidBaseUnitNoAB", airhx, airhy, airhzJS );
-  G4LogicalVolume *logicBaseUnitNoAB = new G4LogicalVolume (solidBaseUnitNoAB, Air, "logicBaseUnitNoAB", 0, 0, 0);//2
-  logicBaseUnitNoAB->SetVisAttributes( G4VisAttributes::Invisible );
-  
-  G4Box *solidBaseUnitAB = new G4Box ( "solidBaseUnitAB", airhx, airhy, airhz );
-  G4Box *solidBaseUnitAB_PL = new G4Box ( "solidBaseUnitAB_PL", airhx, airhy, airhz );  
-  G4LogicalVolume *logicBaseUnitONLYAB = new G4LogicalVolume (solidBaseUnitAB, Air, "logicBaseUnitONLYAB", 0, 0, 0);//3
-   G4LogicalVolume *logicBaseUnitONLYAB_PL = new G4LogicalVolume (solidBaseUnitAB_PL, Air, "logicBaseUnitONLYAB_PL", 0, 0, 0);//3
-  logicBaseUnitONLYAB->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnitONLYAB_PL->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4Box *solidBaseUnitFor1mm = new G4Box ( "solidBaseUnitFor1mm", airhx, airhy, airhz1slot );
-  G4Box *solidBaseUnitFor1mm_PL = new G4Box ( "solidBaseUnitFor1mm_PL", airhx, airhy, airhz1slot );  
-  G4LogicalVolume *logicBaseUnitFor1mm = new G4LogicalVolume (solidBaseUnitFor1mm, Air, "logicBaseUnitFor1mm", 0, 0, 0);//4
-  G4LogicalVolume *logicBaseUnitFor1mm_PL = new G4LogicalVolume (solidBaseUnitFor1mm_PL, Air, "logicBaseUnitFor1mm_PL", 0, 0, 0);//4
-  logicBaseUnitFor1mm->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnitFor1mm_PL->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4Box *solidBaseUnitAB1mm = new G4Box ( "solidBaseUnitAB1mm", airhx, airhy, airhz1slot );
-  G4Box *solidBaseUnitAB1mm_PL = new G4Box ( "solidBaseUnitAB1mm_PL", airhx, airhy, airhz1slot );  
-  G4LogicalVolume *logicBaseUnitAB1mm = new G4LogicalVolume (solidBaseUnitAB1mm, Air, "logicBaseUnitAB1mm", 0, 0, 0);// 5
-  G4LogicalVolume *logicBaseUnitAB1mm_PL = new G4LogicalVolume (solidBaseUnitAB1mm_PL, Air, "logicBaseUnitAB1mm_PL", 0, 0, 0);// 5
-  logicBaseUnitAB1mm->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnitAB1mm_PL->SetVisAttributes( G4VisAttributes::Invisible );
-
-  
- //absorber (single X0) in front sensor 
- //
-  G4double zposAbs0 = -airhz + hTungstenDZ;
-  G4Box *solidAbs0 = new G4Box("solidAbs0", 70.*mm, 70.*mm, hTungstenDZ );
-  G4Box *solidAbs0_MGS = new G4Box("solidAbs0_MGS", 70.*mm, 70.*mm, hTungstenDZ*1.02 ); // nominal thiknes of MSG plate is ~3.57
-  G4Box *solidAbs0_PL = new G4Box("solidAbs0_PL", 70.*mm, 70.*mm, hTungstenDZ );
-
-  G4LogicalVolume *logicAbs0 = new G4LogicalVolume(solidAbs0, Tungsten, "logicAbs0", 0, 0, 0);
-  G4LogicalVolume *logicAbs0_MGS = new G4LogicalVolume(solidAbs0_MGS,Setup::Wabsorber_MGS , "logicAbs0_MGS", 0, 0, 0); // 2 kind of absorber plate we use in 2014 -2015 TB
-  G4LogicalVolume *logicAbs0_PL = new G4LogicalVolume(solidAbs0_PL,Setup::Wabsorber_PL , "logicAbs0_PL", 0, 0, 0); 
-  G4double zpos1mmAbs0= -airhz1slot + hTungstenDZ;
-
-
-
-  //G4Colour *Abs0Color  = new	G4Colour(1., 0., 1., 1.);
-  //logicAbs0->SetVisAttributes( G4VisAttributes::Abs0Color );
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 ), logicAbs0_MGS, "Absorber0_MGS",logicBaseUnit , false, 0,1); // absorber in base unit 1 
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 ), logicAbs0_MGS, "Absorber0_MGS",logicBaseUnitONLYAB , false, 0); // absorber in base unit 3 
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos1mmAbs0 ), logicAbs0_MGS, "Absorber0_MGS",logicBaseUnitFor1mm , false, 0,1); // absorber in base unit 4
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos1mmAbs0 ), logicAbs0_MGS, "Absorber0_MGS",logicBaseUnitAB1mm , false, 0,1); // absorber in base unit 5
-
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 ), logicAbs0_PL, "Absorber0_PL",logicBaseUnit_PL , false, 0,1); // absorber in base unit 1 
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 ), logicAbs0_PL, "Absorber0_PL",logicBaseUnitONLYAB_PL , false, 0); // absorber in base unit 3 
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos1mmAbs0 ), logicAbs0_PL, "Absorber0_PL",logicBaseUnitFor1mm_PL , false, 0,1); // absorber in base unit 4
-  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zpos1mmAbs0 ), logicAbs0_PL, "Absorber0_PL",logicBaseUnitAB1mm_PL , false, 0,1); // absorber in base unit 5
-  G4VisAttributes *Abs0Att = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-	//Abs0Att->SetForceWireframe ( true );
-  logicAbs0->SetVisAttributes(Abs0Att);
-  logicAbs0_MGS->SetVisAttributes(Abs0Att);
-  logicAbs0_PL->SetVisAttributes(Abs0Att);  
-
-  // PCB
-  G4double pcbhx = 110.0 *mm;
-  G4double pcbhy = 110.0 *mm;
-  G4double pcbhz = 1.238 *mm;
-
-  G4Box *solidPCB = new G4Box ( "solidPCB", pcbhx, pcbhy, pcbhz );
-  G4LogicalVolume *logicPCB = new G4LogicalVolume (solidPCB, Setup::FR4, "logicPCB", 0, 0, 0);
-  // copper surface on PCB
-  G4double Cuhz = 0.019 *mm;
-  //logicPCB->SetVisAttributes( G4VisAttributes::SetColour(0.0,1.0,0.0,0.0) );
-  G4Box *solidCu = new G4Box ( "solidCu", pcbhx, pcbhy, Cuhz );
-  G4LogicalVolume *logicCu = new G4LogicalVolume (solidCu, Setup::Copper, "logicCu", 0, 0, 0);
-  // Copper layers on PCB
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., (pcbhz - Cuhz)), logicCu, "CuLayer", logicPCB, false, 1);
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., (-pcbhz + Cuhz)), logicCu, "CuLayer", logicPCB, false, 0);
-  // PCB into BaseUnit
-  //G4double PCBdistZ = 8.0*mm;
-  G4double zposPCB0 =  hTungstenDZ;
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., zposPCB0 ), logicPCB, "PCB0",logicBaseUnit , false, 0,1);
-  //new G4PVPlacement ( 0, G4ThreeVector(0., 0., zposPCB0 ), logicPCB, "PCB0",logicBaseUnitNoAB , false, 0,1);
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0., zposPCB0 ), logicPCB, "PCB0",logicBaseUnit_PL , false, 0,1);
-
-  G4VisAttributes *Pcb0Att = new G4VisAttributes(G4Colour(0.0,0.85,0.0));
-	//Pcb0Att->SetForceWireframe ( true );
-  logicPCB->SetVisAttributes(Pcb0Att);
-
-  
-  // sensor
-  G4double sPhi = 75. *deg;
-  G4double dPhi = 30. *deg;
-  G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin + deadPhi ,SensRadMax - deadPhi, hSiliconDZ, sPhi, dPhi);
-  G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin + deadPhi ,SensRadMax - deadPhi, hMetalDZ, sPhi, dPhi);
-  G4Tubs *solidFanoutFrnt  = new G4Tubs("solidFanoutFrnt",SensRadMin, SensRadMax, hFanoutFrontDZ, sPhi,dPhi);
-  logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0,0,0);
-  logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0,0,0);
-  logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF,"logicFanoutFront", 0, 0, 0);  
-  //logicSensorV->SetVisAttributes( G4VisAttributes::Invisible );
-  //logicMetalV->SetVisAttributes( G4VisAttributes::Invisible );
-  //logicFanoutFrnt->SetVisAttributes( G4VisAttributes::Invisible );
-
-  G4double zSi0 = hTungstenDZ - pcbhz - hSiliconDZ;
-  G4double zAl0 = zSi0 - hSiliconDZ - hMetalDZ;
-  G4double zFun0 = zAl0 - hMetalDZ - hFanoutFrontDZ;
-  G4double ypos = -( SensRadMin + 0.5*(SensRadMax-SensRadMin));
-  //place sensor in pcb
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zSi0), logicSensorV, "SensorV0", logicBaseUnit, false, 0,1);
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zAl0), logicMetalV, "PadMetal0", logicBaseUnit, false, 0,1);
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zFun0), logicFanoutFrnt, "FunOut0", logicBaseUnit, false, 0,1);
-  
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zSi0), logicSensorV, "SensorV0", logicBaseUnit_PL, false, 0,1);
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zAl0), logicMetalV, "PadMetal0", logicBaseUnit_PL, false, 0,1);
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zFun0), logicFanoutFrnt, "FunOut0", logicBaseUnit_PL, false, 0,1);
-
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zSi0), logicSensorV, "SensorV0", logicBaseUnitNoAB, false, 0,1); //2
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zAl0), logicMetalV, "PadMetal0", logicBaseUnitNoAB, false, 0,1 ); //2
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, zFun0), logicFanoutFrnt, "FunOut0", logicBaseUnitNoAB, false, 0,1);//2
-
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, airhz1slot ), logicSensorV, "SensorV0", logicBaseUnitFor1mm, false, 0,1); //4
-  new G4PVPlacement ( 0, G4ThreeVector( 0., ypos, airhz1slot ), logicSensorV, "SensorV0", logicBaseUnitFor1mm_PL, false, 0,1); //4
-
-
-     // put LCAL to world
-     //
-  G4double zposLC = 1000. *mm;
-  G4double zyposLC = -(22./64.)*(SensRadMax-SensRadMin) *mm;
-  G4double DUTairhx = 100.0 *mm;
-  G4double DUTairhy = 100.0 *mm;
-  G4double DUTairhz = 54 *mm; // need to defint that  as Lcal_tungsten_hdz + C (spacer) 
-  G4double DUTextrahz = 0.005 *mm; 
-  G4double ShiftForSigleMIP = 10 *mm; 
-  //G4Box *solidDUTBase = new G4Box ( "solidDUTBase", DUTairhx, DUTairhy, DUTairhz );
-  //G4LogicalVolume *logicDUTBase = new G4LogicalVolume (solidDUTBase, Air, "logicDUTBase", 0, 0, 0);
- 
- G4int n_layers = Setup::Lcal_n_layers;
-//-----------------
-// for general use 
-//-----------------
-
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------plaising layers : "       << n_layers  << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-
-std::istringstream iss((std::string)Setup::TBeam_senrio);
-G4int iplacelayer = 0;
-    while ((iss)&& (iplacelayer < n_layers))
-    {
-        std::stringstream placement_name("");
-      	std::string sub;
-        iss >> sub;
-        std::cout << "Substring:" << sub << std::endl;
-	if (sub == "A") {
-			placement_name << "DUTA" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC +0.5 *pitchhz1mm ),logicBaseUnitAB1mm, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz1mm + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-
-			}
-	else if(sub == "AA"){
-			placement_name << "DUTAA" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz ),logicBaseUnitONLYAB, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1,1);
-			zposLC= zposLC+ pitchhz + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}		
-	else if(sub == "AS"){
-			placement_name << "DUTAS" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz1mm),logicBaseUnitFor1mm, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz1mm + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
-	else if(sub == "APS"){
-			placement_name << "DUTAPS" << iplacelayer;	     		
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz ),logicBaseUnit, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
-	else if (sub == "A_PL") {
-			placement_name << "DUTA" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC +0.5 *pitchhz1mm ),logicBaseUnitAB1mm_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz1mm + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
-	else if(sub == "AA_PL"){
-			placement_name << "DUTAA" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz ),logicBaseUnitONLYAB_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1,1);
-			zposLC= zposLC+ pitchhz + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}		
-	else if(sub == "AS_PL"){
-			placement_name << "DUTAS" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz1mm),logicBaseUnitFor1mm_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz1mm + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
-	else if(sub == "APS_PL"){
-			placement_name << "DUTAPS" << iplacelayer;	     		
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 0.5 *pitchhz ),logicBaseUnit_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhz + DUTextrahz;
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
-	else if(sub == "JS"){
-			placement_name << "DUTJS" << iplacelayer;	     		
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC+ 0.5 *pitchhzJS ),logicBaseUnitNoAB, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			zposLC= zposLC+ pitchhzJS + DUTextrahz; 
-			G4cout<< " placed "<<iplacelayer <<" at z = " << zposLC<<" layer with name "<< placement_name << G4endl;
-			}
- 	else {
-		G4cout << "Substring: " << sub <<" in layer " << iplacelayer <<" is not recognized we will brack"<< G4endl;
-		break;
-		}
-	
-	iplacelayer++;
-    } 
-
-
-
-//new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + static_cast<double>(iplacelayer)* (pitchhz1mm + DUTextrahz)),logicBaseUnitFor1mm, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-
-
- //
- ///  for only 4 sensor same ware on the stack 
- //
-/* for (G4int iplacelayer = 0; iplacelayer < n_layers; iplacelayer++) {
-    std::stringstream placement_name("");
-    if ((iplacelayer > 5)&&(iplacelayer < 10 )){
-      placement_name << "DUTA" << iplacelayer;
-      new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + static_cast<double>(iplacelayer)* (pitchhz+DUTextrahz)),logicBaseUnit, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-    }
-      
-      else{
-      placement_name << "DUTB" << iplacelayer;
-    
-    new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + static_cast<double>(iplacelayer)* (pitchhz+DUTextrahz)),logicBaseUnitONLYAB, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-  }
- }*/
-  // for no sensor only AB and 9 mm use logicBaseUnitONLYAB
-  
-  
- //    new G4PVPlacement ( 0, G4ThreeVector( ShiftForSigleMIP, zyposLC, zposLC ),logicBaseUnitNoAB , "DUTA", logicWorld, 0, 1,1); //for 1 mip measurment  
-
- 
- /*    new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC ),logicBaseUnit , "DUTA", logicWorld, 0, 1,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + pitchhz +DUTextrahz  ),logicBaseUnit , "DUTA1", logicWorld, 0, 2,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 2* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA2", logicWorld, 0, 3,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 3* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA3", logicWorld, 0, 4,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 4* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA4", logicWorld, 0, 5,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 5* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA5", logicWorld, 0, 6,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 6* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA6", logicWorld, 0, 7,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 7* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA7", logicWorld, 0, 8,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 8* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA8", logicWorld, 0, 9,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 9* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTA9", logicWorld, 0, 10,1); 
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 10* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTB1", logicWorld, 0, 11,1);
-     new G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + 11* (pitchhz+DUTextrahz)),logicBaseUnit , "DUTB2", logicWorld, 0, 12,1);
-*/
-
-
-
-    // if  (logicWorld->G4PVPlacement::CheckOverlaps())
-    //  G4cout <<  " *************************CheckOverlaps is true****************  "  << G4endl;
-    // else 
-    //  G4cout <<  " ^^^^^^^^^^^^^^^^^^^^^^^^^^CheckOverlaps is false^^^^^^^^^^^^^^^^^ "  << G4endl;
-
-//new G4PVParameterised ("DUT", logicBaseUnit ,logicWorld , kZAxis , 12 , G4VPVParameterisation * pParam ); 
-    
-    //new G4PVReplica ("DUT", logicBaseUnit ,logicDUTBase , kZAxis, 12 , pitchhz, 0 *mm); 
-    //new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposLC ),logicDUTBase , "DUT", logicWorld, false, 0);
-
-//
-     // absorber ( variable thicknes )
-     //
-   //  if ( nLayers> 0 ) {
-    //   G4double absorberhz = (double)nLayers * hTungstenDZ ;
-     //  G4Box *solidAbs1 = new G4Box("solidAbs1", 60.*mm, 60.*mm, absorberhz );
-     //  G4LogicalVolume *logicAbs1 = new G4LogicalVolume(solidAbs1, Tungsten, "logicAbs1", 0, 0, 0);
-     //  new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposLC+aluhz+absorberhz ), logicAbs1, "Absorber1", logicWorld, false, 0);
-    // }
-
-   //---------------
-    // SENSITIVE DETECTOR
-    //---------------
-    G4SDManager* SDman = G4SDManager::GetSDMpointer();
-
-    // Initialize the Sensitive Detector
-    SensDet = new LCSensitiveDetector("LumiCalSD",  // name
-                                      Cell0_Rad,    // inner LC radius
-                                      startPhi,     // start angle
-                                      CellPitch,    // radial cell size
-                                      sectorPhi,    // angular cell width
-                                      nCells,       // # cells in the rad dir
-                                      nSectors,     // # cells in the phi dir
-				      VirtualCell); // cell type real/virtual =  false/true
-        
-    SDman->AddNewDetector(SensDet);
-    // the Cells are the sensitive detectors
-   
-    //logicSensorV->SetSensitiveDetector( SensDet );
-
-    if ( VirtualCell )  logicSensorV->SetSensitiveDetector( SensDet );
-
-      //logicCell->SetSensitiveDetector(SensDet);
-    else
-      //logicSensorV->SetSensitiveDetector( SensDet );
-
-    G4cout << "  there is no VirtualCell.... " << G4endl;
-
-
-  G4cout <<  " Test Beam setup done !  "  << G4endl;
-}
-
-
-
-//----------------------------------------
 //// DESY 2016 Prototype test beam
-//----------------------------------------
-
 void LCDetectorConstruction::BuildTBeamPT16(){
+    // ==============================================================================================================
+    // base units for 2016 TB  at desy : 
+    //  1. absorber and sensor - "AS"  / "AS_PL", 1 mm gup, 1 slot, total =4.5mm
+    //  2. absorber only base unit - "A" / "A_PL"  1 mm gup, 1 slot, total =4.5mm with Wabsorber_MGS (93% W )or Wabsorber_PL (95 % W) 
+    //  3. For Tracker base unit with only sensor muodul and air gup  - "JSM:X",  total wide= 1 + X mm
+    //  4. To add the plastic scintilator inftont use SC
+    // ==============================================================================================================
 
-//==============================================================================================================
-//base units for 2016 TB  at desy : 
-//		1. absorber and sensor - "AS"  / "AS_PL", 1 mm gup, 1 slot, total =4.5mm
-//		2. absorber only base unit - "A" / "A_PL"  1 mm gup, 1 slot, total =4.5mm with Wabsorber_MGS (93% W )or Wabsorber_PL (95 % W) 
-//		3. For Tracker base unit with only sensor muodul and air gup  - "JSM:X",  total wide= 1 + X mm
-//              4. To add the plastic scintilator inftont use SC
-//
-//
-//==============================================================================================================
+    G4cout<<" Building Test Beam 2016..."<<G4endl;
 
- G4cout<< " Building Test Beam 2016..." << G4endl;
+    // x, y axes beam sizes: 
+    G4double airhx = 150.0 *mm;
+    G4double airhy = 150.0 *mm;
 
-//---------------------------
-//   x, y  direction (beam) sizes 
-//---------------------------
-  G4double airhx = 150.0 *mm;
-  G4double airhy = 150.0 *mm;
-//---------------------------
-//   z direction (beam) sizes 
-//---------------------------
-//need to add z distences of elementts : 
-// 1 mm /2 for SensorMoudule and air gups. 
-//4.5 mm /2 for base unite with absorber.  
-//
-  G4double airhz =  hAbsorberPitchDZ +  hTungstenDZ ;  // should be 2.25 mm half a slut 
-  G4double airhz1mm = hAbsorberPitchDZ; // should be 0.5 mm 
- std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ pitchhz =  "<< 2* airhz *mm  <<" mm &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"<< std::endl;
- std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ pitchhz1mm =  "<< 2* airhz1mm *mm <<" mm &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"<< std::endl;
+    // z axis beam size:
+    //need to add z distences of elementts:
+    // 0.5 mm for SensorModule and air gaps.
+    // 2.25 mm for base unite with absorber.
 
- G4double airhz_PSC =  10.0*mm ;
- G4double airhz_TR_PSC =  3.75*mm ;
-//---------------------------
-//   building air base units (6 0f them ) 
-//---------------------------
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------    building air base units           : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-  G4Box *solidBaseUnit = new G4Box ( "solidBaseUnit", airhx, airhy, airhz );
-  G4Box *solidBaseUnit_PL = new G4Box ( "solidBaseUnit_PL", airhx, airhy, airhz );  
-  G4LogicalVolume *logicBaseUnit = new G4LogicalVolume (solidBaseUnit, Air, "logicBaseUnit", 0, 0, 0);//1
-  G4LogicalVolume *logicBaseUnit_PL = new G4LogicalVolume (solidBaseUnit_PL, Air, "logicBaseUnit_PL", 0, 0, 0);//2
-  logicBaseUnit->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnit_PL->SetVisAttributes( G4VisAttributes::Invisible );
- 
-  G4Box *solidBaseUnitAB = new G4Box ( "solidBaseUnitAB", airhx, airhy, airhz );
-  G4Box *solidBaseUnitAB_PL = new G4Box ( "solidBaseUnitAB_PL", airhx, airhy, airhz );  
-  G4LogicalVolume *logicBaseUnitONLYAB = new G4LogicalVolume (solidBaseUnitAB, Air, "logicBaseUnitONLYAB", 0, 0, 0);//3
-   G4LogicalVolume *logicBaseUnitONLYAB_PL = new G4LogicalVolume (solidBaseUnitAB_PL, Air, "logicBaseUnitONLYAB_PL", 0, 0, 0);//4
-  logicBaseUnitONLYAB->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnitONLYAB_PL->SetVisAttributes( G4VisAttributes::Invisible );
+    G4double airhz = hAbsorberPitchDZ + hTungstenDZ; // should be 2.25 mm - half a slot
+    G4double airhz1mm = hAbsorberPitchDZ; // should be 0.5 mm 
+    std::cout<<" pitchhz = "<<2*airhz*mm<<" mm "<<std::endl;
+    std::cout<<" pitchhz1mm = "<<2*airhz1mm*mm<<" mm "<<std::endl;
 
-  G4Box *solidBaseUnitFor1mm = new G4Box ( "solidBaseUnitFor1mm", airhx, airhy, airhz1mm );
-  G4Box *solidBaseUnitFor1mm_PL = new G4Box ( "solidBaseUnitFor1mm_NoS", airhx, airhy,airhz1mm );  
-  G4LogicalVolume *logicBaseUnitFor1mm = new G4LogicalVolume (solidBaseUnitFor1mm, Air, "logicBaseUnitFor1mm", 0, 0, 0);//5
-  G4LogicalVolume *logicBaseUnitFor1mm_NoS = new G4LogicalVolume (solidBaseUnitFor1mm_PL, Air, "logicBaseUnitFor1mm_NoS", 0, 0, 0);//6
-  logicBaseUnitFor1mm->SetVisAttributes( G4VisAttributes::Invisible );
-  logicBaseUnitFor1mm_NoS->SetVisAttributes( G4VisAttributes::Invisible );
+    G4double airhz_PSC = 10.0*mm;
+    G4double airhz_TR_PSC = 3.75*mm;
+
+    // building air base units (6 of them) 
+    std::cout << "-----------building air base units: "<<std::endl;
+    G4Box *solidBaseUnit = new G4Box("solidBaseUnit", airhx, airhy, airhz);
+    G4Box *solidBaseUnit_PL = new G4Box("solidBaseUnit_PL", airhx, airhy, airhz);
+    G4LogicalVolume *logicBaseUnit = new G4LogicalVolume(solidBaseUnit, Air, "logicBaseUnit", 0, 0, 0); // 1
+    G4LogicalVolume *logicBaseUnit_PL = new G4LogicalVolume(solidBaseUnit_PL, Air, "logicBaseUnit_PL", 0, 0, 0); // 2
+    logicBaseUnit->SetVisAttributes(G4VisAttributes::Invisible);
+    logicBaseUnit_PL->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4Box *solidBaseUnitAB = new G4Box("solidBaseUnitAB", airhx, airhy, airhz);
+    G4Box *solidBaseUnitAB_PL = new G4Box("solidBaseUnitAB_PL", airhx, airhy, airhz);  
+    G4LogicalVolume *logicBaseUnitONLYAB = new G4LogicalVolume(solidBaseUnitAB, Air, "logicBaseUnitONLYAB", 0, 0, 0); // 3
+    G4LogicalVolume *logicBaseUnitONLYAB_PL = new G4LogicalVolume(solidBaseUnitAB_PL, Air, "logicBaseUnitONLYAB_PL", 0, 0, 0); // 4
+    logicBaseUnitONLYAB->SetVisAttributes(G4VisAttributes::Invisible);
+    logicBaseUnitONLYAB_PL->SetVisAttributes(G4VisAttributes::Invisible);
+
+    G4Box *solidBaseUnitFor1mm = new G4Box("solidBaseUnitFor1mm", airhx, airhy, airhz1mm);
+    G4Box *solidBaseUnitFor1mm_PL = new G4Box("solidBaseUnitFor1mm_NoS", airhx, airhy,airhz1mm);  
+    G4LogicalVolume *logicBaseUnitFor1mm = new G4LogicalVolume(solidBaseUnitFor1mm, Air, "logicBaseUnitFor1mm", 0, 0, 0); // 5
+    G4LogicalVolume *logicBaseUnitFor1mm_NoS = new G4LogicalVolume(solidBaseUnitFor1mm_PL, Air, "logicBaseUnitFor1mm_NoS", 0, 0, 0); // 6
+    logicBaseUnitFor1mm->SetVisAttributes(G4VisAttributes::Invisible);
+    logicBaseUnitFor1mm_NoS->SetVisAttributes(G4VisAttributes::Invisible);
   
-   G4Colour *SC_Color  = new	G4Colour(1., 0., 1., 1.);
-  ///for Plastic SC
-  G4Box *solidBase_PSC = new G4Box ( "solidBase_PSC", airhx, airhy, airhz_PSC );
-  G4LogicalVolume *logicBaseUnit_PSC = new G4LogicalVolume (solidBase_PSC, PLASTIC_SC , "logicBaseUnit_PSC", 0, 0, 0);//5
-  logicBaseUnit_PSC->SetVisAttributes( SC_Color );
-//for trigger SC
-G4Box *solidBase_TR_PSC = new G4Box ( "solidBase_TR_PSC", airhx, airhy, airhz_TR_PSC );
-  G4LogicalVolume *logicBaseUnit_TR_PSC = new G4LogicalVolume (solidBase_TR_PSC, PLASTIC_SC , "logicBaseUnit_TR_PSC", 0, 0, 0);//5
-  logicBaseUnit_TR_PSC->SetVisAttributes(  SC_Color);
-//--------------------------------------------
-//add absorber (single X0) in front sensor 
-//---------------------------------------------
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------    building  absorber               : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
+    G4Colour *SC_Color = new G4Colour(1., 0., 1., 1.);
+    // for Plastic SC
+    G4Box *solidBase_PSC = new G4Box("solidBase_PSC", airhx, airhy, airhz_PSC);
+    G4LogicalVolume *logicBaseUnit_PSC = new G4LogicalVolume(solidBase_PSC, PLASTIC_SC , "logicBaseUnit_PSC", 0, 0, 0); // 5
+    logicBaseUnit_PSC->SetVisAttributes(SC_Color);
+    // for trigger SC
+    G4Box *solidBase_TR_PSC = new G4Box("solidBase_TR_PSC", airhx, airhy, airhz_TR_PSC);
+    G4LogicalVolume *logicBaseUnit_TR_PSC = new G4LogicalVolume(solidBase_TR_PSC, PLASTIC_SC , "logicBaseUnit_TR_PSC", 0, 0, 0); // 5
+    logicBaseUnit_TR_PSC->SetVisAttributes(SC_Color);
 
-  G4double zposAbs0 = -airhz + hTungstenDZ;
-  G4double zposAbs0_MSG = -airhz + hTungstenDZ*1.02;
+    // add absorber (single X0) in front sensor 
+    std::cout<<"-----------building absorber: "<<std::endl;
 
-  G4Box *solidAbs0 = new G4Box("solidAbs0", 70.*mm, 70.*mm, hTungstenDZ );
-  G4Box *solidAbs0_MGS = new G4Box("solidAbs0_MGS", 70.*mm, 70.*mm, hTungstenDZ*1.02 ); // nominal thiknes of MSG plate is ~3.57
-  G4Box *solidAbs0_PL = new G4Box("solidAbs0_PL", 70.*mm, 70.*mm, hTungstenDZ );
+    G4double zposAbs0 = -airhz + hTungstenDZ;
+    G4double zposAbs0_MSG = -airhz + hTungstenDZ*1.02;
 
-  G4LogicalVolume *logicAbs0 = new G4LogicalVolume(solidAbs0, Tungsten, "logicAbs0", 0, 0, 0);
-  G4LogicalVolume *logicAbs0_MGS = new G4LogicalVolume(solidAbs0_MGS,Setup::Wabsorber_MGS , "logicAbs0_MGS", 0, 0, 0); // 2 kind of absorber plate we use in 2014 -2015 TB
-  G4LogicalVolume *logicAbs0_PL = new G4LogicalVolume(solidAbs0_PL,Setup::Wabsorber_PL , "logicAbs0_PL", 0, 0, 0); 
- 
- //G4double zpos1mmAbs0= -airhz1slot + hTungstenDZ;
+    G4Box *solidAbs0 = new G4Box("solidAbs0", 70.*mm, 70.*mm, hTungstenDZ);
+    G4Box *solidAbs0_MGS = new G4Box("solidAbs0_MGS", 70.*mm, 70.*mm, hTungstenDZ*1.02); // nominal thiknes of MSG plate is ~3.57
+    G4Box *solidAbs0_PL = new G4Box("solidAbs0_PL", 70.*mm, 70.*mm, hTungstenDZ);
 
+    G4LogicalVolume *logicAbs0 = new G4LogicalVolume(solidAbs0, Tungsten, "logicAbs0", 0, 0, 0);
+    G4LogicalVolume *logicAbs0_MGS = new G4LogicalVolume(solidAbs0_MGS,Setup::Wabsorber_MGS , "logicAbs0_MGS", 0, 0, 0); // 2 kind of absorber plate we use in 2014 -2015 TB
+    G4LogicalVolume *logicAbs0_PL = new G4LogicalVolume(solidAbs0_PL,Setup::Wabsorber_PL , "logicAbs0_PL", 0, 0, 0); 
 
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------  Placement  absorber                : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-  //G4Colour *Abs0Color  = new	G4Colour(1., 0., 1., 1.);
-  //logicAbs0->SetVisAttributes( G4VisAttributes::Abs0Color );
- new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0_MSG ), logicAbs0_MGS, "Absorber0_MGS"  ,logicBaseUnit , false, 0,1); // absorber in base unit 1 
- new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 )    , logicAbs0_PL,  "Absorber0_PL"   ,logicBaseUnit_PL , false, 0,1); // absorber in base unit 2 
- new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0_MSG ), logicAbs0_MGS, "Absorber0_MGS"  ,logicBaseUnitONLYAB , false, 0, 1); // absorber in base unit 3 
- new G4PVPlacement ( 0, G4ThreeVector( 0., 0., zposAbs0 )    , logicAbs0_PL,  "Absorber0_PL"   ,logicBaseUnitONLYAB_PL , false, 0, 1); // absorber in base unit 4 
+    std::cout<<"-----------Placement absorber: "<<std::endl;
 
-  G4VisAttributes *Abs0Att = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
-	//Abs0Att->SetForceWireframe ( true );
-  logicAbs0->SetVisAttributes(Abs0Att);
-  logicAbs0_MGS->SetVisAttributes(Abs0Att);
-  logicAbs0_PL->SetVisAttributes(Abs0Att);  
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zposAbs0_MSG), logicAbs0_MGS, "Absorber0_MGS", logicBaseUnit, false, 0, 1); // absorber in base unit 1 
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zposAbs0), logicAbs0_PL, "Absorber0_PL", logicBaseUnit_PL, false, 0, 1); // absorber in base unit 2 
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zposAbs0_MSG), logicAbs0_MGS, "Absorber0_MGS", logicBaseUnitONLYAB, false, 0, 1); // absorber in base unit 3 
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zposAbs0), logicAbs0_PL, "Absorber0_PL", logicBaseUnitONLYAB_PL, false, 0, 1); // absorber in base unit 4 
 
-//----------------------------------------------
-//	carbon fiber suppurt 
-//---------------------------------------------
- 
-  G4double CFhx = 70.0 *mm;
-  G4double CFhy = 70.0 *mm;
-  G4double CFhz = 0.395 *mm;
+    G4VisAttributes *Abs0Att = new G4VisAttributes(G4Colour(0.0,0.0,1.0));
+    
+    logicAbs0->SetVisAttributes(Abs0Att);
+    logicAbs0_MGS->SetVisAttributes(Abs0Att);
+    logicAbs0_PL->SetVisAttributes(Abs0Att);  
 
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------   building carbon fiber suppurt      : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
+    // carbon fiber suppurt 
+    G4double CFhx = 70.0*mm;
+    G4double CFhy = 70.0*mm;
+    G4double CFhz = 0.395*mm;
 
-  G4Box *solidCF = new G4Box ( "solidCF", CFhx, CFhy, CFhz );
-  G4LogicalVolume *logicCF = new G4LogicalVolume (solidCF, Setup::C_fiber, "logicCF", 0, 0, 0);
+    std::cout<<"-----------building carbon fiber support: "<<std::endl;
+
+    G4Box *solidCF = new G4Box("solidCF", CFhx, CFhy, CFhz);
+    G4LogicalVolume *logicCF = new G4LogicalVolume(solidCF, Setup::C_fiber, "logicCF", 0, 0, 0);
   
-  G4VisAttributes *CF0Att = new G4VisAttributes(G4Colour(0.0,0.0,0.0));
-  logicCF->SetVisAttributes(CF0Att);
+    G4VisAttributes *CF0Att = new G4VisAttributes(G4Colour(0.0, 0.0, 0.0));
+    logicCF->SetVisAttributes(CF0Att);
 
-//---------------------------------------------
-//		sensor stracture from front to back  :
-//			1. 0.150 kapton front.
-//			1.2. 0.010 epoxy glue
-//			2.1. 0.020 AL on sensor
-//			2.2. 0.320 Si sensor
-//			2.3. 0.020 AL on sensor
-//			3.1. 0.040 epoxy (condactive - not take into acount)
-//			3.2. 0.025 cupper (on kapton)
-//			3.3. 0.065 kapton back
-// 			3.4. 0.020 epoxy glue
-//			total 0.670  
-//---------------------------------------------
- 
+    G4double sPhi = 75.*deg;
+    G4double dPhi = 30.*deg;
 
-  G4double sPhi = 75. *deg;
-  G4double dPhi = 30. *deg;
+    std::cout<<"-----------building sensor partrs: "<<std::endl;
 
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------   building sensor partrs             : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
+    G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin + deadPhi, SensRadMax - deadPhi, hSiliconDZ, sPhi, dPhi);
+    G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin + deadPhi, SensRadMax - deadPhi, hMetalDZ, sPhi, dPhi);
+    G4Tubs *solidFanoutFrnt = new G4Tubs("solidFanoutFrnt", SensRadMin, SensRadMax, hFanoutFrontDZ, sPhi, dPhi);
+    G4Tubs *solidFanoutBack = new G4Tubs("solidFanoutBack", SensRadMin, SensRadMax, hFanoutBackDZ, sPhi, dPhi);
 
-  G4Tubs *solidSensV = new G4Tubs("solidSensorV", SensRadMin + deadPhi ,SensRadMax - deadPhi, hSiliconDZ, sPhi, dPhi);
-  G4Tubs *solidMetal = new G4Tubs("solidMetal", SensRadMin + deadPhi ,SensRadMax - deadPhi, hMetalDZ, sPhi, dPhi);
-  G4Tubs *solidFanoutFrnt  = new G4Tubs("solidFanoutFrnt",SensRadMin, SensRadMax, hFanoutFrontDZ, sPhi,dPhi);
-  G4Tubs *solidFanoutBack  = new G4Tubs("solidFanoutBack",SensRadMin, SensRadMax, hFanoutBackDZ, sPhi,dPhi);
+    logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0, 0, 0);
+    logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0, 0, 0);
+    logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF, "logicFanoutFront", 0, 0, 0); 
+    logicFanoutBack = new G4LogicalVolume(solidFanoutBack, FanoutMatB, "logicFanoutFront", 0, 0, 0); 
 
-  logicSensorV = new G4LogicalVolume(solidSensV, Silicon, "logicSensorV", 0,0,0);
-  logicMetalV = new G4LogicalVolume(solidMetal, Aluminium, "logicMetalV", 0,0,0);
-  logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF,"logicFanoutFront", 0, 0, 0); 
-  logicFanoutBack = new G4LogicalVolume(solidFanoutBack, FanoutMatB,"logicFanoutFront", 0, 0, 0); 
+    logicSensorV->SetVisAttributes(G4VisAttributes::Invisible);
+    logicMetalV->SetVisAttributes(G4VisAttributes::Invisible);
+    G4VisAttributes *FanoutFrntAtt = new G4VisAttributes(G4Colour(1.0, 0.27, 0.0));
+    logicFanoutFrnt->SetVisAttributes(FanoutFrntAtt);
+
+    // placment of sensor part in CF
+
+    G4double ypos = -(SensRadMin + 0.5*(SensRadMax-SensRadMin));
+    
+    std::cout<<"-----------placement sensor partrs in CF suppurt: "<<std::endl;
+
+    std::cout<<"Some important sizes: "<<std::endl;
+    std::cout<<"ypos            : "<<ypos<<std::endl;
+    std::cout<<"CFhz            : "<<CFhz <<std::endl;
+    std::cout<<"hFanoutFrontDZ  : "<<hFanoutFrontDZ<<std::endl;
+    std::cout<<"hMetalDZ        : "<<hMetalDZ<<std::endl;
+    std::cout<<"hSiliconDZ      : "<<hSiliconDZ<<std::endl;
+    std::cout<<"hFanoutBackDZ   : "<<hFanoutBackDZ<<std::endl;
   
-  logicSensorV->SetVisAttributes( G4VisAttributes::Invisible );
-  logicMetalV->SetVisAttributes( G4VisAttributes::Invisible );
-  G4VisAttributes *FanoutFrntAtt = new G4VisAttributes(G4Colour(1.0,0.27,0.0));
-  logicFanoutFrnt->SetVisAttributes(FanoutFrntAtt);
+    G4double SensorAtCF = -CFhz + hFanoutFrontDZ; 
 
-//-------------------------------------------------------------
-//		placment of sensor part in CF
-//-------------------------------------------------------------
+    std::cout<<"1.SensorAtCF: "<<SensorAtCF<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., ypos, SensorAtCF), logicFanoutFrnt, "FunOut0", logicCF, false, 0, 1);
 
-  G4double ypos = -( SensRadMin + 0.5*(SensRadMax-SensRadMin));
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------  placment  sensor partrs  in CF suppurt : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-std::cout << "  some importent sizes " << std::endl;
-std::cout << " ypos            : " << ypos <<  std::endl;
-std::cout << " CFhz            : " << CFhz <<  std::endl;
-std::cout << " hFanoutFrontDZ  : " << hFanoutFrontDZ <<  std::endl;
-std::cout << " hMetalDZ        : " <<  hMetalDZ<<  std::endl;
-std::cout << " hSiliconDZ      : " <<  hSiliconDZ<<  std::endl;
-std::cout << " hFanoutBackDZ   : " <<  hFanoutBackDZ<<  std::endl;
+    SensorAtCF = SensorAtCF + hFanoutFrontDZ + hMetalDZ;
+    std::cout<<" 2.SensorAtCF: "<<SensorAtCF<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., ypos, SensorAtCF), logicMetalV, "PadMetal0", logicCF, false, 0, 1);
   
+    SensorAtCF = SensorAtCF + hMetalDZ + hSiliconDZ; 
+    std::cout<<"3.SensorAtCF: "<<SensorAtCF<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., ypos , SensorAtCF),logicSensorV , "SensorV0", logicCF, false, 0, 1);
+    
+    SensorAtCF = SensorAtCF + hSiliconDZ + hMetalDZ;
+    std::cout<<"4.SensorAtCF: "<<SensorAtCF<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., ypos, SensorAtCF), logicMetalV , "PadMetal1", logicCF, false, 0, 1);
+    
+    SensorAtCF = SensorAtCF + hMetalDZ + hFanoutBackDZ;
+    std::cout<<"5.SensorAtCF: "<<SensorAtCF<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., ypos , SensorAtCF), logicFanoutBack ,"FunOut1", logicCF, false, 0, 1);
 
-  G4double SensorAtCF = -CFhz +  hFanoutFrontDZ ; 
-  std::cout << " 1.SensorAtCF : " << SensorAtCF <<  std::endl;
-  new G4PVPlacement ( 0, G4ThreeVector(0., ypos, ( SensorAtCF)),logicFanoutFrnt , "FunOut0", logicCF, false,0, 1);
+
+    // placment of sensor & CF in base units 1,2,5
+    std::cout<<"-----------placement of CF suppurt in air base units: "<<std::endl;
+    new G4PVPlacement(0, G4ThreeVector(0., 0., airhz - CFhz ), logicCF, "CF0", logicBaseUnit, false, 0, 1); // 1
+    new G4PVPlacement(0, G4ThreeVector(0., 0., airhz - CFhz ), logicCF, "CF0", logicBaseUnit_PL, false, 0, 1); // 2
+    new G4PVPlacement(0, G4ThreeVector(0., 0., airhz1mm - CFhz ), logicCF, "CF0", logicBaseUnitFor1mm, false, 0, 1); // 5
+
+    // put LCAL to world
   
-  SensorAtCF = SensorAtCF + hFanoutFrontDZ +  hMetalDZ ; 
-  std::cout << " 2.SensorAtCF : " << SensorAtCF <<  std::endl;
-  new G4PVPlacement ( 0, G4ThreeVector(0., ypos, ( SensorAtCF)),logicMetalV , "PadMetal0", logicCF, false,0, 1);
-  
-  SensorAtCF = SensorAtCF + hMetalDZ + hSiliconDZ; 
-  std::cout << " 3.SensorAtCF : " << SensorAtCF <<  std::endl;
-  new G4PVPlacement ( 0, G4ThreeVector(0.,ypos , ( SensorAtCF)),logicSensorV , "SensorV0", logicCF, false,0, 1);
-  
-  SensorAtCF = SensorAtCF + hSiliconDZ + hMetalDZ;
-  std::cout << " 4.SensorAtCF : " << SensorAtCF <<  std::endl;
-  new G4PVPlacement ( 0, G4ThreeVector(0., ypos, ( SensorAtCF)),logicMetalV , "PadMetal1", logicCF, false,0, 1);
-  
-  SensorAtCF =  SensorAtCF + hMetalDZ + hFanoutBackDZ ; 
-  std::cout << " 5.SensorAtCF : " << SensorAtCF <<  std::endl;
- new G4PVPlacement ( 0, G4ThreeVector(0.,ypos , ( SensorAtCF)),logicFanoutBack , "FunOut1", logicCF, false,0, 1);
+    G4double zposLC = 3300.*mm; // for 2016 from 4th Telescope plane to box 
+    G4double zyposLC = -(22. / 64.) * (SensRadMax-SensRadMin)*mm;
+    G4double DUTairhx = 100.0*mm;
+    G4double DUTairhy = 100.0*mm;
+    G4double DUTairhz = 54*mm; // need to define that as Lcal_tungsten_hdz + C (spacer) 
+    G4double DUTextrahz = 0.002*mm; 
+    G4double ShiftForSigleMIP = 10*mm; 
 
+    G4double zpos_PSC = 1130.*mm; // for 2016 from 4th Telescope plane to Plastic scintilator  
+    G4double zpos_TR_PSC = 20.*mm; // for 2016 from 4th Telescope plane to TRiger Plastic scintilator  
+    G4int n_layers = Setup::Lcal_n_layers;
 
-//-------------------------------------------------------------
-//		placment of sensor & CF in base units 1,2,5
-//-------------------------------------------------------------
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------  placment of CF suppurt in air base units : "    << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0.,airhz - CFhz ),logicCF , "CF0",logicBaseUnit , false, 0,1); //1
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0.,airhz - CFhz ),logicCF , "CF0",logicBaseUnit_PL , false, 0,1); //2
-  new G4PVPlacement ( 0, G4ThreeVector(0., 0.,airhz1mm - CFhz ),logicCF , "CF0",logicBaseUnitFor1mm , false, 0,1); //5
+    // for general use 
+    std::cout<<"-----------N layers: "<<n_layers<<std::endl;
 
-
-     // put LCAL to world
-     //
-  //G4double zposLC = 1000. *mm;
-  
-  G4double zposLC =  3300. *mm; // for 2016 from 4th Telescope plane to box 
-  G4double zyposLC = -(22./64.)*(SensRadMax-SensRadMin) *mm;
-  G4double DUTairhx = 100.0 *mm;
-  G4double DUTairhy = 100.0 *mm;
-  G4double DUTairhz = 54 *mm; // need to defint that  as Lcal_tungsten_hdz + C (spacer) 
-  G4double DUTextrahz = 0.002 *mm; 
-  G4double ShiftForSigleMIP = 10 *mm; 
-
-  G4double zpos_PSC = 1130. *mm; // for 2016 from 4th Telescope plane to Plastic scintilator  
-   G4double zpos_TR_PSC = 20. *mm; // for 2016 from 4th Telescope plane to TRiger Plastic scintilator  
- G4int n_layers = Setup::Lcal_n_layers;
-//-----------------
-// for general use 
-//-----------------
-
- std::cout << "-------------------------------------------------" << std::endl;
- std::cout << "-----------plaising layers : "       << n_layers  << std::endl;
- std::cout << "-------------------------------------------------" << std::endl;
-
-int Is_SC = 0; 
-int Is_TSC = 0; 
-int Is_stag = 0; 
-G4double ypos_stag[8] = {0,0,0,0,0,0,0,0} ; 
-std::istringstream iss((std::string)Setup::TBeam_senrio);
-G4int iplacelayer = 0; // for sensors 
-G4int iplaceElements = 0; // for all 
-std::string delimiter = ":";
-    while ((iss)&& (iplacelayer < n_layers))
-    {
+    int Is_SC = 0; 
+    int Is_TSC = 0; 
+    int Is_stag = 0; 
+    G4double ypos_stag[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    std::istringstream iss((std::string)Setup::TBeam_senrio);
+    G4int iplacelayer = 0; // for sensors 
+    G4int iplaceElements = 0; // for all 
+    std::string delimiter = ":";
+    while(iss && (iplacelayer < n_layers)){
         std::stringstream placement_name("");
-      	std::string Osub;
-        iss >> Osub;
-        std::cout << "Substring:" << Osub << std::endl;
-	std::string delimiter = ":";
-	std::string tmpsub = Osub.substr(0, Osub.find(delimiter));
-	std::string sub;
-	int i_air = 0 ;
-	if ( tmpsub.length() < Osub.length()) // check if the ":" for air gup size for tracker is there 
-	{
-		Osub.erase(0, 1 + tmpsub.length());
-		i_air = std::atoi(Osub.c_str()) *mm;
-		sub = tmpsub;
-	}
-	else {
-		sub = tmpsub;
-	}
-	if (sub == "AS") {
-			placement_name << "DUTAS" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC+ypos_stag[iplacelayer], zposLC + airhz),logicBaseUnit, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			G4cout<< " placed "<<iplaceElements << " as sensor number  : " << iplacelayer<< " at z = " << zposLC<<" layer with name "<< placement_name.str().c_str() << G4endl;
-			zposLC= zposLC+ 2*airhz + DUTextrahz;
-			iplacelayer++;
-			}
-	else if(sub == "AS_PL"){
-			placement_name << "DUTASP" << iplacelayer;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC+ypos_stag[iplacelayer], zposLC + airhz  ),logicBaseUnit_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1,1);
-			G4cout<< " placed "<<iplaceElements << " as sensor number  : " << iplacelayer<<" at z = " << zposLC<<" layer with name "<< placement_name.str().c_str() << G4endl;
-			zposLC= zposLC+2*airhz + DUTextrahz;			
-			iplacelayer++;
-			}		
+        std::string Osub;
+        iss>>Osub;
+        std::cout<<"Substring: "<<Osub<<std::endl;
+        std::string delimiter = ":";
+        std::string tmpsub = Osub.substr(0, Osub.find(delimiter));
+        std::string sub;
+        int i_air = 0;
+        
+        // check if the ":" for air gap size for tracker is there
+        if(tmpsub.length() < Osub.length()){
+            Osub.erase(0, 1 + tmpsub.length());
+            i_air = std::atoi(Osub.c_str())*mm;
+            sub = tmpsub;
+        }
+        else{
+          sub = tmpsub;
+        }
+        
+        if(sub == "AS"){
+            placement_name<<"DUTAS"<<iplacelayer;
+            new G4PVPlacement(0, G4ThreeVector(0., zyposLC+ypos_stag[iplacelayer], zposLC + airhz), logicBaseUnit, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
+            G4cout<<"Placed "<<iplaceElements<<" as sensor number: "<<iplacelayer<<" at z = "<<zposLC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+            zposLC = zposLC + 2 * airhz + DUTextrahz;
+            iplacelayer++;
+        }
+        else if(sub == "AS_PL"){
+            placement_name<<"DUTASP"<<iplacelayer;
+            new G4PVPlacement(0, G4ThreeVector(0., zyposLC+ypos_stag[iplacelayer], zposLC + airhz), logicBaseUnit_PL, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
+            G4cout<<"Placed "<<iplaceElements<<" as sensor number: "<<iplacelayer<<" at z = "<<zposLC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+            zposLC = zposLC + 2 * airhz + DUTextrahz;           
+            iplacelayer++;
+        }       
 
-	else if (sub == "A_PL") {
-			placement_name << "ABP" << iplaceElements;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC +airhz ),logicBaseUnitONLYAB_PL, placement_name.str().c_str(), logicWorld, 0,iplaceElements +1, 1);
-			G4cout<< " placed "<<iplaceElements <<" at z = " << zposLC<<" layer with name "<< placement_name.str().c_str() << G4endl;
-			zposLC= zposLC+ 2* airhz + DUTextrahz;
-			//iplaceA++;
-			}
-	else if(sub == "A"){
-			placement_name << "AB" << iplaceElements;
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zposLC + airhz ),logicBaseUnitONLYAB, placement_name.str().c_str(), logicWorld, 0, iplaceElements+1,1);
-			G4cout<< " placed "<<iplaceElements <<" at z = " << zposLC<<" layer with name "<< placement_name.str().c_str() << G4endl;
-			zposLC= zposLC+ 2*airhz + DUTextrahz;			
-//iplaceA++;
-			}		
-	else if(sub == "JSM"){
-			placement_name << "DUTJSM" << iplacelayer;	     		
-			new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC+ypos_stag[iplacelayer], zposLC+ airhz1mm ),logicBaseUnitFor1mm, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
-			G4cout<< " placed "<<iplaceElements << " as sensor number  : " << iplacelayer<<" at z = " << zposLC<<" layer with name "<< placement_name.str().c_str() << G4endl;
-			zposLC= zposLC+ 2*airhz1mm + DUTextrahz + i_air; //add the air gup after 
-			iplacelayer++;
-			}
-	else if(sub == "SC"){
-			if(Is_SC == 0 ){
-				placement_name << "SC" ;	     		
-				new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zpos_PSC ),logicBaseUnit_PSC, placement_name.str().c_str(), logicWorld, 0, 1, 1);
-				G4cout<< " placed SC" <<" at z = " << zpos_PSC <<" layer with name "<< placement_name.str().c_str() << G4endl;
-				Is_SC =1; // can by placed only 1 time  
-			}
-			}
-	else if(sub == "TSC"){
-			if(Is_TSC == 0 ){
-				placement_name << "TR_SC" ;	     		
-				new  G4PVPlacement ( 0, G4ThreeVector( 0., zyposLC, zpos_TR_PSC ),logicBaseUnit_TR_PSC, placement_name.str().c_str(), logicWorld, 0, 1, 1);
-				G4cout<< " placed SC" <<" at z = " << zpos_TR_PSC <<" layer with name "<< placement_name.str().c_str() << G4endl;
-				Is_TSC =1; // can by placed only 1 time  
-			}
-			}
-	else if(sub == "stag"){
-			if(Is_stag == 0 ){
-				G4cout<< "Stag should applay before all sensor layers " << G4endl;
-                                double TB_stag[8] = {0.0, 0.0, 0.2*mm, -0.7 *mm, 1.5 *mm, -1.0 *mm, 0.0 ,0.0};// asked by marina
-				//double TB_stag[8] = {-0.11 * mm, -1.26* mm, 0.46*mm, -0.275644 *mm, 1.87705 *mm, -1.2183 *mm, 0.53323 *mm,0 *mm};// proper stagging 
-                               // double TB_stag[8] = {0.11 * mm, 1.26* mm, -0.46*mm, 0.275644 *mm, -1.87705 *mm, 1.2183 *mm, -0.53323 *mm,0 *mm};
-				for(int istag = 0 ; istag < 8 ; istag++){
-					ypos_stag[istag] = TB_stag[istag] ;
-                                        G4cout << "Stugging: layer " << istag <<" movment :  " << ypos_stag[istag] << G4endl;
+        else if(sub == "A_PL"){
+            placement_name<<"ABP"<<iplaceElements;
+            new G4PVPlacement(0, G4ThreeVector(0., zyposLC, zposLC+airhz), logicBaseUnitONLYAB_PL, placement_name.str().c_str(), logicWorld, 0, iplaceElements +1, 1);
+            G4cout<<"Placed "<<iplaceElements<<" at z = "<<zposLC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+            zposLC = zposLC + 2 * airhz + DUTextrahz;
+        }
+        
+        else if(sub == "A"){
+            placement_name<<"AB"<<iplaceElements;
+            new G4PVPlacement(0, G4ThreeVector(0., zyposLC, zposLC + airhz), logicBaseUnitONLYAB, placement_name.str().c_str(), logicWorld, 0, iplaceElements+1, 1);
+            G4cout<<"Placed "<<iplaceElements<<" at z = "<<zposLC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+            zposLC = zposLC + 2 * airhz + DUTextrahz;           
+        }
 
-				}	     		
+        else if(sub == "JSM"){
+            placement_name<<"DUTJSM"<<iplacelayer;
+            new G4PVPlacement(0, G4ThreeVector(0., zyposLC+ypos_stag[iplacelayer], zposLC+ airhz1mm), logicBaseUnitFor1mm, placement_name.str().c_str(), logicWorld, 0, iplacelayer+1, 1);
+            G4cout<<"Placed "<<iplaceElements<<" as sensor number : "<<iplacelayer<<" at z = "<<zposLC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+            zposLC = zposLC + 2 * airhz1mm + DUTextrahz + i_air; // add the air gap after 
+            iplacelayer++;
+        }
+        
+        else if(sub == "SC"){
+            if(Is_SC == 0){
+                placement_name<<"SC";
+                new G4PVPlacement(0, G4ThreeVector(0., zyposLC, zpos_PSC), logicBaseUnit_PSC, placement_name.str().c_str(), logicWorld, 0, 1, 1);
+                G4cout<<"Placed SC"<<" at z = "<<zpos_PSC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+                Is_SC = 1; // can be placed only 1 time  
+            }
+        }
+        
+        else if(sub == "TSC"){
+            if(Is_TSC == 0){
+                placement_name<<"TR_SC";
+                new G4PVPlacement(0, G4ThreeVector(0., zyposLC, zpos_TR_PSC), logicBaseUnit_TR_PSC, placement_name.str().c_str(), logicWorld, 0, 1, 1);
+                G4cout<<"Placed SC" <<" at z = "<<zpos_TR_PSC<<" layer with name "<<placement_name.str().c_str()<<G4endl;
+                Is_TSC = 1; // can by placed only 1 time  
+            }
+        }
+        
+        else if(sub == "stag"){
+            if(Is_stag == 0){
+                G4cout<<"Stag should applay before all sensor layers "<<G4endl;
+                double TB_stag[8] = {0.0, 0.0, 0.2*mm, -0.7*mm, 1.5*mm, -1.0*mm, 0.0 ,0.0}; // asked by Marina
+                //double TB_stag[8] = {-0.11*mm, -1.26*mm, 0.46*mm, -0.275644*mm, 1.87705*mm, -1.2183*mm, 0.53323*mm, 0*mm}; // proper stagging
+                //double TB_stag[8] = {0.11*mm, 1.26*mm, -0.46*mm, 0.275644*mm, -1.87705*mm, 1.2183*mm, -0.53323*mm, 0*mm};
+                for(int istag = 0; istag < 8; istag++){
+                    ypos_stag[istag] = TB_stag[istag];
+                    G4cout<<"Stugging: layer "<<istag<<" movment: "<<ypos_stag[istag]<<G4endl;
+                }
+                Is_stag = 1; // can be placed only 1 time  
+            }
+        }
 
-				Is_stag =1; // can by placed only 1 time  
-			}
-			}			
- 	else {
-		G4cout << "Substring: " << sub <<" in layer " << iplaceElements <<" is not recognized we will brack"<< G4endl;
-		break;
-		}
-	iplaceElements++;
-	
-    } 
+        else{
+            G4cout<<"Substring: "<<sub<<" in layer "<<iplaceElements<<" is not recognized. we will break"<<G4endl;
+            break;
+        }
+        iplaceElements++;
+    }
 
-   //---------------
     // SENSITIVE DETECTOR
-    //---------------
-    G4SDManager* SDman = G4SDManager::GetSDMpointer();
+    G4SDManager *SDman = G4SDManager::GetSDMpointer();
 
     // Initialize the Sensitive Detector
-    SensDet = new LCSensitiveDetector("LumiCalSD",  // name
-                                      Cell0_Rad,    // inner LC radius
-                                      startPhi,     // start angle
-                                      CellPitch,    // radial cell size
-                                      sectorPhi,    // angular cell width
-                                      nCells,       // # cells in the rad dir
-                                      nSectors,     // # cells in the phi dir
-				      VirtualCell); // cell type real/virtual =  false/true
-        
+    SensDet = new LCSensitiveDetector("LumiCalSD", // name
+                                      Cell0_Rad, // inner LC radius
+                                      startPhi, // start angle
+                                      CellPitch, // radial cell size
+                                      sectorPhi, // angular cell width
+                                      nCells, // # cells in the rad dir
+                                      nSectors, // # cells in the phi dir
+                                      VirtualCell); // cell type real/virtual = false/true
+
+    // Cells are the sensitive detectors
     SDman->AddNewDetector(SensDet);
-    // the Cells are the sensitive detectors
    
-    //logicSensorV->SetSensitiveDetector( SensDet );
+    if(VirtualCell) logicSensorV->SetSensitiveDetector(SensDet);
+    else G4cout<<"There is no VirtualCell..."<<G4endl;
 
-    if ( VirtualCell )  logicSensorV->SetSensitiveDetector( SensDet );
-
-      //logicCell->SetSensitiveDetector(SensDet);
-    else
-      //logicSensorV->SetSensitiveDetector( SensDet );
-
-    G4cout << "  there is no VirtualCell.... " << G4endl;
-
-
-  G4cout <<  " Test Beam setup done !  "  << G4endl;
+    G4cout<<"Test Beam setup is done!"<<G4endl;
 }
 
 
@@ -1134,187 +558,153 @@ std::string delimiter = ":";
 
 void LCDetectorConstruction::BuildLCal()
 {
-    //---------------
     // LUMICAL DETECTOR
-    //---------------
     // Contains all 30 layers
-      G4cout << " LCAL volume ..." << G4endl;
-      assert ( FECave_rmin >= SensRadMax );
+    G4cout<<"Processing LCAL volume..."<<G4endl;
+    assert(FECave_rmin >= SensRadMax);
 
-      G4double tolDZ = 0.010 *mm;
-    G4Tubs *solidWholeLC = new G4Tubs("solidWholeLC",
-				    innerRad,
-				    outerRad,
-				    hLumiCalDZ+tolDZ,
-				    startPhi,
-				    endPhi);
-    logicWholeLC = new G4LogicalVolume(solidWholeLC, Air,"logicWholeLC",0,0,0);
-		  G4cout << "                    ...done. " << G4endl;
- 
-    //---------------
+    G4double tolDZ = 0.010*mm;
+    G4Tubs *solidWholeLC = new G4Tubs("solidWholeLC", innerRad, outerRad, hLumiCalDZ+tolDZ, startPhi, endPhi);
+    logicWholeLC = new G4LogicalVolume(solidWholeLC, Air, "logicWholeLC", 0, 0, 0);
+    G4cout<<"...finished."<<G4endl;
+
     // LAYER
-    //---------------    
     // Basic component of LumiCal
     // Contains sensors, absorbers, and fanout layers
+    G4cout<<"Building Layer..."<<G4endl;
 
-
-    G4cout << " Building Layer ....."<< G4endl;
-
-  
     G4Tubs *solidLayer = new G4Tubs("solidLayer", innerRad, SensRadMax, hLayerDZ, startPhi, endPhi);
     logicLayer = new G4LogicalVolume(solidLayer, Air, "logicLayer", 0, 0, 0);
+    G4cout<<"...finished."<<G4endl;
 
-		  G4cout << "                    ...done.    " << G4endl;
-
-    //---------------
     // ABSORBER
-    //---------------
-		  if(Setup::Lcal_use_absorber){
-		    G4cout << " Building Absorber ....."<< G4endl;
     // tungsten plate
     // goes in back layer
 
-    G4Tubs *solidAbsorber = new G4Tubs("solidAbsorber", innerRad, SensRadMax, hTungstenDZ, startPhi, endPhi);
-    logicAbsorber = new G4LogicalVolume(solidAbsorber, Tungsten, "logicAbsorber", 0, 0, 0);   
+    if(Setup::Lcal_use_absorber){
+        G4cout<<"Building Absorber..."<<G4endl;
 
-		  G4cout << "                    ...done.    " << G4endl;
-		  }
+        G4Tubs *solidAbsorber = new G4Tubs("solidAbsorber", innerRad, SensRadMax, hTungstenDZ, startPhi, endPhi);
+        logicAbsorber = new G4LogicalVolume(solidAbsorber, Tungsten, "logicAbsorber", 0, 0, 0);
+        G4cout<<"...finished."<<G4endl;
+    }
 
-    //---------------
     // FANOUT
-    //---------------
-        if ( Setup::Lcal_use_fanout ) {
-	 G4cout << " Building Fanout ....."<< G4endl;
-	 // Funout plates solids
-	 G4Tubs *solidFanoutBack  = new G4Tubs("solidFanoutBack", innerRad, SensRadMax, hFanoutBackDZ, startPhi,endPhi);
-	 G4Tubs *solidFanoutFrnt  = new G4Tubs("solidFanoutBack", innerRad, SensRadMax, hFanoutFrontDZ, startPhi,endPhi);
- 	 logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF,"logicFanoutFront", 0, 0, 0);  
-	 logicFanoutBack = new G4LogicalVolume(solidFanoutBack, FanoutMatB,"logicFanoutBack", 0, 0, 0); 
-		  G4cout << "                    ...done.    " << G4endl;
-       }
-   //--------------------------------
-    //  " Lumical support"
-    //--------------------------------
-   //--------------------------------
-    //  " EARS "
-    //--------------------------------
-    //
-		  if ( Setup::Lcal_support ) {
-      G4double MechSpaceRmax = SensRadMax + Lcal_extra_size;
-      G4double EarsBaseRmax  = SensRadMax + 2.*mm;
-      G4double ear_dx  = SensRadMax + Setup::Lcal_space_for_ears;
-      G4double ear_dy  = 10.*ear_dx/sqrt(ear_dx*ear_dx-SensRadMax*SensRadMax);
-      G4double ear_hdz = (hLayerDZ - FECave_hDZ);
-      G4double ear_z   = hLayerDZ - ear_hdz;
-      G4int nBolts = 3;
-      G4double bolt_r = 4. *mm;
-      G4double xhole  = EarsBaseRmax  + Setup::Lcal_space_for_ears/2;
+    // Funout plates solids
 
-      G4Tubs *solidMechSpace = new G4Tubs( "solidMech",SensRadMax, MechSpaceRmax, hLumiCalDZ, startPhi, endPhi); 
-      G4Tubs *solidMechLay = new G4Tubs( "solidMechLay", SensRadMax, MechSpaceRmax, hLayerDZ, startPhi, endPhi);
-      G4Tubs *solidEarsBase = new G4Tubs( "solidEarsBase",SensRadMax, EarsBaseRmax, ear_hdz, startPhi, endPhi); 
-      G4Tubs *solidBolt = new G4Tubs( "solidBolt", 0., bolt_r, hLayerDZ, startPhi, endPhi);
+    if(Setup::Lcal_use_fanout ){
+        G4cout<<"Building Fanout..."<<G4endl;
+        G4Tubs *solidFanoutBack = new G4Tubs("solidFanoutBack", innerRad, SensRadMax, hFanoutBackDZ, startPhi, endPhi);
+        G4Tubs *solidFanoutFrnt = new G4Tubs("solidFanoutBack", innerRad, SensRadMax, hFanoutFrontDZ, startPhi, endPhi);
+        logicFanoutFrnt = new G4LogicalVolume(solidFanoutFrnt, FanoutMatF, "logicFanoutFront", 0, 0, 0);  
+        logicFanoutBack = new G4LogicalVolume(solidFanoutBack, FanoutMatB, "logicFanoutBack", 0, 0, 0); 
+        G4cout<<"...finished."<<G4endl;
+    }
+
+    // Lumical support
+    // EARS
+    if(Setup::Lcal_support){
+        G4double MechSpaceRmax = SensRadMax + Lcal_extra_size;
+        G4double EarsBaseRmax = SensRadMax + 2.*mm;
+        G4double ear_dx = SensRadMax + Setup::Lcal_space_for_ears;
+        G4double ear_dy = 10.*ear_dx/sqrt(ear_dx*ear_dx-SensRadMax*SensRadMax);
+        G4double ear_hdz = (hLayerDZ - FECave_hDZ);
+        G4double ear_z = hLayerDZ - ear_hdz;
+        G4int nBolts = 3;
+        G4double bolt_r = 4.*mm;
+        G4double xhole = EarsBaseRmax + Setup::Lcal_space_for_ears/2;
+
+        G4Tubs *solidMechSpace = new G4Tubs("solidMech", SensRadMax, MechSpaceRmax, hLumiCalDZ, startPhi, endPhi); 
+        G4Tubs *solidMechLay = new G4Tubs("solidMechLay", SensRadMax, MechSpaceRmax, hLayerDZ, startPhi, endPhi);
+        G4Tubs *solidEarsBase = new G4Tubs("solidEarsBase", SensRadMax, EarsBaseRmax, ear_hdz, startPhi, endPhi); 
+        G4Tubs *solidBolt = new G4Tubs("solidBolt", 0., bolt_r, hLayerDZ, startPhi, endPhi);
  
-      G4LogicalVolume *logicMechSpace = new G4LogicalVolume( solidMechSpace, Air, "logicMechSpace", 0, 0, 0); 
-      G4LogicalVolume *logicMechLay = new G4LogicalVolume( solidMechLay, Air, "logicMechLay", 0, 0, 0); 
-      G4LogicalVolume *logicEarsBase = new G4LogicalVolume( solidEarsBase, Tungsten, "logicEarsBase", 0, 0, 0); 
-      G4LogicalVolume *logicBolt = new G4LogicalVolume( solidBolt, Iron, "logicBolt", 0, 0, 0); 
-                       
-      new G4PVDivision("MechLayer", logicMechLay, logicMechSpace, kZAxis, nLayers, 0);
-      new G4PVPlacement ( 0, G4ThreeVector(0., 0., ear_z), logicEarsBase, "EarsBase", logicMechLay, false, 0); 
-    //
-    // make an "ear"
+        G4LogicalVolume *logicMechSpace = new G4LogicalVolume(solidMechSpace, Air, "logicMechSpace", 0, 0, 0); 
+        G4LogicalVolume *logicMechLay = new G4LogicalVolume(solidMechLay, Air, "logicMechLay", 0, 0, 0); 
+        G4LogicalVolume *logicEarsBase = new G4LogicalVolume(solidEarsBase, Tungsten, "logicEarsBase", 0, 0, 0); 
+        G4LogicalVolume *logicBolt = new G4LogicalVolume(solidBolt, Iron, "logicBolt", 0, 0, 0); 
 
-      G4EllipticalTube *solidEar0 = new G4EllipticalTube( "solidEar0", ear_dx, ear_dy, ear_hdz);
-      G4Tubs *clipper = new G4Tubs ( "clipper" , 0., EarsBaseRmax, hLayerDZ,startPhi, endPhi);
+        new G4PVDivision("MechLayer", logicMechLay, logicMechSpace, kZAxis, nLayers, 0);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., ear_z), logicEarsBase, "EarsBase", logicMechLay, false, 0); 
 
-      G4SubtractionSolid 
-	*solidEar1 = new G4SubtractionSolid ( "solidEar1",solidEar0, clipper, 0, G4ThreeVector( 0., 0.,0.));
-      // punch a hole for the bolt
-      G4Tubs *puncher = new G4Tubs( "puncher", 0., bolt_r, hLayerDZ, startPhi, endPhi);
-      // final "ear"
-      G4SubtractionSolid 
-        *solidEar2 = new G4SubtractionSolid( "solidEar2", solidEar1, puncher, 0, G4ThreeVector(  xhole, 0., 0.));
-      G4SubtractionSolid 
-        *solidEar  = new G4SubtractionSolid( "solidEar" , solidEar2, puncher, 0, G4ThreeVector( -xhole, 0., 0.));
-      // final logical
-      G4LogicalVolume *logicEar = new G4LogicalVolume ( solidEar, Tungsten, "logicEar", 0, 0, 0);
-      // placement 
-      // populate "MechLayer" with "Ear"s and Bolts
-      G4double dphi_rot = endPhi / G4double( 2*nBolts) ;
-      G4double supAng = 0.;
-      G4double ear_phi= supAng;
-      for ( int i=0 ; i < nBolts; i++ ){
-        std::stringstream strlayer;
-        strlayer << i+1;
-        G4String EarName = G4String("Ear") + G4String(strlayer.str());
+        // make an "ear"
 
-	/*	G4double xe = xhole*cos( ear_phi );
-	G4double ye = xhole*sin( ear_phi );
-        printf( "%3s%d%6s %7.2f %6s %6.2f %6s%6.2f\n","Ear",i," phi ", ear_phi," xh ",xe," yh ",ye);
-	*/
+        G4EllipticalTube *solidEar0 = new G4EllipticalTube("solidEar0", ear_dx, ear_dy, ear_hdz);
+        G4Tubs *clipper = new G4Tubs("clipper", 0., EarsBaseRmax, hLayerDZ, startPhi, endPhi);
+
+        G4SubtractionSolid *solidEar1 = new G4SubtractionSolid("solidEar1", solidEar0, clipper, 0, G4ThreeVector(0., 0., 0.));
+        // punch a hole for the bolt
+        G4Tubs *puncher = new G4Tubs("puncher", 0., bolt_r, hLayerDZ, startPhi, endPhi);
+        // final "ear"
+        G4SubtractionSolid *solidEar2 = new G4SubtractionSolid("solidEar2", solidEar1, puncher, 0, G4ThreeVector(xhole, 0., 0.));
+        G4SubtractionSolid *solidEar = new G4SubtractionSolid("solidEar", solidEar2, puncher, 0, G4ThreeVector(-xhole, 0., 0.));
+        // final logical
+        G4LogicalVolume *logicEar = new G4LogicalVolume(solidEar, Tungsten, "logicEar", 0, 0, 0);
+        // placement 
+        // populate "MechLayer" with "Ear"s and Bolts
+        G4double dphi_rot = endPhi / G4double(2 * nBolts);
+        G4double supAng = 0.;
+        G4double ear_phi = supAng;
+        for(int i=0 ;i < nBolts; i++){
+            std::stringstream strlayer;
+            strlayer<<i+1;
+            G4String EarName = G4String("Ear") + G4String(strlayer.str());
        
-	G4Transform3D transear ( G4RotationMatrix().rotateZ( ear_phi ),
-				   G4ThreeVector( 0., 0., ear_z).rotateZ( ear_phi ));
-	G4Transform3D tranbolt1 ( G4RotationMatrix().rotateZ( ear_phi ),
-				   G4ThreeVector( xhole, 0., 0.).rotateZ( ear_phi ));
-	G4Transform3D tranbolt2 ( G4RotationMatrix().rotateZ( ear_phi +180.*deg),
-				   G4ThreeVector( xhole, 0., 0.).rotateZ( ear_phi + 180.*deg));
-
+            G4Transform3D transear(G4RotationMatrix().rotateZ(ear_phi), G4ThreeVector(0., 0., ear_z).rotateZ(ear_phi));
+            G4Transform3D tranbolt1(G4RotationMatrix().rotateZ(ear_phi), G4ThreeVector(xhole, 0., 0.).rotateZ(ear_phi));
+            G4Transform3D tranbolt2(G4RotationMatrix().rotateZ(ear_phi + 180.*deg), G4ThreeVector(xhole, 0., 0.).rotateZ(ear_phi + 180.*deg));
  
-	new G4PVPlacement ( transear, logicEar, EarName, logicMechLay, false, i+1);
-        G4String BoltNam = G4String("Bolt") + G4String(strlayer.str());
-	new G4PVPlacement ( tranbolt1, logicBolt, BoltNam, logicMechLay, false, i+1);
-	strlayer << i+5;
-        BoltNam = G4String("Bolt") + G4String(strlayer.str());
-	new G4PVPlacement ( tranbolt2, logicBolt, BoltNam, logicMechLay, false, i+5);
-        ear_phi += dphi_rot ;
+            new G4PVPlacement(transear, logicEar, EarName, logicMechLay, false, i+1);
+            G4String BoltNam = G4String("Bolt") + G4String(strlayer.str());
+            new G4PVPlacement(tranbolt1, logicBolt, BoltNam, logicMechLay, false, i+1);
+            strlayer<<i+5;
+            BoltNam = G4String("Bolt") + G4String(strlayer.str());
+            new G4PVPlacement(tranbolt2, logicBolt, BoltNam, logicMechLay, false, i+5);
+            ear_phi += dphi_rot;
+        }
 
-      }
+        // sandwich the sensor layers. Go inside layer
+        G4double FErmax = FECave_rmax - 4.*mm;
+        G4double FErmin = FECave_rmin + 3.*mm;
+        G4double d_Gap = 10.*mm;
+        G4double FE_phi1 = atan(d_Gap/FECave_rmin);
+        G4double FE_dphi = endPhi/G4double(2*nBolts) - 2.*FE_phi1;
 
-    // sandwich the sensor layers
-    // go inside layer
+        // Front-End mother space solid
+        G4Tubs *solidFEmother = new G4Tubs("solidFE", FECave_rmin, FECave_rmax, FECave_hDZ, FE_phi1, FE_dphi);
+        G4Tubs *ChipEnv = new G4Tubs("ChipEnv" , FECave_rmin, FECave_rmax, FEChip_hDZ, FE_phi1, FE_dphi);
+        G4Tubs *solidPCB = new G4Tubs("solidPCB", FECave_rmin, FECave_rmax, PCB_hDZ, FE_phi1, FE_dphi);
 
-      G4double FErmax = FECave_rmax - 4. *mm;
-      G4double FErmin = FECave_rmin + 3. *mm;
-      G4double d_Gap = 10. *mm;
-      G4double FE_phi1 = atan(d_Gap/FECave_rmin);
-      G4double FE_dphi = endPhi/G4double(2*nBolts) - 2.*FE_phi1;
+        logicFEmother = new G4LogicalVolume(solidFEmother, Air, "logicFEmother", 0, 0, 0);
+        G4LogicalVolume *logicChipEnv = new G4LogicalVolume(ChipEnv, Air, "logicChipEnv", 0, 0, 0);
+        logicPCB = new G4LogicalVolume(solidPCB, FanoutMatB, "logicPCB", 0, 0, 0);
 
-	 // Front-End mother space solid
-	 G4Tubs *solidFEmother = new G4Tubs ( "solidFE" , FECave_rmin, FECave_rmax, FECave_hDZ, FE_phi1, FE_dphi);
-	 G4Tubs *ChipEnv  = new G4Tubs ( "ChipEnv" , FECave_rmin, FECave_rmax, FEChip_hDZ, FE_phi1, FE_dphi);
-	 G4Tubs *solidPCB      = new G4Tubs ( "solidPCB", FECave_rmin, FECave_rmax, PCB_hDZ,    FE_phi1, FE_dphi);
-	 //
-	 logicFEmother   = new G4LogicalVolume(solidFEmother, Air, "logicFEmother", 0, 0, 0);
-	 G4LogicalVolume *logicChipEnv = new G4LogicalVolume(ChipEnv, Air, "logicChipEnv", 0, 0, 0);
-       	 logicPCB        = new G4LogicalVolume(solidPCB, FanoutMatB, "logicPCB", 0, 0, 0);
-    //---------------
-    // Front-End chips
-    //---------------
-         G4int    nFE_Sectors  = nSectors/(2*nBolts);       
-         G4double FE_Sec_dphi  =  FE_dphi/G4double( nFE_Sectors );
-	 G4Tubs *solidFESector = new G4Tubs ( "solidFE", FErmin, FErmax, FEChip_hDZ, FE_phi1, FE_Sec_dphi );
-	 logicFESector = new G4LogicalVolume ( solidFESector, Air, "logicFESector", 0, 0, 0);
+        // Front-End chips
+        G4int nFE_Sectors = nSectors/(2*nBolts);
+        G4double FE_Sec_dphi = FE_dphi/G4double(nFE_Sectors);
+        G4Tubs *solidFESector = new G4Tubs("solidFE", FErmin, FErmax, FEChip_hDZ, FE_phi1, FE_Sec_dphi);
+        logicFESector = new G4LogicalVolume(solidFESector, Air, "logicFESector", 0, 0, 0);
 
-      new G4PVDivision( "FE-sector", logicFESector, logicChipEnv, kPhi, nFE_Sectors, 0);
-      // a chip
-      G4double hx = (FErmax - FErmin)/2.;
-      G4double hy =  FErmin*tan( FE_Sec_dphi/2.)- 1.*mm; 
-      G4double hz =  FEChip_hDZ; 
-      G4Box *solidChip = new G4Box ("solidChip", hx, hy, hz);
-      logicChip = new G4LogicalVolume( solidChip, Silicon, "logicFEChip", 0, 0, 0);
-      // populate FEmother with chips
-      G4ThreeVector xFE = G4ThreeVector ((FErmin+FErmax)/2., 0., 0.); 
-      G4Transform3D transFE( G4RotationMatrix().rotateZ((FE_phi1+FE_Sec_dphi/2.)), xFE.rotateZ((FE_phi1 + FE_Sec_dphi/2.)) );
-      new G4PVPlacement ( transFE, logicChip, "FE-chip", logicFESector, false, 0);
-      G4double Zpos = FECave_hDZ - PCB_hDZ;
-      new G4PVPlacement ( 0, G4ThreeVector(0.,0.,Zpos), logicPCB, "LcalPCB", logicFEmother, false, 0);  
-      Zpos = FECave_hDZ - 2.*PCB_hDZ - FEChip_hDZ ;
-      new G4PVPlacement ( 0, G4ThreeVector(0.,0.,Zpos), logicChipEnv, "FE-Set", logicFEmother, false, 0);
+        new G4PVDivision("FE-sector", logicFESector, logicChipEnv, kPhi, nFE_Sectors, 0);
+
+        // a chip
+        G4double hx = (FErmax - FErmin)/2.;
+        G4double hy = FErmin*tan( FE_Sec_dphi/2.) - 1.*mm;
+        G4double hz = FEChip_hDZ;
+        G4Box *solidChip = new G4Box("solidChip", hx, hy, hz);
+        logicChip = new G4LogicalVolume(solidChip, Silicon, "logicFEChip", 0, 0, 0);
+
+        // populate FEmother with chips
+        G4ThreeVector xFE = G4ThreeVector((FErmin+FErmax)/2., 0., 0.);
+        G4Transform3D transFE(G4RotationMatrix().rotateZ((FE_phi1+FE_Sec_dphi/2.)), xFE.rotateZ((FE_phi1 + FE_Sec_dphi/2.)));
+        new G4PVPlacement(transFE, logicChip, "FE-chip", logicFESector, false, 0);
+        G4double Zpos = FECave_hDZ - PCB_hDZ;
+        new G4PVPlacement(0, G4ThreeVector(0., 0., Zpos), logicPCB, "LcalPCB", logicFEmother, false, 0);
+        Zpos = FECave_hDZ - 2. * PCB_hDZ - FEChip_hDZ;
+        new G4PVPlacement ( 0, G4ThreeVector(0.,0.,Zpos), logicChipEnv, "FE-Set", logicFEmother, false, 0);
 
       G4VisAttributes *PCBVisAtt = new G4VisAttributes(G4Colour(0.0, 0.5, 0.0));
-      logicPCB->SetVisAttributes( PCBVisAtt );
+      logicPCB->SetVisAttributes(PCBVisAtt);
       logicFEmother->SetVisAttributes( G4VisAttributes::Invisible );
       logicChipEnv->SetVisAttributes( G4VisAttributes::Invisible );
       logicFESector->SetVisAttributes( G4VisAttributes::Invisible );
@@ -1327,10 +717,10 @@ void LCDetectorConstruction::BuildLCal()
       ear_phi = supAng;
       for ( int k=0; k< nBolts ; k++ ){
 
-	G4Transform3D FErot1 ( G4RotationMatrix().rotateZ( ear_phi ), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi ));
-	G4Transform3D FErot2 ( G4RotationMatrix().rotateZ( ear_phi +180.*deg), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi +180.*deg));
-	new G4PVPlacement ( FErot1 , logicFEmother, "FrontEndChips", logicMechLay, false, k);
-	new G4PVPlacement ( FErot2 , logicFEmother, "FrontEndChips", logicMechLay, false, k+nBolts );
+    G4Transform3D FErot1 ( G4RotationMatrix().rotateZ( ear_phi ), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi ));
+    G4Transform3D FErot2 ( G4RotationMatrix().rotateZ( ear_phi +180.*deg), G4ThreeVector( 0., 0., FE_z).rotateZ( ear_phi +180.*deg));
+    new G4PVPlacement ( FErot1 , logicFEmother, "FrontEndChips", logicMechLay, false, k);
+    new G4PVPlacement ( FErot2 , logicFEmother, "FrontEndChips", logicMechLay, false, k+nBolts );
         ear_phi += dphi_rot;
       }
     }
@@ -1345,17 +735,17 @@ void LCDetectorConstruction::BuildLCal()
        G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
        G4VisAttributes *IronVisAtt     = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
        FEVisAtt->SetForceWireframe(true);
-	 logicEarsBase->SetVisAttributes(AbsorberVisAtt);
-	 logicEar->SetVisAttributes(AbsorberVisAtt);
-	 logicBolt->SetVisAttributes(IronVisAtt);
-	 logicMechLay ->SetVisAttributes(G4VisAttributes::Invisible); 
-	 logicMechSpace ->SetVisAttributes(G4VisAttributes::Invisible); 	 
+     logicEarsBase->SetVisAttributes(AbsorberVisAtt);
+     logicEar->SetVisAttributes(AbsorberVisAtt);
+     logicBolt->SetVisAttributes(IronVisAtt);
+     logicMechLay ->SetVisAttributes(G4VisAttributes::Invisible); 
+     logicMechSpace ->SetVisAttributes(G4VisAttributes::Invisible);      
          logicFanoutFrnt->SetVisAttributes(FanoutVisAtt);
          logicFanoutBack->SetVisAttributes(FanoutVisAtt);
          logicChip->SetVisAttributes(FEVisAtt);
    
 
-		  }// endif Lcal_support
+          }// endif Lcal_support
 
 
     //---------------
@@ -1363,7 +753,7 @@ void LCDetectorConstruction::BuildLCal()
     //---------------
     // contains sectors and cells
     // move this into Layer when finished
-		  G4cout << " Building sensor  ....."<< G4endl;
+          G4cout << " Building sensor  ....."<< G4endl;
    G4Tubs *solidSensor0 = new G4Tubs("Sensortmp", 0.,SensRadMax, hSensorDZ, startPhi, endPhi);
    G4Tubs *solidSensor1 = new G4Tubs("SensortSi", 0.,SensRadMax, hSiliconDZ, startPhi, endPhi);
    G4double rcorner[2], zcorner[2];
@@ -1373,8 +763,8 @@ void LCDetectorConstruction::BuildLCal()
    zcorner[0] = -2.*hSiliconDZ;
    zcorner[1] =  2.*hSiliconDZ;
    G4Polyhedra *puncher0 = new G4Polyhedra("puncher0",
-					   startPhi - Setup::Lcal_Phi_Offset,
-					   endPhi, nTiles, 2, zcorner, r0, rcorner);
+                       startPhi - Setup::Lcal_Phi_Offset,
+                       endPhi, nTiles, 2, zcorner, r0, rcorner);
    //
    G4double dphiRot = endPhi/G4double( nTiles );
    G4double phiRot = -Setup::Lcal_Phi_Offset;
@@ -1443,7 +833,7 @@ void LCDetectorConstruction::BuildLCal()
                                  SensRadMin,     // LumiCal rad
                                  SensRadMax,     // LumiCal rad
                                  hSiliconDZ,    // same as cell thickness
-				 startPhi - Setup::Lcal_Phi_Offset,
+                 startPhi - Setup::Lcal_Phi_Offset,
                                  sectorPhi);   // width of a sector, 7.5deg
     G4Tubs *solidMetSec = new G4Tubs("solidMetSec",
                                  SensRadMin,     // LumiCal rad
@@ -1463,13 +853,13 @@ void LCDetectorConstruction::BuildLCal()
     // populate sensor with sectors replica
     //
          G4String SectorName;
-	 G4ThreeVector z0( 0., 0., hSensorDZ - hSiliconDZ);
-	 G4ThreeVector zm( 0., 0.,-hSensorDZ + hMetalDZ);
+     G4ThreeVector z0( 0., 0., hSensorDZ - hSiliconDZ);
+     G4ThreeVector zm( 0., 0.,-hSensorDZ + hMetalDZ);
          G4int sec_per_tile = nSectors/nTiles;
          assert ( nSectors%nTiles == 0 );
-	 G4int SectorNum = 0;
-	 //	 G4double phiFix = Setup::Lcal_Phi_Offset;
- 	 G4double phiFix = 0.;
+     G4int SectorNum = 0;
+     //  G4double phiFix = Setup::Lcal_Phi_Offset;
+     G4double phiFix = 0.;
     for ( int itile=0; itile < nTiles; itile++){
       SectorNum++;
       G4RotationMatrix *zrot1 = new G4RotationMatrix();
@@ -1481,8 +871,8 @@ void LCDetectorConstruction::BuildLCal()
       SectorName = G4String("MetSect") + G4String(strsec1.str());
       new G4PVPlacement( zrot1, zm, MetSector1, SectorName, logicSensor, false, SectorNum);
       for ( int nsec = 2; nsec < sec_per_tile; nsec++ ) {
-	SectorNum++;
-	G4RotationMatrix *zrot2 = new G4RotationMatrix();
+    SectorNum++;
+    G4RotationMatrix *zrot2 = new G4RotationMatrix();
         zrot2->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.));
         std::stringstream strsec;
         strsec << SectorNum;
@@ -1491,13 +881,13 @@ void LCDetectorConstruction::BuildLCal()
        SectorName = G4String("MetSect") + G4String(strsec.str());
        new G4PVPlacement( zrot2, zm, MetSector2, SectorName, logicSensor, false, SectorNum);
       }
-	SectorNum++;
-	std::stringstream strsec4;
-	strsec4 << SectorNum;
-	SectorName = G4String("Sector") + G4String(strsec4.str());
-	G4RotationMatrix *zrot4 = new G4RotationMatrix();  
-	zrot4->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.) );
-	new G4PVPlacement( zrot4, z0, logicSector4, SectorName, logicSensor, false, SectorNum);
+    SectorNum++;
+    std::stringstream strsec4;
+    strsec4 << SectorNum;
+    SectorName = G4String("Sector") + G4String(strsec4.str());
+    G4RotationMatrix *zrot4 = new G4RotationMatrix();  
+    zrot4->rotateZ( phiFix - sectorPhi*((G4double)SectorNum - 1.) );
+    new G4PVPlacement( zrot4, z0, logicSector4, SectorName, logicSensor, false, SectorNum);
         SectorName = G4String("MetSect") + G4String(strsec4.str());
         new G4PVPlacement( zrot4, zm, MetSector4, SectorName, logicSensor, false, SectorNum);
 
@@ -1512,13 +902,13 @@ void LCDetectorConstruction::BuildLCal()
     G4Tubs *solidCell = new G4Tubs("solidCell",
                            81.3 *mm,           //<----
                            83.0 *mm,           // all dummy arguments the actual ones
-			   0.160 *mm,          // will be computed by CellParam
+               0.160 *mm,          // will be computed by CellParam
                            0.0,                 // 
                            7.5*deg);           //<------
     G4Tubs *solidCellMet = new G4Tubs("solidCellMet",
                            81.3 *mm,           //<----
                            83.0 *mm,           // all dummy arguments the actual ones
-			   0.01 *mm,          // will be computed by CellParam
+               0.01 *mm,          // will be computed by CellParam
                            0.0,                 // 
                            7.5*deg);           //<------
     logicCell = new G4LogicalVolume(solidCell, Silicon, "logicCell", 0, 0, 0);
@@ -1527,7 +917,7 @@ void LCDetectorConstruction::BuildLCal()
     LCCellParam *CellParam = new LCCellParam(nCells,                             // # cells/sector
                                              SensRadMin,                         // LC inner rad
                                              SensRadMax,                         // LC outer rad
-					     hSensorDZ,
+                         hSensorDZ,
                                              hSiliconDZ,                         // Si thickness
                                              hMetalDZ,                          // pad metal thickness
                                              deadPhi,                            // clipSize in phi
@@ -1577,7 +967,7 @@ void LCDetectorConstruction::BuildLCal()
                                       logicLayer,
                                       false,
                                       0);
-		    ordnum++;
+            ordnum++;
     }
 
    //---------------
@@ -1633,7 +1023,7 @@ void LCDetectorConstruction::BuildLCal()
       for (int i = 0; i < nLayers; i++) {
         // Keep track of the names of the different layers
         std::stringstream strlayer;
-	strlayer << i+1;
+    strlayer << i+1;
         G4String LayerName = G4String("Layer") + G4String(strlayer.str());
         if ((i+1)%2) { // odd do rotation!
             new G4PVPlacement(layerRotation,
@@ -1653,8 +1043,8 @@ void LCDetectorConstruction::BuildLCal()
                               i+1); // copy number
         }
 
-	//	G4cout << LayerName << " z-pos = " << placeLayer / mm << " [mm]"<< G4endl;
-	
+    //  G4cout << LayerName << " z-pos = " << placeLayer / mm << " [mm]"<< G4endl;
+    
         // update the placecement for the next layer
         placeLayer += 2.*hLayerDZ;
       }
@@ -1663,12 +1053,12 @@ void LCDetectorConstruction::BuildLCal()
       G4double rotang = 0.;
       for (int i = 0; i < nLayers; i++) {
         //
-	G4RotationMatrix *layerRotation = new G4RotationMatrix;
-	layerRotation->rotateZ( rotang );
+    G4RotationMatrix *layerRotation = new G4RotationMatrix;
+    layerRotation->rotateZ( rotang );
         std::stringstream strlayer;
         strlayer << i+1;
         G4String LayerName = G4String("Layer") + G4String(strlayer.str());
-	//
+    //
             new G4PVPlacement(layerRotation,
                               G4ThreeVector(0, 0, placeLayer),
                               logicLayer,
@@ -1676,13 +1066,13 @@ void LCDetectorConstruction::BuildLCal()
                               logicWholeLC,
                               0,
                               i+1); 
-	 //
-	rotang += PhiRot;
+     //
+    rotang += PhiRot;
         placeLayer += 2.*hLayerDZ;
       }
 
     }
-		  G4cout << "                   ...LCAL  done!    " << G4endl;
+          G4cout << "                   ...LCAL  done!    " << G4endl;
  
     //
     //------------------------------------------------------------------------------
@@ -1728,7 +1118,7 @@ void LCDetectorConstruction::BuildLCal()
                                       sectorPhi,    // angular cell width
                                       nCells,       // # cells in the rad dir
                                       nSectors,     // # cells in the phi dir
-				      VirtualCell); // cell type real/virtual =  false/true
+                      VirtualCell); // cell type real/virtual =  false/true
         
     SDman->AddNewDetector(SensDet);
     // the Cells are the sensitive detectors
@@ -1746,18 +1136,18 @@ void LCDetectorConstruction::BuildLCal()
 
   
     //  whole LCAL 
-	 G4VisAttributes *WholeLCVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
-	 //         logicWholeLC->SetVisAttributes(G4VisAttributes::Invisible);
-	 //         WholeLCVisAtt->SetDaughtersInvisible(true);
-	 WholeLCVisAtt->SetForceWireframe ( true );
+     G4VisAttributes *WholeLCVisAtt = new G4VisAttributes(G4Colour(1.0,1.0,0.0));
+     //         logicWholeLC->SetVisAttributes(G4VisAttributes::Invisible);
+     //         WholeLCVisAtt->SetDaughtersInvisible(true);
+     WholeLCVisAtt->SetForceWireframe ( true );
          logicWholeLC->SetVisAttributes(WholeLCVisAtt);
        
 
-	 G4VisAttributes *LayerVisAtt = new G4VisAttributes(false, G4Colour(1.0, 1.0, 1.0));
+     G4VisAttributes *LayerVisAtt = new G4VisAttributes(false, G4Colour(1.0, 1.0, 1.0));
          LayerVisAtt->SetForceWireframe (true);
          logicLayer->SetVisAttributes(LayerVisAtt);
 
-	
+    
      G4VisAttributes *AbsorberVisAtt = new G4VisAttributes(G4Colour(0.7, 0.0, 0.7));
      G4VisAttributes *IronVisAtt     = new G4VisAttributes(G4Colour(0.2, 0.3, 0.7));
      if(Setup::Lcal_VisAbsSolid ){
@@ -1795,7 +1185,7 @@ void LCDetectorConstruction::BuildLCal()
     }
 
 
-    G4cout << " Mass of the LCAL: " << 	 logicWholeLC->GetMass()/ kg << G4endl;
+    G4cout << " Mass of the LCAL: " <<   logicWholeLC->GetMass()/ kg << G4endl;
 
     //--------------- DONE BUILDING!
 }
@@ -1828,7 +1218,7 @@ void LCDetectorConstruction::BuildField()
        }
     fieldIsInitialized = true;
   }
-	 G4cout<< "             Field done. " << G4endl;
+     G4cout<< "             Field done. " << G4endl;
 }
 
 void LCDetectorConstruction::BuildBeamPipe()
@@ -1838,316 +1228,316 @@ void LCDetectorConstruction::BuildBeamPipe()
     //---    Beam pipe 
     //-----------------------------------------
 
-	 //
-	 //  beam pipe vis attributes 
-	 //  
+     //
+     //  beam pipe vis attributes 
+     //  
     G4VisAttributes *BeamPipeVisAtt = new G4VisAttributes(G4Colour(0.26,0.33,0.41));
     G4VisAttributes *VacuumVisAtt = new G4VisAttributes(false); // just vacuum nothing to see
     if ( Setup::Beam_pipe_VisSolid ) BeamPipeVisAtt->SetForceSolid(true);
     else BeamPipeVisAtt->SetForceWireframe(true);
  
     G4cout << " Building BeamPipe ..." << G4endl;
-	 G4double LcalToBeamTol = 1.*mm;
+     G4double LcalToBeamTol = 1.*mm;
          G4double zpl[6], rinner[6], router[6];
          G4double dzTol = 10. *mm;
-	 G4int numz = 6 ;
+     G4int numz = 6 ;
 
-	   zpl[0] = -Lcal_zbegin + dzTol ; router[0] = SensRadMax ; rinner[0] = router[0] - pipe_th; 
-	   zpl[1] = -230.*mm ; router[1] = 24.*mm ; rinner[1] = router[1] - pipe_th; 
-	   zpl[2] =  -80.*mm ; router[2] = 15.*mm ; rinner[2] = router[2] - pipe_th; 
-	   zpl[3] =  - zpl[2]; router[3] = router[2] ; rinner[3] = rinner[2]; 
-	   zpl[4] =  - zpl[1]; router[4] = router[1] ; rinner[4] = rinner[1]; 
-	   zpl[5] =  - zpl[0]; router[5] = router[0] ; rinner[5] = rinner[0]; 
-	   // central conical beryllium pipe 
-	 G4Polycone *solidCentralPipe = new G4Polycone( "CentralBeamPipe",
-							startPhi, endPhi,
-							numz, zpl, rinner, router);
-	 G4LogicalVolume *logicCentralTube = new G4LogicalVolume( solidCentralPipe,
-								BeamPipeMat,
-								"logicCentralTube",
-								0, 0, 0);
-	 // central vacuum filler
+       zpl[0] = -Lcal_zbegin + dzTol ; router[0] = SensRadMax ; rinner[0] = router[0] - pipe_th; 
+       zpl[1] = -230.*mm ; router[1] = 24.*mm ; rinner[1] = router[1] - pipe_th; 
+       zpl[2] =  -80.*mm ; router[2] = 15.*mm ; rinner[2] = router[2] - pipe_th; 
+       zpl[3] =  - zpl[2]; router[3] = router[2] ; rinner[3] = rinner[2]; 
+       zpl[4] =  - zpl[1]; router[4] = router[1] ; rinner[4] = rinner[1]; 
+       zpl[5] =  - zpl[0]; router[5] = router[0] ; rinner[5] = rinner[0]; 
+       // central conical beryllium pipe 
+     G4Polycone *solidCentralPipe = new G4Polycone( "CentralBeamPipe",
+                            startPhi, endPhi,
+                            numz, zpl, rinner, router);
+     G4LogicalVolume *logicCentralTube = new G4LogicalVolume( solidCentralPipe,
+                                BeamPipeMat,
+                                "logicCentralTube",
+                                0, 0, 0);
+     // central vacuum filler
          for ( int i=0; i < numz ; i++) {
-	   router[i] = rinner[i];
-	   rinner[i] = 0.;
-	 }
+       router[i] = rinner[i];
+       rinner[i] = 0.;
+     }
 
-	 G4Polycone *solidCentralVac = new G4Polycone( "CentralBeamPipeVac",
-							startPhi, endPhi,
-							numz, zpl, rinner, router);
-	 G4LogicalVolume *logicCentralTubeVac = new G4LogicalVolume( solidCentralVac,
-								Vacuum,
-								"logicCentralTubeVac",
-								0, 0, 0);
-	 // place vacuum filler into world
+     G4Polycone *solidCentralVac = new G4Polycone( "CentralBeamPipeVac",
+                            startPhi, endPhi,
+                            numz, zpl, rinner, router);
+     G4LogicalVolume *logicCentralTubeVac = new G4LogicalVolume( solidCentralVac,
+                                Vacuum,
+                                "logicCentralTubeVac",
+                                0, 0, 0);
+     // place vacuum filler into world
 
-	 new G4PVPlacement(0, G4ThreeVector(0.,0.,0.),
-			   logicCentralTubeVac, "CentralPipeVac",
-			   logicWorld, false, 0); 
+     new G4PVPlacement(0, G4ThreeVector(0.,0.,0.),
+               logicCentralTubeVac, "CentralPipeVac",
+               logicWorld, false, 0); 
 
  
- 	 // place central part in World
+     // place central part in World
 
-	 new G4PVPlacement(0, G4ThreeVector(0.,0.,0.),
-			   logicCentralTube, "CentralPipe",
-			   logicWorld, false, 1);
-	 // visual attributes 
-	 //
-	 logicCentralTube->SetVisAttributes( BeamPipeVisAtt );
-	 logicCentralTubeVac->SetVisAttributes( VacuumVisAtt );
-	 G4cout << "                             ... CentralBeamPipe            done! " << G4endl; 
+     new G4PVPlacement(0, G4ThreeVector(0.,0.,0.),
+               logicCentralTube, "CentralPipe",
+               logicWorld, false, 1);
+     // visual attributes 
+     //
+     logicCentralTube->SetVisAttributes( BeamPipeVisAtt );
+     logicCentralTubeVac->SetVisAttributes( VacuumVisAtt );
+     G4cout << "                             ... CentralBeamPipe            done! " << G4endl; 
       
-	 //
+     //
          // central pipe endcaps
-	 //-------------------------------------------------------------------------------
-	 G4double dy = innerRad - LcalToBeamTol;
-	 G4double dx = dy / cos( rotAng );
-	 G4double hdz = pipe_th /2.;
+     //-------------------------------------------------------------------------------
+     G4double dy = innerRad - LcalToBeamTol;
+     G4double dx = dy / cos( rotAng );
+     G4double hdz = pipe_th /2.;
          G4double dxshift = zpl[numz-1]*tan( rotAng );
 
-	 // temporary solid endcap
- 	 G4Tubs *solidtmp = new G4Tubs ( "solidtmp", 0., SensRadMax, hdz, startPhi, endPhi);
+     // temporary solid endcap
+     G4Tubs *solidtmp = new G4Tubs ( "solidtmp", 0., SensRadMax, hdz, startPhi, endPhi);
          // the puncher ( to make a hole for EndBeamPipe in endcap )
-	 G4EllipticalTube *ksolidPunch = new G4EllipticalTube( "solidPunch", dx, dy, pipe_th);
+     G4EllipticalTube *ksolidPunch = new G4EllipticalTube( "solidPunch", dx, dy, pipe_th);
 
- 	 G4SubtractionSolid *solidEndcap = new G4SubtractionSolid( "solidEndcap",
-								   solidtmp, 
-								   ksolidPunch,
-								   0,
-								   G4ThreeVector( dxshift, 0., 0.));
+     G4SubtractionSolid *solidEndcap = new G4SubtractionSolid( "solidEndcap",
+                                   solidtmp, 
+                                   ksolidPunch,
+                                   0,
+                                   G4ThreeVector( dxshift, 0., 0.));
 
         G4LogicalVolume *logicLCalFrntTubeWall = new G4LogicalVolume( solidEndcap, BeamPipeMat,
-							   "logicLCalFrntTubeWall", 0, 0, 0);
+                               "logicLCalFrntTubeWall", 0, 0, 0);
 
-	 // place endcaps in world
-	 // left endcap 
-	 new G4PVPlacement(0, G4ThreeVector( 0., 0., zpl[0]-hdz),
-			   logicLCalFrntTubeWall,"LCalFront1",
-			   logicWorld, false, 1);
-	 // right endcap
-	 new G4PVPlacement(0, G4ThreeVector( 0., 0., zpl[numz-1]+hdz),
-			   logicLCalFrntTubeWall,"LCalFront2",
-			   logicWorld, false, 2);
-	 logicLCalFrntTubeWall->SetVisAttributes( BeamPipeVisAtt);
+     // place endcaps in world
+     // left endcap 
+     new G4PVPlacement(0, G4ThreeVector( 0., 0., zpl[0]-hdz),
+               logicLCalFrntTubeWall,"LCalFront1",
+               logicWorld, false, 1);
+     // right endcap
+     new G4PVPlacement(0, G4ThreeVector( 0., 0., zpl[numz-1]+hdz),
+               logicLCalFrntTubeWall,"LCalFront2",
+               logicWorld, false, 2);
+     logicLCalFrntTubeWall->SetVisAttributes( BeamPipeVisAtt);
 
-	 G4cout << "                             ... LCal front wall            done! " << G4endl; 
+     G4cout << "                             ... LCal front wall            done! " << G4endl; 
    
 
-	 // LCAL inner pipe 
-	 // this pipes are to be rotated and shifted
-	 // to avoid overlaps , their inner ( IP side ) ends
-	 // must be clipped  
-	 //---------------------------------------------------------------------------------- 
-	 G4double rmax = innerRad - LcalToBeamTol;
+     // LCAL inner pipe 
+     // this pipes are to be rotated and shifted
+     // to avoid overlaps , their inner ( IP side ) ends
+     // must be clipped  
+     //---------------------------------------------------------------------------------- 
+     G4double rmax = innerRad - LcalToBeamTol;
          G4double rmin = rmax - pipe_th;
-	 G4double hendDZ = (Lcal_inner_pipe_zend -zpl[numz-1])/2.;
-	 G4double z0 = zpl[numz-1] + hendDZ;
-	 G4Transform3D transinner1( G4RotationMatrix().rotateZ(180.*deg).rotateY(rotAng1),
-				    G4ThreeVector( 0., 0., z0).rotateZ(180.*deg).rotateY(rotAng1));
-	 G4Transform3D transinner2( G4RotationMatrix().rotateY(rotAng2),
-				  G4ThreeVector( 0., 0., z0).rotateY(rotAng2));
+     G4double hendDZ = (Lcal_inner_pipe_zend -zpl[numz-1])/2.;
+     G4double z0 = zpl[numz-1] + hendDZ;
+     G4Transform3D transinner1( G4RotationMatrix().rotateZ(180.*deg).rotateY(rotAng1),
+                    G4ThreeVector( 0., 0., z0).rotateZ(180.*deg).rotateY(rotAng1));
+     G4Transform3D transinner2( G4RotationMatrix().rotateY(rotAng2),
+                  G4ThreeVector( 0., 0., z0).rotateY(rotAng2));
 
-	 // solid shape depends on beam crossing angle
-	 //
-	 if ( rotAng == 0. ){  // here simple tube
+     // solid shape depends on beam crossing angle
+     //
+     if ( rotAng == 0. ){  // here simple tube
 
-	   G4Tubs *solidEndPipe = new G4Tubs ( "solidEndPipe", rmin, rmax, hendDZ, startPhi, endPhi);  // solid pipe
+       G4Tubs *solidEndPipe = new G4Tubs ( "solidEndPipe", rmin, rmax, hendDZ, startPhi, endPhi);  // solid pipe
            G4Tubs *solidEndVac  = new G4Tubs ( "solidEndVac" , 0.  , rmin, hendDZ, startPhi, endPhi);  // solid vacuum filler
 
 
-	   // logical volumes 
+       // logical volumes 
 
-	     logicLCalInnerTube = new G4LogicalVolume( solidEndPipe, BeamPipeMat, "logicLCalInnerTube", 0, 0, 0); 
-	     logEndVac  = new G4LogicalVolume( solidEndVac , Vacuum     , "logicLcalInnerTubeVac" , 0, 0, 0);
-	 }
-	 else  // tube must be clipped at IP side 
-	   {
-	     hendDZ += rmax*tan( rotAng2 );  // in this case tube must be a bit longer
-	   G4Tubs *solidend = new G4Tubs ( "solidend", rmin, rmax, hendDZ, startPhi, endPhi);  // tmp pipe
+         logicLCalInnerTube = new G4LogicalVolume( solidEndPipe, BeamPipeMat, "logicLCalInnerTube", 0, 0, 0); 
+         logEndVac  = new G4LogicalVolume( solidEndVac , Vacuum     , "logicLcalInnerTubeVac" , 0, 0, 0);
+     }
+     else  // tube must be clipped at IP side 
+       {
+         hendDZ += rmax*tan( rotAng2 );  // in this case tube must be a bit longer
+       G4Tubs *solidend = new G4Tubs ( "solidend", rmin, rmax, hendDZ, startPhi, endPhi);  // tmp pipe
            G4Tubs *solidvac = new G4Tubs ( "solidvac",   0., rmin, hendDZ, startPhi, endPhi);  // tmp vacuum filler
-	   G4double clipDZ = 2.*rmax*sin( rotAng2 );
-	   G4Tubs *solidclip = new G4Tubs ( "solidclip",   0., 2.*rmax, clipDZ, startPhi, endPhi);  // tmp clipper a "bit" bigger
+       G4double clipDZ = 2.*rmax*sin( rotAng2 );
+       G4Tubs *solidclip = new G4Tubs ( "solidclip",   0., 2.*rmax, clipDZ, startPhi, endPhi);  // tmp clipper a "bit" bigger
 
            // clipper must be shifted and rotated
            G4ThreeVector zshift( 0., 0., -hendDZ ); //-clipDZ);
            G4RotationMatrix *yRot = new G4RotationMatrix();
            yRot->rotateY( rotAng2 );
 
-	     // final clipped solids
+         // final clipped solids
 
-	   G4SubtractionSolid *solidEndPipe = new G4SubtractionSolid( "solidEndPipe", solidend, solidclip, yRot, zshift); // pipe at z-
-	   G4SubtractionSolid *solidEndVac  = new G4SubtractionSolid( "solidEndVac", solidvac, solidclip, yRot, zshift); // vac at z-
+       G4SubtractionSolid *solidEndPipe = new G4SubtractionSolid( "solidEndPipe", solidend, solidclip, yRot, zshift); // pipe at z-
+       G4SubtractionSolid *solidEndVac  = new G4SubtractionSolid( "solidEndVac", solidvac, solidclip, yRot, zshift); // vac at z-
 
-	   // logical volumes 
+       // logical volumes 
 
-	     logicLCalInnerTube = new G4LogicalVolume( solidEndPipe, BeamPipeMat, "logicLCalInnerTube", 0, 0, 0); 
-	     logEndVac  = new G4LogicalVolume( solidEndVac , Vacuum     , "logicLcalInnerTubeVac" , 0, 0, 0);
-	   }
-
-
-	     // place vacuum pipes into world separately
-	     // left end pipe
-	     new G4PVPlacement( transinner1,
-				logEndVac,
-				"LcalInnerTubeVac1",
-				logicWorld,
-				false,
-				1);
+         logicLCalInnerTube = new G4LogicalVolume( solidEndPipe, BeamPipeMat, "logicLCalInnerTube", 0, 0, 0); 
+         logEndVac  = new G4LogicalVolume( solidEndVac , Vacuum     , "logicLcalInnerTubeVac" , 0, 0, 0);
+       }
 
 
-	    // right end pipe
-	     new G4PVPlacement( transinner2,
-				logEndVac,
-				"LcalInnerTubeVac2",
-				logicWorld,
-				false,
-				2);
-	     // place pipes into world
-	     // left end pipe
-	     new G4PVPlacement( transinner1,
-				logicLCalInnerTube,
-				"LcalInnerTube1",
-				logicWorld,
-				false,
-				1);
+         // place vacuum pipes into world separately
+         // left end pipe
+         new G4PVPlacement( transinner1,
+                logEndVac,
+                "LcalInnerTubeVac1",
+                logicWorld,
+                false,
+                1);
 
 
-	    // right end pipe
-	     new G4PVPlacement( transinner2,
-				logicLCalInnerTube,
-				"LcalInnerTube2",
-				logicWorld,
-				false,
-				2);
-	     // set visual attributes
+        // right end pipe
+         new G4PVPlacement( transinner2,
+                logEndVac,
+                "LcalInnerTubeVac2",
+                logicWorld,
+                false,
+                2);
+         // place pipes into world
+         // left end pipe
+         new G4PVPlacement( transinner1,
+                logicLCalInnerTube,
+                "LcalInnerTube1",
+                logicWorld,
+                false,
+                1);
 
-	 logicLCalInnerTube->SetVisAttributes ( BeamPipeVisAtt);
-	 logEndVac->SetVisAttributes( VacuumVisAtt );
 
-	 G4cout << "                             ... LCal inner Pipe            done! " << G4endl; 
+        // right end pipe
+         new G4PVPlacement( transinner2,
+                logicLCalInnerTube,
+                "LcalInnerTube2",
+                logicWorld,
+                false,
+                2);
+         // set visual attributes
+
+     logicLCalInnerTube->SetVisAttributes ( BeamPipeVisAtt);
+     logEndVac->SetVisAttributes( VacuumVisAtt );
+
+     G4cout << "                             ... LCal inner Pipe            done! " << G4endl; 
       //
        //  LCAL inner -> BCAL inner pipe transition wall
        //
-	 G4double LC_BC_wallZ = Lcal_inner_pipe_zend +rmax*tan( rotAng2 ) +pipe_th/2.;
-	 G4double LC_BC_wall_rmax = innerRad - LcalToBeamTol;
-	 G4double LC_BC_wall_rmin = BCal_inner_outube_rmax;
-	 //
-	 G4LogicalVolume *logicBCalFrntTubeWall = NULL;
-	 //
-	 if ( rotAng == 0 )      // zero crossing angle - only one hole for out/in beam lines
-	   {
-	     G4Tubs *solidLC_BC  = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
-	     logicBCalFrntTubeWall = new G4LogicalVolume ( solidLC_BC, Iron, "logicBCalFrntTubeWall", 0, 0, 0);
-	   }
-	 else                    // non zero crossing angle, need punch hole for incomoming beam line 
-	   {
-	     G4double xd = -2.*LC_BC_wallZ*tan( rotAng );
-	     G4ThreeVector xshift ( xd, 0., 0.);
-	     G4RotationMatrix *yRotHole = new G4RotationMatrix();
-	     yRotHole->rotateY(  -rotAng );
+     G4double LC_BC_wallZ = Lcal_inner_pipe_zend +rmax*tan( rotAng2 ) +pipe_th/2.;
+     G4double LC_BC_wall_rmax = innerRad - LcalToBeamTol;
+     G4double LC_BC_wall_rmin = BCal_inner_outube_rmax;
+     //
+     G4LogicalVolume *logicBCalFrntTubeWall = NULL;
+     //
+     if ( rotAng == 0 )      // zero crossing angle - only one hole for out/in beam lines
+       {
+         G4Tubs *solidLC_BC  = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
+         logicBCalFrntTubeWall = new G4LogicalVolume ( solidLC_BC, Iron, "logicBCalFrntTubeWall", 0, 0, 0);
+       }
+     else                    // non zero crossing angle, need punch hole for incomoming beam line 
+       {
+         G4double xd = -2.*LC_BC_wallZ*tan( rotAng );
+         G4ThreeVector xshift ( xd, 0., 0.);
+         G4RotationMatrix *yRotHole = new G4RotationMatrix();
+         yRotHole->rotateY(  -rotAng );
 
-	     G4Tubs *solidtmp   = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
-	     G4Tubs *solidhole  = new G4Tubs ( "solidhole" ,              0., BCal_inner_intube_rmax, 4.*pipe_th, startPhi, endPhi);
-	     G4SubtractionSolid *solidLC_BC = new G4SubtractionSolid("solidLC_BC", solidtmp, solidhole, yRotHole, xshift);
+         G4Tubs *solidtmp   = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
+         G4Tubs *solidhole  = new G4Tubs ( "solidhole" ,              0., BCal_inner_intube_rmax, 4.*pipe_th, startPhi, endPhi);
+         G4SubtractionSolid *solidLC_BC = new G4SubtractionSolid("solidLC_BC", solidtmp, solidhole, yRotHole, xshift);
   
-	     logicBCalFrntTubeWall = new G4LogicalVolume ( solidLC_BC, Iron, "logicBCalFrntTubeWall", 0, 0, 0);
-	   }
+         logicBCalFrntTubeWall = new G4LogicalVolume ( solidLC_BC, Iron, "logicBCalFrntTubeWall", 0, 0, 0);
+       }
 
-	 G4Transform3D transwall1( G4RotationMatrix().rotateZ(180.*deg).rotateY(rotAng1),
-				   G4ThreeVector( 0., 0., LC_BC_wallZ).rotateZ(180. *deg).rotateY(rotAng1));
-	 G4Transform3D transwall2( G4RotationMatrix().rotateY(rotAng2),
-				  G4ThreeVector( 0., 0., LC_BC_wallZ).rotateY(rotAng2));
-	 // place wall, and out/in pipe line
-	 //
-	 new G4PVPlacement ( transwall1, logicBCalFrntTubeWall, "BCalFrontWall-1", logicWorld, false, 1);
-	 new G4PVPlacement ( transwall2, logicBCalFrntTubeWall, "BCalFrontWall-2", logicWorld, false, 2);
+     G4Transform3D transwall1( G4RotationMatrix().rotateZ(180.*deg).rotateY(rotAng1),
+                   G4ThreeVector( 0., 0., LC_BC_wallZ).rotateZ(180. *deg).rotateY(rotAng1));
+     G4Transform3D transwall2( G4RotationMatrix().rotateY(rotAng2),
+                  G4ThreeVector( 0., 0., LC_BC_wallZ).rotateY(rotAng2));
+     // place wall, and out/in pipe line
+     //
+     new G4PVPlacement ( transwall1, logicBCalFrntTubeWall, "BCalFrontWall-1", logicWorld, false, 1);
+     new G4PVPlacement ( transwall2, logicBCalFrntTubeWall, "BCalFrontWall-2", logicWorld, false, 2);
 
-	 logicBCalFrntTubeWall->SetVisAttributes ( BeamPipeVisAtt);
+     logicBCalFrntTubeWall->SetVisAttributes ( BeamPipeVisAtt);
 
-	 G4cout << "                              ...BCal front Wall            done! " << G4endl; 
+     G4cout << "                              ...BCal front Wall            done! " << G4endl; 
 
-	 if ( Setup::Build_BCal == "Yes" ) {
- 	 //
-	 // incoming and outgoing beam lines tubes
-	 //
-	 // outgoing beam line dimensions
-	 //
+     if ( Setup::Build_BCal == "Yes" ) {
+     //
+     // incoming and outgoing beam lines tubes
+     //
+     // outgoing beam line dimensions
+     //
          G4double OutLine_rmax = BCal_inner_outube_rmax; 
          G4double OutLine_rmin = BCal_inner_outube_rmax - pipe_th;
-	 G4double OutLine_zstart = Lcal_inner_pipe_zend+rmax*tan( rotAng2 ); 
-	 G4double OutLine_zend   = Setup::world_hdz - 1*mm; 
-	 G4double OutLine_hDZ    = (OutLine_zend - OutLine_zstart)/2. ; 
-	 G4double OutLine_center    = OutLine_zstart + OutLine_hDZ; 
-	 //
-	 // incoming beam line dimensions
-	 //
-	 G4double InLine_rmax = BCal_inner_intube_rmax;
-	 G4double InLine_rmin = BCal_inner_intube_rmax - pipe_th;
-	 G4double InLine_hDZ  = OutLine_hDZ ; 
-	 G4double InLine_center    = OutLine_center ; 
+     G4double OutLine_zstart = Lcal_inner_pipe_zend+rmax*tan( rotAng2 ); 
+     G4double OutLine_zend   = Setup::world_hdz - 1*mm; 
+     G4double OutLine_hDZ    = (OutLine_zend - OutLine_zstart)/2. ; 
+     G4double OutLine_center    = OutLine_zstart + OutLine_hDZ; 
+     //
+     // incoming beam line dimensions
+     //
+     G4double InLine_rmax = BCal_inner_intube_rmax;
+     G4double InLine_rmin = BCal_inner_intube_rmax - pipe_th;
+     G4double InLine_hDZ  = OutLine_hDZ ; 
+     G4double InLine_center    = OutLine_center ; 
 
-	 G4Tubs *solidOutLine = new G4Tubs( "solidOutLine", OutLine_rmin, OutLine_rmax, OutLine_hDZ, startPhi, endPhi ); 
-	 G4Tubs *solidOutVac = new G4Tubs( "solidOutVac"  ,           0., OutLine_rmin, OutLine_hDZ, startPhi, endPhi ); 
+     G4Tubs *solidOutLine = new G4Tubs( "solidOutLine", OutLine_rmin, OutLine_rmax, OutLine_hDZ, startPhi, endPhi ); 
+     G4Tubs *solidOutVac = new G4Tubs( "solidOutVac"  ,           0., OutLine_rmin, OutLine_hDZ, startPhi, endPhi ); 
 
-	 G4LogicalVolume *logicBeamOutTube = new G4LogicalVolume( solidOutLine, Iron, "logicBeamOutTube", 0, 0, 0);
-	 G4LogicalVolume *logicOutVac  = new G4LogicalVolume( solidOutVac, Vacuum, "logicOutVac", 0, 0, 0);
+     G4LogicalVolume *logicBeamOutTube = new G4LogicalVolume( solidOutLine, Iron, "logicBeamOutTube", 0, 0, 0);
+     G4LogicalVolume *logicOutVac  = new G4LogicalVolume( solidOutVac, Vacuum, "logicOutVac", 0, 0, 0);
 
-	 G4Transform3D transOut1( G4RotationMatrix().rotateY(rotAng1),
-				  G4ThreeVector( 0., 0., OutLine_center).rotateY(rotAng1));
-	 G4Transform3D transOut2( G4RotationMatrix().rotateY(rotAng2),
-				  G4ThreeVector( 0., 0., OutLine_center).rotateY(rotAng2));
+     G4Transform3D transOut1( G4RotationMatrix().rotateY(rotAng1),
+                  G4ThreeVector( 0., 0., OutLine_center).rotateY(rotAng1));
+     G4Transform3D transOut2( G4RotationMatrix().rotateY(rotAng2),
+                  G4ThreeVector( 0., 0., OutLine_center).rotateY(rotAng2));
 
-	 new G4PVPlacement ( transOut1, logicBeamOutTube, "OutBeamTube1", logicWorld, false, 1); 
-	 new G4PVPlacement ( transOut1, logicOutVac , "OutBeamVac1", logicWorld, false, 1); 
-	 new G4PVPlacement ( transOut2, logicBeamOutTube, "OutBeamTube2", logicWorld, false, 1); 
-	 new G4PVPlacement ( transOut2, logicOutVac , "OutBeamVac2", logicWorld, false, 1); 
+     new G4PVPlacement ( transOut1, logicBeamOutTube, "OutBeamTube1", logicWorld, false, 1); 
+     new G4PVPlacement ( transOut1, logicOutVac , "OutBeamVac1", logicWorld, false, 1); 
+     new G4PVPlacement ( transOut2, logicBeamOutTube, "OutBeamTube2", logicWorld, false, 1); 
+     new G4PVPlacement ( transOut2, logicOutVac , "OutBeamVac2", logicWorld, false, 1); 
 
-	 logicBeamOutTube->SetVisAttributes ( BeamPipeVisAtt );
-	 logicOutVac->SetVisAttributes ( VacuumVisAtt );
-	 G4cout << "                             ... BCAL inner Downstream tube done! " << G4endl;
-	 // 
-	 if ( rotAng != 0 )                // need separate tube for incoming beam
-	   {
-	     G4Transform3D transIn1( G4RotationMatrix().rotateZ(180.*deg).rotateY(-rotAng1),
-				     G4ThreeVector( 0., 0., InLine_center).rotateZ(180.*deg).rotateY(-rotAng1));
-	     G4Transform3D transIn2( G4RotationMatrix().rotateY(-rotAng2),
-				     G4ThreeVector( 0., 0., InLine_center).rotateY(-rotAng2));
-	 // solids must be clipped at IP side
-	 G4double clip_rmax = 2.*InLine_rmax / cos ( rotAng );
-	 G4double clip_hdz  = 2.*InLine_rmax * tan( 2.*rotAng );
+     logicBeamOutTube->SetVisAttributes ( BeamPipeVisAtt );
+     logicOutVac->SetVisAttributes ( VacuumVisAtt );
+     G4cout << "                             ... BCAL inner Downstream tube done! " << G4endl;
+     // 
+     if ( rotAng != 0 )                // need separate tube for incoming beam
+       {
+         G4Transform3D transIn1( G4RotationMatrix().rotateZ(180.*deg).rotateY(-rotAng1),
+                     G4ThreeVector( 0., 0., InLine_center).rotateZ(180.*deg).rotateY(-rotAng1));
+         G4Transform3D transIn2( G4RotationMatrix().rotateY(-rotAng2),
+                     G4ThreeVector( 0., 0., InLine_center).rotateY(-rotAng2));
+     // solids must be clipped at IP side
+     G4double clip_rmax = 2.*InLine_rmax / cos ( rotAng );
+     G4double clip_hdz  = 2.*InLine_rmax * tan( 2.*rotAng );
          G4ThreeVector zclip ( 0., 0., -InLine_hDZ );
-	 G4RotationMatrix *yrotC = new G4RotationMatrix();
-	 yrotC->rotateY(  -2.*rotAng );
+     G4RotationMatrix *yrotC = new G4RotationMatrix();
+     yrotC->rotateY(  -2.*rotAng );
 
-	     G4Tubs *solidLineTmp = new G4Tubs( "solidInLine", InLine_rmin, InLine_rmax, InLine_hDZ, startPhi, endPhi ); 
-	     G4Tubs *solidVacTmp  = new G4Tubs( "solidInVac" ,          0., InLine_rmin, InLine_hDZ, startPhi, endPhi );
+         G4Tubs *solidLineTmp = new G4Tubs( "solidInLine", InLine_rmin, InLine_rmax, InLine_hDZ, startPhi, endPhi ); 
+         G4Tubs *solidVacTmp  = new G4Tubs( "solidInVac" ,          0., InLine_rmin, InLine_hDZ, startPhi, endPhi );
              G4Tubs *clipper      = new G4Tubs( "clipper"    ,          0., clip_rmax  , clip_hdz  , startPhi, endPhi );
 
-	     // clipped solids
-	     G4SubtractionSolid *solidInLine = new G4SubtractionSolid( "solidInLine", solidLineTmp, clipper, yrotC, zclip);
-	     G4SubtractionSolid *solidInVac  = new G4SubtractionSolid( "solidInVac" , solidVacTmp , clipper, yrotC, zclip);
+         // clipped solids
+         G4SubtractionSolid *solidInLine = new G4SubtractionSolid( "solidInLine", solidLineTmp, clipper, yrotC, zclip);
+         G4SubtractionSolid *solidInVac  = new G4SubtractionSolid( "solidInVac" , solidVacTmp , clipper, yrotC, zclip);
           
 
-	     G4LogicalVolume *logicBeamInTube = new G4LogicalVolume( solidInLine, Iron, "logicBeamInTube", 0, 0, 0);
-	     G4LogicalVolume *logicInVac  = new G4LogicalVolume( solidInVac, Vacuum, "logicInVac", 0, 0, 0);
+         G4LogicalVolume *logicBeamInTube = new G4LogicalVolume( solidInLine, Iron, "logicBeamInTube", 0, 0, 0);
+         G4LogicalVolume *logicInVac  = new G4LogicalVolume( solidInVac, Vacuum, "logicInVac", 0, 0, 0);
 
-	     new G4PVPlacement ( transIn1, logicBeamInTube, "BeamInTube1", logicWorld, false, 1); 
-	     new G4PVPlacement ( transIn1, logicInVac , "InBeamVac1", logicWorld, false, 1);
-	     new G4PVPlacement ( transIn2, logicBeamInTube, "BeamInTube2", logicWorld, false, 1);
-	     new G4PVPlacement ( transIn2, logicInVac , "InBeamVac2", logicWorld, false, 1);
+         new G4PVPlacement ( transIn1, logicBeamInTube, "BeamInTube1", logicWorld, false, 1); 
+         new G4PVPlacement ( transIn1, logicInVac , "InBeamVac1", logicWorld, false, 1);
+         new G4PVPlacement ( transIn2, logicBeamInTube, "BeamInTube2", logicWorld, false, 1);
+         new G4PVPlacement ( transIn2, logicInVac , "InBeamVac2", logicWorld, false, 1);
 
-	     logicBeamInTube->SetVisAttributes ( BeamPipeVisAtt );
-	     logicInVac->SetVisAttributes ( VacuumVisAtt );
-	   }
+         logicBeamInTube->SetVisAttributes ( BeamPipeVisAtt );
+         logicInVac->SetVisAttributes ( VacuumVisAtt );
+       }
  
-	 G4cout << "                             ... BCAL inner Upstream tube   done! " << G4endl;
+     G4cout << "                             ... BCAL inner Upstream tube   done! " << G4endl;
 
-	 }
+     }
 
 
 
-	 G4cout << "                             . ..BeamPipe                  done !" << G4endl;
-	 G4cout << G4endl;
+     G4cout << "                             . ..BeamPipe                  done !" << G4endl;
+     G4cout << G4endl;
 }
 
 
@@ -2183,7 +1573,7 @@ void LCDetectorConstruction::BuildLHcal()
   
        if(Setup::LHcal_VisSolid ) LHcalVisAtt->SetForceSolid(true);
         else LHcalVisAtt->SetForceWireframe(true);
-	 logicLHcal->SetVisAttributes(LHcalVisAtt);
+     logicLHcal->SetVisAttributes(LHcalVisAtt);
 
     // define a subdetector region for LHCAL 
     regionLHcal = new G4Region("LHCAL");
@@ -2286,7 +1676,7 @@ void LCDetectorConstruction::BuildBCal()
   new G4PVPlacement ( trans2, logicBCal, " BCal2 ", logicWorld, false, 2); 
 
   //
-  // Visual Attributes				     				     				     
+  // Visual Attributes                                                           
   //
      G4VisAttributes *PMVisAtt = new G4VisAttributes(G4Colour(1., 0.0, 0.0));
      if(Setup::BCal_VisSolid ) PMVisAtt->SetForceSolid(true);
@@ -2331,17 +1721,17 @@ void LCDetectorConstruction::BuildMask()
   G4SubtractionSolid *solidMask = 
     new G4SubtractionSolid( "solidMask", solidtmp1, solidhole, 0, xzdist ); 
   
-		  G4LogicalVolume *logicMask = new G4LogicalVolume( solidMask    , Mask_Mat, "logicMask", 0, 0, 0); 
-		  G4RotationMatrix *yrotMSK = new G4RotationMatrix();
-		  yrotMSK->rotateY( 180. *deg).rotateZ(180 *deg); 
-		  new G4PVPlacement ( yrotMSK , G4ThreeVector(0., 0.,-zCent), logicMask, "Mask1", logicWorld, false, 1);  
-		  new G4PVPlacement ( 0, G4ThreeVector(0., 0., zCent), logicMask, "Mask2", logicWorld, false, 2); 
+          G4LogicalVolume *logicMask = new G4LogicalVolume( solidMask    , Mask_Mat, "logicMask", 0, 0, 0); 
+          G4RotationMatrix *yrotMSK = new G4RotationMatrix();
+          yrotMSK->rotateY( 180. *deg).rotateZ(180 *deg); 
+          new G4PVPlacement ( yrotMSK , G4ThreeVector(0., 0.,-zCent), logicMask, "Mask1", logicWorld, false, 1);  
+          new G4PVPlacement ( 0, G4ThreeVector(0., 0., zCent), logicMask, "Mask2", logicWorld, false, 2); 
 
      G4VisAttributes *MaskVisAtt = new G4VisAttributes(G4Colour(0.7, 0.3, 0.3));
      if(Setup::Mask_VisSolid ) MaskVisAtt->SetForceSolid(true);
                          else  MaskVisAtt->SetForceWireframe(true);
  
-	 logicMask->SetVisAttributes(MaskVisAtt);
+     logicMask->SetVisAttributes(MaskVisAtt);
 
     // define a subdetector region for MASK 
     regionMask = new G4Region("MASK");
@@ -2357,7 +1747,7 @@ void LCDetectorConstruction::BuildMask()
 LCCellParam::LCCellParam(G4int    NoCells,
                          G4double startR,
                          G4double endR,
-			 G4double SensHalfZ,
+             G4double SensHalfZ,
                          G4double SihalfZ,
                          G4double AlhalfZ,
                          G4double clipSize,
@@ -2399,12 +1789,12 @@ void LCCellParam::ComputeDimensions(G4Tubs &Cell, const G4int copyNo,
     G4String MotherLogName = physVol->GetMotherLogical()->GetName();
 
     if ( MotherLogName.contains("MetSector") ){
-	   innerRad +=  0.05;
-	   outerRad -=  0.05;
+       innerRad +=  0.05;
+       outerRad -=  0.05;
            delPhi   -= metPhi;
            startPhi += metPhi;
            halfZ     = lAlhalfZ; 
-	 }
+     }
 
     Cell.SetInnerRadius(innerRad);
     Cell.SetOuterRadius(outerRad);
@@ -2412,13 +1802,13 @@ void LCCellParam::ComputeDimensions(G4Tubs &Cell, const G4int copyNo,
 
     if ( MotherLogName.contains("Sector1") )
       {      Cell.SetStartPhiAngle( lstartPhi + cutPhi);
-	     Cell.SetDeltaPhiAngle( delPhi    ); }
+         Cell.SetDeltaPhiAngle( delPhi    ); }
     else if ( MotherLogName.contains("Sector4") )
       {      Cell.SetStartPhiAngle( lstartPhi );
-	     Cell.SetDeltaPhiAngle( delPhi    ); }
+         Cell.SetDeltaPhiAngle( delPhi    ); }
     else 
       {      Cell.SetStartPhiAngle( lstartPhi );
-	     Cell.SetDeltaPhiAngle( ldeltaPhi ); }
+         Cell.SetDeltaPhiAngle( ldeltaPhi ); }
 
 }
 

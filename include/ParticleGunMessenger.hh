@@ -23,30 +23,29 @@ class G4UIcmdWithAString;
 class G4UIcmdWithADoubleAndUnit;
 class G4UIcmdWith3VectorAndUnit;
 
-class ParticleGunMessenger: public G4UImessenger
-{
-public:
-  ParticleGunMessenger(ParticleGunGenerator *primaryGenerator);
-  ~ParticleGunMessenger(void);
-    
-  void SetNewValue(G4UIcommand *command, G4String newValues);
-  G4String GetCurrentValue(G4UIcommand *command);
+class ParticleGunMessenger: public G4UImessenger{
+    public:
+        ParticleGunMessenger(ParticleGunGenerator *primaryGenerator);
+        ~ParticleGunMessenger(void);
 
-private:
-  ParticleGunGenerator      *fPrimaryGenerator;
-    
-  G4UIcmdWith3VectorAndUnit *fGunPositionStepCmd;
-  G4UIcmdWith3VectorAndUnit *fGunPositionSmearingCmd;
-  G4UIcmdWithADoubleAndUnit *fGunThetaStepCmd;
-  G4UIcmdWithADoubleAndUnit *fGunThetaSmearingCmd;
-  G4UIcmdWithADoubleAndUnit *fGunPhiStepCmd;
-  G4UIcmdWithADoubleAndUnit *fGunPhiSmearingCmd;
-  G4UIcmdWithADoubleAndUnit *fGunMomentumCmd;
-  G4UIcmdWithADoubleAndUnit *fGunMomentumStepCmd;
-  G4UIcmdWithADoubleAndUnit *fGunMomentumSmearingCmd;
-  G4UIcmdWithAString        *fGunDirectionSmearingModeCmd;
-  G4UIcmdWithAString        *fGunPositionSmearingModeCmd;
-  G4UIcmdWithoutParameter   *fGunInfoCmd;
+        void SetNewValue(G4UIcommand *command, G4String newValues);
+        G4String GetCurrentValue(G4UIcommand *command);
+
+    private:
+        ParticleGunGenerator *fPrimaryGenerator;
+
+        G4UIcmdWith3VectorAndUnit *fGunPositionStepCmd;
+        G4UIcmdWith3VectorAndUnit *fGunPositionSmearingCmd;
+        G4UIcmdWithADoubleAndUnit *fGunThetaStepCmd;
+        G4UIcmdWithADoubleAndUnit *fGunThetaSmearingCmd;
+        G4UIcmdWithADoubleAndUnit *fGunPhiStepCmd;
+        G4UIcmdWithADoubleAndUnit *fGunPhiSmearingCmd;
+        G4UIcmdWithADoubleAndUnit *fGunMomentumCmd;
+        G4UIcmdWithADoubleAndUnit *fGunMomentumStepCmd;
+        G4UIcmdWithADoubleAndUnit *fGunMomentumSmearingCmd;
+        G4UIcmdWithAString *fGunDirectionSmearingModeCmd;
+        G4UIcmdWithAString *fGunPositionSmearingModeCmd;
+        G4UIcmdWithoutParameter *fGunInfoCmd;
 };
 
 #endif

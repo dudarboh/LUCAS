@@ -319,11 +319,3 @@ void LCSensitiveDetector::SetPhiCellDim(G4double c1)
 void LCSensitiveDetector::clear()
 {
 }
-
-void LCSensitiveDetector::DrawAll()
-{
-}
-
-void LCSensitiveDetector::PrintAll()
-{
-}

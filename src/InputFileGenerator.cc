@@ -51,13 +51,9 @@ void InputFileGenerator::SetupFileGenerator(G4String generatorName){
     const size_t dotPosition = generatorName.rfind(".");
     
     // If found a dot get suffix, otherwise get nothing
-    if(dotPosition != string::npos){
-        const G4String nameSuffix = generatorName(dotPosition, generatorName.length() - dotPosition)
-    }
-    else{
-        G4String();  
-    }
-
+    const G4String nameSuffix = (dotPosition != string::npos) ?
+    generatorName(dotPosition, generatorName.length() - dotPosition)
+    : G4String();
 
     if(!newGenerator){
         if(nameSuffix == ".HEPEvt") newGenerator = new HEPEvtInterface(generatorName);
