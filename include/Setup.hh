@@ -31,7 +31,6 @@ class Setup{
         static G4double StepSizeMin;
         static G4int PrintLevel;
         static G4bool batchMode;
-        static G4String PhysicsListName; 
         static G4String macroName;
         static G4String RootFileName;
         static G4String RootFileMode;

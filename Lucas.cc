@@ -42,9 +42,6 @@
 using namespace std;
 
 int main(int argc, char* argv[]){
-    char *Me = strrchr(argv[0], '/');
-    if (Me == NULL) Me = argv[0];
-    else Me++;
   
     LCRootOut *theLCRootOut = NULL;
     G4RunManager *runManager = new G4RunManager;
@@ -119,7 +116,7 @@ int main(int argc, char* argv[]){
             G4cout<<"Writing to and closing file : "<<Setup::RootFileName<<G4endl;
             LCRootOut::pRootFile->Write();
             LCRootOut::pRootFile->Close();
-            G4cout<<Me<<"main::Closed file: "<<Setup::RootFileName<<G4endl;
+            G4cout<<"main::Closed file: "<<Setup::RootFileName<<G4endl;
         }
         delete theLCRootOut;
     }
@@ -135,6 +132,6 @@ int main(int argc, char* argv[]){
     
     G4cout<<"End Job - time elapsed: " <<diff / s<<" seconds"<<G4endl; 
     delete theSetup;
-    G4cout<<"\n**** "<<Me<<" run ended  at "<<ctime(&now)<<G4endl;
+    G4cout<<"\n**** "<<" run ended  at "<<ctime(&now)<<G4endl;
     return 0;
 }
