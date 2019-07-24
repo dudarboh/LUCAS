@@ -1,7 +1,5 @@
-"""
-Class to setup initial parameters for Lcal geometry, materials, and I/O.
-"""
-// getopt()
+//Class to setup initial parameters for Lcal geometry, materials, and I/O.
+
 #include <unistd.h>
 
 #include <iostream>
@@ -33,7 +31,6 @@ G4double Setup::world_hdz = 10000.*mm;
 
 // for globals
 G4long   Setup::StartRandomSeed;
-G4int    Setup::EventStartNumber = 0;
 G4int    Setup::MaxStepsNumber = 10;
 G4double Setup::StepSizeMin = 0.;
 
@@ -43,12 +40,10 @@ G4int    Setup::PrintLevel = 0;
 G4String Setup::macroName = "";
 G4String Setup::RootFileName = "";
 G4String Setup::RootFileMode = "";
-G4bool   Setup::AccumulateEvents = false;
 G4double Setup::rangeCut = 0.005*mm;
 G4String Setup::SetupFile = "";
 
 G4double Setup::Nominal_Field_value = 3.5 *tesla;
-G4String Setup::Particle_Generator = "";
 G4int    Setup::NoOfEventsToProcess = 0;
 G4int    Setup::LcalTBeam = 0;
 G4String Setup::Build_Beampipe = "Yes";
@@ -214,8 +209,6 @@ void Setup::Usage(){
         << "-M <mode>       specifies ROOT file opening mode (default is CREATE \n"
         << "                to avoid accidental file overwriting).\n"
         << "                Possible values are RECREATE/UPDATE \n"
-        << "-A              accumulate events from entire Run are to be\n"
-        << "                written in one event (suitable only for beam background data)\n"
         << "\n"
         << "-c <double>     specifies the Geant 4 production range cut in mm.\n"
         << "                (default is " << Setup::rangeCut / mm << " mm)\n"
@@ -230,7 +223,7 @@ void Setup::SetupInit(int argc, char *argv[]){
     time_t now = time(NULL);
     G4cout<<"Setup::SetupInit is started: "<<ctime(&now)<<G4endl;
 
-    const int option;
+    int option;
     while((option=getopt(argc, argv, ":A:hx:c:ibm:M:o:P:s:")) != -1){
         switch(option){
             case 'h':
@@ -250,9 +243,6 @@ void Setup::SetupInit(int argc, char *argv[]){
                 break;
             case 'M':
                 Setup::RootFileMode = optarg;
-                break;
-            case 'A':
-                Setup::AccumulateEvents = true;
                 break;
             case 'c':
                 Setup::rangeCut = std::strtod(optarg, NULL)*mm;
@@ -300,7 +290,6 @@ void Setup::SetBaseParameters(){
         }
     
     // globals   
-    else if(!strcmp(parName, "EventStartNumber"))   sscanf(aLine, "%s %d", sDum, &(Setup::EventStartNumber)); 
     else if(!strcmp(parName, "LogFreq"))            sscanf(aLine, "%s %d", sDum, &(Setup::LogFreq)); 
     else if(!strcmp(parName, "MaxStepsNumber"))     sscanf(aLine, "%s %d", sDum, &(Setup::MaxStepsNumber)); 
     else if(!strcmp(parName, "StepSizeMin"))     sscanf(aLine, "%s %lf", sDum, &(Setup::StepSizeMin)); 
@@ -309,9 +298,6 @@ void Setup::SetBaseParameters(){
                                                      sscanf(aLine, "%s %s", sDum, sDum);  Setup::RootFileName = sDum;}}
     else if(!strcmp(parName, "RootFileMode"))    {if(Setup::RootFileMode == ""){
                                                      sscanf(aLine, "%s %s", sDum, sDum); Setup::RootFileMode = sDum;}}
-    else if(!strcmp(parName, "AccumulateEvents")) {
-                                                     sscanf(aLine, "%s %d", sDum, &iDum); 
-                                                         if(iDum == 1) Setup::AccumulateEvents = true;}
     else if(!strcmp(parName, "Build_Beampipe")) { sscanf(aLine, "%s %s", sDum, sDum); Setup::Build_Beampipe = sDum; }
     else if(!strcmp(parName, "Build_LHcal"))    { sscanf(aLine, "%s %s", sDum, sDum); Setup::Build_LHcal = sDum; } 
     else if(!strcmp(parName, "Build_BCal"))     { sscanf(aLine, "%s %s", sDum, sDum); Setup::Build_BCal = sDum; } 
@@ -325,11 +311,7 @@ void Setup::SetBaseParameters(){
                                                    sscanf(aLine, "%s %lf", sDum, &(Setup::LHcal_Region_Cut));}
     else if(!strcmp(parName, "Mask_Region_Cut")) {if(Setup::Mask_Region_Cut == 1.000)
                                                    sscanf(aLine, "%s %lf", sDum, &(Setup::Mask_Region_Cut));}
-    else if(!strcmp(parName, "Beam_Crossing_Angle")) { 
-                                              sscanf(aLine, "%s %lf", sDum, &(Setup::Beam_Crossing_Angle)) ;
-                                              Setup::lorentzTransAngle = Setup::Beam_Crossing_Angle / 2. *mrad;
-                                              Setup::Beam_Crossing_Angle *= mrad;
-        }
+
     else if(!strcmp(parName, "Nominal_field_value")) { sscanf(aLine, "%s %lf", sDum, &(Setup::Nominal_Field_value)); 
                                                          Setup::Nominal_Field_value *= tesla;
     }
@@ -421,8 +403,6 @@ void Setup::SetBaseParameters(){
  
 void Setup::SetDerivedParameters(){
     // set obligatory defaults if nothing was set so far 
-    if(Setup::Beam_Crossing_Angle < 0.) {  Setup::Beam_Crossing_Angle = 0. *mrad ;
-                                          Setup::lorentzTransAngle = Setup::Beam_Crossing_Angle / 2. *mrad; } 
     if(Setup::RootFileMode == "")  Setup::RootFileMode = "CREATE"; 
     //
     G4double layer_thick;
@@ -462,7 +442,6 @@ void Setup::SetDerivedParameters(){
     Setup::Lcal_sensor_dz = 2.*Setup::Lcal_layer_hdz;
                           
     Setup::Lcal_sector_dphi = Setup::Lcal_end_phi/ (G4double)Setup::Lcal_n_sectors;
-    Setup::lorentzTransAngle= Setup::Beam_Crossing_Angle / 2.;
 }
 
 void Setup::AddMaterials(){

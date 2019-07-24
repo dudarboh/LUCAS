@@ -15,9 +15,7 @@
 #include <unistd.h>
 
 #include "G4RunManager.hh"
-#include "G4UImanager.hh"
-#include "G4UItcsh.hh"
-#include "G4UIterminal.hh"
+
 
 #include "PrimaryGeneratorAction.hh"
 #include "SteppingAction.hh"
@@ -33,10 +31,12 @@
 
 #include "G4SystemOfUnits.hh"
 
-#ifdef G4VIS_USE
-#include "G4VisExecutive.hh"
-#endif
+#include "G4UImanager.hh"
+#include "G4UItcsh.hh"
+#include "G4UIterminal.hh"
 
+#include "G4VisExecutive.hh"
+#include "G4UIExecutive.hh"
 
 #include <iostream>
 using namespace std;
@@ -64,61 +64,49 @@ int main(int argc, char* argv[]){
     // User Action Classes
     runManager->SetUserAction(new PrimaryGeneratorAction);
 
-    // Initialize the ROOT output class
-    if(Setup::batchMode){   
-        LCRootOut *theRootOut = new LCRootOut();
-        LCEventAction *theEventAction = new LCEventAction(theRootOut);
-        runManager->SetUserAction(new LCRunAction(theRootOut));
-        runManager->SetUserAction(theEventAction);
-        runManager->SetUserAction(new SteppingAction(theEventAction));
+    LCRootOut *theRootOut = new LCRootOut();
+    LCRunAction *theRunAction;
+    LCEventAction *theEventAction;
+
+    // Batch mode is false by default
+    if(Setup::batchMode){
+        theRunAction = new LCRunAction(theRootOut);
+        theEventAction = new LCEventAction(theRootOut);
     }
     else{
-        LCEventAction *theEventAction = new LCEventAction();
-        runManager->SetUserAction(new LCRunAction());
-        runManager->SetUserAction(theEventAction);
-        runManager->SetUserAction(new SteppingAction(theEventAction));
+        theRunAction = new LCRunAction();
+        theEventAction = new LCEventAction();
     }
 
-    G4UImanager *UI = G4UImanager::GetUIpointer();
-    G4cout<<"Setup::batchMode "<<Setup::batchMode<<G4endl;
+    runManager->SetUserAction(theRunAction);
+    runManager->SetUserAction(theEventAction);
+    runManager->SetUserAction(new SteppingAction(theEventAction));
+
+    G4UIExecutive *ui;
+    if(Setup::batchMode) ui = 0;
+    else ui = new G4UIExecutive(argc, argv);
+
+    G4VisManager *visManager = new G4VisExecutive;
+    visManager->Initialize();
+    G4UImanager *uiManager = G4UImanager::GetUIpointer();
+
+    G4cout<<"Setup::batchMode: "<<Setup::batchMode<<G4endl;
     G4cout<<"/control/execute " + Setup::macroName<<G4endl;
 
     if(Setup::batchMode){
         G4String command = "/control/execute ";
-        UI->ApplyCommand(command + Setup::macroName);
+        uiManager->ApplyCommand(command + Setup::macroName);
     }
     else{
-        #ifdef G4VIS_USE
-            G4VisManager *visManager = new G4VisExecutive;
-            visManager->Initialize();
-        #endif
+        uiManager->ApplyCommand("/control/execute init_vis.mac");
 
-        G4UIsession *session = 0;
-        #ifdef G4UI_USE_TCSH
-            session = new G4UIterminal(new G4UItcsh);
-        #else
-            session = new G4UIterminal();
-        #endif
-
-        UI->SetCoutDestination(session);
         G4String command = "/control/execute ";
-        if(Setup::macroName != "")UI->ApplyCommand(command + Setup::macroName);
-        session->SessionStart();
-        delete session;
+        if(Setup::macroName != "") uiManager->ApplyCommand(command + Setup::macroName);
 
-        #ifdef G4VIS_USE
-            delete visManager;
-        #endif
-    }
+        ui->SessionStart();
+        delete ui;
 
-    if(Setup::AccumulateEvents){
-        if(LCRootOut::pRootFile){
-            G4cout<<"Writing to and closing file : "<<Setup::RootFileName<<G4endl;
-            LCRootOut::pRootFile->Write();
-            LCRootOut::pRootFile->Close();
-            G4cout<<"main::Closed file: "<<Setup::RootFileName<<G4endl;
-        }
-        delete theLCRootOut;
+        delete visManager;
     }
 
     delete runManager;

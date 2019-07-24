@@ -34,10 +34,9 @@ void LCRunAction::BeginOfRunAction(const G4Run* Run){
     G4cout<<" To do it, create in the current directory semaphore file "<<G4endl;
     G4cout<<" named <aStopRun> , file content is ignored "<<G4endl;
     G4cout<<" ( eg. shell> touch aStopRun  )"<<G4endl;
- 
+
     Setup::StartTime = times(&fTimeNow);
-    Setup::NoOfEventsToProcess = Run->GetNumberOfEventToBeProcessed() - Setup::EventStartNumber;
-    if(Setup::Particle_Generator.contains("pairs.")) Setup::AccumulateEvents = true;
+    Setup::NoOfEventsToProcess = Run->GetNumberOfEventToBeProcessed();
 
     // set random seed manually
     G4long seed = Setup::StartTime;
@@ -81,18 +80,14 @@ void LCRunAction::Print(G4String now, const G4Run* Run){
         G4cout << "|                   macroName:  "<< Setup::macroName << G4endl;
         G4cout << "|                  PrintLevel:  "<< Setup::PrintLevel << G4endl;
         G4cout << "|           Logging frequency:  "<< Setup::LogFreq << G4endl;
-        G4cout << "|             PhysicsListName:  "<< Setup::PhysicsListName << G4endl;
     
         if(Setup::batchMode){
             G4cout << "|       ROOT output file name:  "<< Setup::RootFileName << G4endl;
             G4cout << "|       ROOT output open mode:  "<< Setup::RootFileMode << G4endl;
-            G4cout << "|           accumulate events:  "<< Setup::AccumulateEvents << G4endl;
         }
         if(Setup::LcalTBeam) G4cout << "|             The senrio is  :  "<< Setup::TBeam_senrio << G4endl;
         G4cout << "|                   SetupFile:  "<< Setup::SetupFile << G4endl;
-        G4cout << "|         Beam_Crossing_Angle:  "<< Setup::Beam_Crossing_Angle / mrad << " [mrad]" << G4endl;
         G4cout << "|         Nominal field value:  "<< Setup::Nominal_Field_value / tesla << " [T]"<< G4endl;
-        G4cout << "|          Particle generator:  "<< Setup::Particle_Generator<< G4endl;
         G4cout << "| Number of events to process:  "<< Setup::NoOfEventsToProcess << G4endl; 
         G4cout << "|   Detector components build:  "<< G4endl;
         G4cout << "|                   Beam Tube:  "<< Setup:: Build_Beampipe << G4endl;

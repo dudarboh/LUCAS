@@ -44,25 +44,8 @@ class LCHit:public G4VHit{
             G4double pXc, G4double pYc, G4double pZc, // cell position
             G4double pE, G4int pPID, G4int pPDG, // parent ID number and particle type
             cell_code pCode, // cell identifier
-            G4double pTOF) // time of flight
-            : Xhit(pXh), Yhit(pYh), Zhit(pZh), // global hit coordinates
-            Xcell(pXc), Ycell(pYc), Zcell(pZc), // global cell coordinates
-            TOF(pTOF){
-            
-            trackIDs = new PrimaryIDMap;
-            trackIDs->clear();
-            code.id0 = pCode.id0;
-            code.id1 = pCode.id1;
-            SetEnergy(0.0);
-            NoOfContributingHits = 0;
-            AddEdep(pPID, pPDG, pE);
-        }
+            G4double pTOF); // time of flight
         ~LCHit();
-
-        void   Draw();
-        void   Print();
-        void   Save(FILE *oFile);
-        G4bool Load(FILE *iFile);
 
         // Memory management
         inline void *operator new(size_t);

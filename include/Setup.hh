@@ -177,7 +177,7 @@ class Setup{
         Setup(); 
         static Setup *theSetup;
         void SetDerivedParameters();
-        void Usage(const char *name);
+        void Usage();
         void AddMaterials();
 };
 

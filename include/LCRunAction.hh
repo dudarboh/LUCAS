@@ -29,7 +29,6 @@ class LCRunAction : public G4UserRunAction{
         void EndOfRunAction (const G4Run*);
         void Print(G4String flag, const G4Run*);
 
-        // Handles writing to a ROOT file
         LCRootOut *RootOut;
 };
 

@@ -22,7 +22,6 @@
 #include "Setup.hh"
 #include "LCSensitiveDetector.hh"
 #include "LCField.hh"
-#include "LCFieldX14.hh"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -144,7 +143,8 @@ void LCDetectorConstruction::InitDetectorParameters(){
     if(Setup::Build_Beampipe == "Yes") WorldMat = Air;
     else WorldMat = Vacuum;
     if(Setup::LcalTBeam >0) WorldMat = Air;
-    rotAng = Setup::Beam_Crossing_Angle / 2.;
+    // rotAng = Setup::Beam_Crossing_Angle / 2.;
+    rotAng = 0.;
     rotAng1 = 180.*deg - rotAng;
     rotAng2 = rotAng;
 
@@ -1054,18 +1054,11 @@ void LCDetectorConstruction::BuildField(){
     static G4bool fieldIsInitialized = false;
     if(!fieldIsInitialized){
         G4FieldManager *fieldMgr = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-        if(Setup::Beam_Crossing_Angle == 0.){
-            LCField *myField = new LCField();
 
-            fieldMgr->SetDetectorField(myField);
-            fieldMgr->CreateChordFinder(myField);
-        }
-        else{
-            G4cout<<"LCDDetectorConstructor:: Using DID field map"<<G4endl;
-            LCFieldX14 *myField = new LCFieldX14("did_field.data"); // anti-DID field map for 14mr 
-            fieldMgr->SetDetectorField(myField);
-            fieldMgr->CreateChordFinder(myField);
-       }
+        LCField *myField = new LCField();
+        fieldMgr->SetDetectorField(myField);
+        fieldMgr->CreateChordFinder(myField);
+
         fieldIsInitialized = true;
     }
     G4cout<<"Field is done."<<G4endl;

@@ -178,66 +178,12 @@ void LCRootOut::ProcessEvent(const G4Event* event, LCHitsCollection *collection)
     }
 }
 
-void LCRootOut::ProcEventAccumulate(LCHitsCollection *collection){
-    // - B.P. 29.05.2009
-    // this method is devoted to merge events from entire run
-    // into one tree. It is to be used solely for beam-background data.
-    // Primaries are not stored in the tree ( typically there is 10^5
-    // primaries per event ). The list of tracks contributing to
-    // a hit is neglected as well.  
-
-    if(collection){
-        G4int i = 0;
-        G4int nHits = collection->entries();
-        while(i < nHits){
-            G4int address = (*collection)[i]->GetCellCode();
-            G4int side = (address >> 24) & 0xff ;
-            G4double eH = (*collection)[i]->GetEnergy();
-            unsigned int it = 0;
-            while(it < theUsedCells.size()){
-                if(theUsedCells[it] == address) break;
-                it++;
-            }
-
-            // cellID not in the list, add
-            if(it == theUsedCells.size()){
-                theUsedCells.push_back(address);
-                Hit_t hit;
-                hit.eHit = eH;
-                hit.xCell = (*collection)[i]->GetXcell();
-                hit.yCell = (*collection)[i]->GetYcell();
-                hit.zCell = (*collection)[i]->GetZcell();
-                hit.xHit = (*collection)[i]->GetXhit();
-                hit.yHit = (*collection)[i]->GetYhit();
-                hit.zHit = (*collection)[i]->GetZhit();
-                hit.TOF = (*collection)[i]->GetTOF();
-                if(Emax<eH) Emax = eH;
-                pHits->push_back( hit ); 
-                numHits++;
-            }
-            // cell in list, increase energy deposit only
-            else{
-                (*pHits)[it].eHit += eH;
-                if((*pHits)[it].eHit > Emax) Emax = (*pHits)[it].eHit;
-            }
-            Etot[side-1] += eH ;
-            i++;
-        }
-    }
-}
-
 void LCRootOut::End(){
     // Fill tree, do not close the file. It will be closed by main()
-    if(Setup::AccumulateEvents){
-        _LcalData->Fill();
-        theUsedCells.clear();
-    }
-    else{
-        _file->Write();
-        _file->Close();
-        G4cout<<"LCRootOut::Closed file: "<<Setup::RootFileName<<G4endl;
-        delete _file;
-        _file = NULL;
-        _LcalData = NULL;
-    }
+    _file->Write();
+    _file->Close();
+    G4cout<<"LCRootOut::Closed file: "<<Setup::RootFileName<<G4endl;
+    delete _file;
+    _file = NULL;
+    _LcalData = NULL;
 }

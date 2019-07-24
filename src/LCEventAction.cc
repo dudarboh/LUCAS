@@ -77,10 +77,7 @@ void LCEventAction::BeginOfEventAction(const G4Event*){
     SDman = G4SDManager::GetSDMpointer();
     time(&_start);
 
-    if(collID<0){
-        // there is only 1 hits collection, so the name is constant
-        collID = SDman->GetCollectionID("LumiCalSD_HC");
-    }
+    if(collID<0) collID = SDman->GetCollectionID("LumiCalSD_HC");
 }
 
 void LCEventAction::EndOfEventAction(const G4Event* event){
@@ -90,7 +87,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
     G4int evtnum = (event->GetEventID())+1;
 
     // report on track killed
-    if(noTrackKilled > 0) G4cout<<"Event: "<<evtnum + Setup::EventStartNumber<<" Back Energy Leak: "<<LeakEnergy / GeV <<" GeV"<<G4endl;
+    if(noTrackKilled > 0) G4cout<<"Event: "<<evtnum<<" Back Energy Leak: "<<LeakEnergy / GeV <<" GeV"<<G4endl;
 
     // Log Run progress
     if(Setup::LogFreq > 0){
@@ -107,7 +104,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
             evtleft = (1. - evtleft) * 100.;
             G4cout<<G4endl;
             G4cout<<"LCEventAction::EndOfEventAction: "<<G4endl;
-            G4cout<<"Event number: "<<evtnum + Setup::EventStartNumber<<" - "<<evtleft<<"% done !"<<" current time is: "<<ctime(&now);
+            G4cout<<"Event number: "<<evtnum<<" - "<<evtleft<<"% done !"<<" current time is: "<<ctime(&now);
             G4cout<<"Time elapsed: "<<tdiff / s <<"  time/event: "<<evtime/s<<"  EST: "<<EST/s<<G4endl;
         }
     }
@@ -119,13 +116,6 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
 
     // fill the ROOT Tree
     if(HitsColl){
-        if(RootOut){
-            if(Setup::AccumulateEvents){
-                RootOut->ProcEventAccumulate(HitsColl);
-            }
-            else{
-                RootOut->ProcessEvent(event, HitsColl);
-            }
-        }
+        if(RootOut) RootOut->ProcessEvent(event, HitsColl);
     }
 }

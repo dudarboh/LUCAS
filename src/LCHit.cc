@@ -23,13 +23,30 @@
 G4Allocator<LCHit> LCHitAllocator;
 
 //constructor defined in the header
+LCHit::LCHit(G4double pXh, G4double pYh, G4double pZh, // hit position
+    G4double pXc, G4double pYc, G4double pZc, // cell position
+    G4double pE, G4int pPID, G4int pPDG, // parent ID number and particle type
+    cell_code pCode, // cell identifier
+    G4double pTOF){ // time of flight
+    
+    G4double Xhit = pXh, Yhit = pYh, Zhit = pZh;
+    G4double Xcell = pXc, Ycell = pYc, Zcell = pZc;
+    G4double TOF = pTOF;
+    trackIDs = new PrimaryIDMap;
+    trackIDs->clear();
+    code.id0 = pCode.id0;
+    code.id1 = pCode.id1;
+    SetEnergy(0.0);
+    NoOfContributingHits = 0;
+    AddEdep(pPID, pPDG, pE);
+}
 //destructor
 LCHit::~LCHit(){
     trackIDs->clear();
     delete trackIDs;
 }
 
-// Accumulates energy from primary particles that enter the cell. This is the central function of LCHit
+// Accumulates energy from primary particles that enter the cell.
 void LCHit::AddEdep(G4int pPID, G4int pPDG, G4double de){
     NoOfContributingHits ++;
     // increment energy deposition per hit
@@ -37,38 +54,3 @@ void LCHit::AddEdep(G4int pPID, G4int pPDG, G4double de){
     PrimaryIDMapIterator iter = trackIDs->find(pPID);
     if(iter == trackIDs->end()) trackIDs->insert(PrimaryIDPair(pPID, pPDG));
 }
-
-
-// Print, Draw hits
-void LCHit::Draw(){
-    G4VVisManager *pVVisManager = G4VVisManager::GetConcreteInstance();
-    if(pVVisManager){
-        PrimaryIDMap::iterator p = trackIDs->begin();
-        PrimaryIDMap::value_type x = *p;
-        G4int PID = x.first;
-        G4Colour colour(((PID % 2) + 1.) / 2., ((PID % 3) + 1.) / 3., 1.);
-        G4VisAttributes attribs(colour);
-        G4Circle circle;
-        circle.SetPosition(G4Point3D(Xcell, Ycell, Zcell));
-        circle.SetScreenDiameter(2.0);
-        circle.SetFillStyle(G4Circle::filled);
-        circle.SetVisAttributes(attribs);
-        pVVisManager->Draw(circle);
-    }
-}
-
-
-void LCHit::Print(){
-    PrimaryIDMapIterator iter;
-    PrimaryIDMapIterator ite0 = trackIDs->begin();
-    if(ite0 != trackIDs->end()) G4cout<<"Tracks contributed to hit: "<<G4endl;
-    for(iter=ite0; iter!=trackIDs->end(); iter++){ 
-        G4int PID = (iter->first);
-        G4int PDG = (iter->second);
-        G4cout<<"ID: "<<PID<<" PDG: "<<PDG<<G4endl;
-    }
-}
-
-// Save a file, Load a File - from CalHit
-void LCHit::Save(FILE *){}
-G4bool LCHit::Load(FILE *){return false;}
