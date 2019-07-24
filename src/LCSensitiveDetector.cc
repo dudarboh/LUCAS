@@ -14,12 +14,11 @@
 #include "LCEventAction.hh"
 #include "Setup.hh"
 
-
 LCSensitiveDetector::LCSensitiveDetector(G4String sdname,
-    G4double CalRhoMin,
-    G4double CalPhiOffset,
-    G4double cellDimRho,
-    G4double cellDimPhi,
+    G4double rmin,
+    G4double phi0,
+    G4double cRho,
+    G4double cPhi,
     G4int nCellRho,
     G4int nCellPhi,
     G4bool cellvirtual)
@@ -35,10 +34,16 @@ LCSensitiveDetector::LCSensitiveDetector(G4String sdname,
     hitMap = new LCHitMap;
 
     // set primary args - this is how you tell LCSensDet the geometric parameters of LumiCal
-    SetRhoMin(CalRhoMin);
-    SetPhiOffset(CalPhiOffset);
-    SetRhoCellDim(cellDimRho);
-    SetPhiCellDim( cellDimPhi);
+    CalRhoMin = rmin;
+    
+    CalPhiOffset = phi0;
+
+    cellDimRho = cRho;
+    assert(cellDimRho > 0);
+
+    cellDimPhi = cPhi;
+    assert(cellDimPhi > 0);
+
     SetNCellRho(nCellRho);
     SetNCellPhi(nCellPhi);
     G4cout<<"SD created <"<<SDName<<">"<<G4endl;
@@ -219,37 +224,16 @@ G4bool LCSensitiveDetector::FindHit(G4int cellID, G4double edep, G4int TID, G4in
     return false;
 }
 
-
-void LCSensitiveDetector::SetRhoMin(G4double rmin){CalRhoMin = rmin;}
-
-
-void LCSensitiveDetector::SetPhiOffset(G4double phi0){CalPhiOffset = phi0;}
-
-
 void LCSensitiveDetector::SetNCellRho(G4int nx){
     // set number of cellS in a sector
     NumCellsRho = nx;
     assert(nx > 0);
 }
 
-
 void LCSensitiveDetector::SetNCellPhi(G4int ny){
     // set number of sectors in a layer (= # cells in phi dir)
     NumSectorsPhi = ny;
     assert(ny > 0);
 }
-
-
-void LCSensitiveDetector::SetRhoCellDim(G4double c1){
-    cellDimRho = c1;
-    assert(cellDimRho > 0);
-}
-
-
-void LCSensitiveDetector::SetPhiCellDim(G4double c1){
-    cellDimPhi = c1;
-    assert(cellDimPhi > 0);
-}
-
 
 void LCSensitiveDetector::clear(){}

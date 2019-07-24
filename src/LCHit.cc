@@ -29,9 +29,9 @@ LCHit::LCHit(G4double pXh, G4double pYh, G4double pZh, // hit position
     cell_code pCode, // cell identifier
     G4double pTOF){ // time of flight
     
-    G4double Xhit = pXh, Yhit = pYh, Zhit = pZh;
-    G4double Xcell = pXc, Ycell = pYc, Zcell = pZc;
-    G4double TOF = pTOF;
+    Xhit = pXh, Yhit = pYh, Zhit = pZh;
+    Xcell = pXc, Ycell = pYc, Zcell = pZc;
+    TOF = pTOF;
     trackIDs = new PrimaryIDMap;
     trackIDs->clear();
     code.id0 = pCode.id0;

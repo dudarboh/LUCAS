@@ -43,7 +43,6 @@ using namespace std;
 
 int main(int argc, char* argv[]){
   
-    LCRootOut *theLCRootOut = NULL;
     G4RunManager *runManager = new G4RunManager;
 
     Setup *theSetup = Setup::GetSetup();

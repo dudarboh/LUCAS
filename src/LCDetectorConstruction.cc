@@ -413,11 +413,8 @@ void LCDetectorConstruction::BuildTBeamPT16(){
   
     G4double zposLC = 3300.*mm; // for 2016 from 4th Telescope plane to box 
     G4double zyposLC = -(22. / 64.) * (SensRadMax-SensRadMin)*mm;
-    G4double DUTairhx = 100.0*mm;
-    G4double DUTairhy = 100.0*mm;
-    G4double DUTairhz = 54*mm; // need to define that as Lcal_tungsten_hdz + C (spacer) 
+
     G4double DUTextrahz = 0.002*mm; 
-    G4double ShiftForSigleMIP = 10*mm; 
 
     G4double zpos_PSC = 1130.*mm; // for 2016 from 4th Telescope plane to Plastic scintilator  
     G4double zpos_TR_PSC = 20.*mm; // for 2016 from 4th Telescope plane to TRiger Plastic scintilator  
@@ -439,7 +436,6 @@ void LCDetectorConstruction::BuildTBeamPT16(){
         std::string Osub;
         iss>>Osub;
         std::cout<<"Substring: "<<Osub<<std::endl;
-        std::string delimiter = ":";
         std::string tmpsub = Osub.substr(0, Osub.find(delimiter));
         std::string sub;
         int i_air = 0;
@@ -1075,10 +1071,9 @@ void LCDetectorConstruction::BuildBeamPipe(){
     else BeamPipeVisAtt->SetForceWireframe(true);
  
     G4cout << " Building BeamPipe ..." << G4endl;
-     G4double LcalToBeamTol = 1.*mm;
-         G4double zpl[6], rinner[6], router[6];
-         G4double dzTol = 10. *mm;
-     G4int numz = 6 ;
+    G4double zpl[6], rinner[6], router[6];
+    G4double dzTol = 10. *mm;
+    G4int numz = 6 ;
 
        zpl[0] = -Lcal_zbegin + dzTol ; router[0] = SensRadMax ; rinner[0] = router[0] - pipe_th; 
        zpl[1] = -230.*mm ; router[1] = 24.*mm ; rinner[1] = router[1] - pipe_th; 
@@ -1274,9 +1269,9 @@ void LCDetectorConstruction::BuildBeamPipe(){
          G4RotationMatrix *yRotHole = new G4RotationMatrix();
          yRotHole->rotateY(  -rotAng );
 
-         G4Tubs *solidtmp   = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
+         G4Tubs *solidtemporary   = new G4Tubs ( "solidLC_BC", LC_BC_wall_rmin, LC_BC_wall_rmax, pipe_th/2., startPhi, endPhi); 
          G4Tubs *solidhole  = new G4Tubs ( "solidhole" ,              0., BCal_inner_intube_rmax, 4.*pipe_th, startPhi, endPhi);
-         G4SubtractionSolid *solidLC_BC = new G4SubtractionSolid("solidLC_BC", solidtmp, solidhole, yRotHole, xshift);
+         G4SubtractionSolid *solidLC_BC = new G4SubtractionSolid("solidLC_BC", solidtemporary, solidhole, yRotHole, xshift);
   
          logicBCalFrntTubeWall = new G4LogicalVolume ( solidLC_BC, Iron, "logicBCalFrntTubeWall", 0, 0, 0);
        }
@@ -1606,45 +1601,6 @@ void LCCellParam::ComputeTransformation(const G4int, G4VPhysicalVolume *physVol)
     physVol->SetTranslation(G4ThreeVector(0., 0., 0));
     physVol->SetRotation(0);
 }
-
-void LCCellParam::ComputeDimensions(G4Tubs &Cell, const G4int copyNo, const G4VPhysicalVolume* physVol) const{
-    G4double innerRad = lstartR + copyNo * ldeltaR;
-    G4double midRad = innerRad + ldeltaR / 2;
-    G4double outerRad = innerRad + ldeltaR;
-    G4double cutPhi = atan(lclipSize / midRad)*rad ;
-    G4double delPhi = ldeltaPhi - cutPhi;
-    G4double startPhi = lstartPhi;
-    G4double metPhi = atan(0.05 / midRad)*rad;
-    G4double halfZ = lSihalfZ;
-
-    G4String MotherLogName = physVol->GetMotherLogical()->GetName();
-
-    if(MotherLogName.contains("MetSector")){
-        innerRad +=  0.05;
-        outerRad -=  0.05;
-        delPhi -= metPhi;
-        startPhi += metPhi;
-        halfZ = lAlhalfZ;
-    }
-
-    Cell.SetInnerRadius(innerRad);
-    Cell.SetOuterRadius(outerRad);
-    Cell.SetZHalfLength(halfZ); 
-
-    if(MotherLogName.contains("Sector1")){
-        Cell.SetStartPhiAngle(lstartPhi + cutPhi);
-        Cell.SetDeltaPhiAngle(delPhi);
-    }
-    else if(MotherLogName.contains("Sector4")){
-        Cell.SetStartPhiAngle(lstartPhi);
-        Cell.SetDeltaPhiAngle(delPhi);
-    }
-    else{
-        Cell.SetStartPhiAngle(lstartPhi);
-        Cell.SetDeltaPhiAngle(ldeltaPhi);
-    }
-}
-
 
 void LCDetectorConstruction::Print(){
     G4double Sens_zbeg = Setup::Lcal_sens_Z0;
