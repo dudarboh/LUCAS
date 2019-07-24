@@ -20,6 +20,25 @@
 
 #include "G4SystemOfUnits.hh"
 
+// Important variables:
+G4int Setup::NoOfEventsToProcess = 10000;
+G4int Setup::LcalTBeam = 1;
+G4double Setup::Nominal_Field_value = 0*tesla;
+
+G4bool   Setup::Lcal_virtual_cells = true;
+G4bool   Setup::Lcal_layer_fan = false;
+G4int    Setup::Lcal_n_layers   = 30;
+G4int    Setup::Lcal_n_tiles    = 1;
+G4int    Setup::Lcal_n_sectors  = 4;
+G4int    Setup::Lcal_n_rings    = 64;
+
+G4int    Setup::Lcal_support      = 1 ;
+G4int    Setup::Lcal_use_absorber = 1 ;
+G4int    Setup::Lcal_use_fanout   = 1 ;
+G4int    Setup::Lcal_use_FE       = 1 ;
+G4int    Setup::Lcal_VisSensSolid = 1;
+G4int    Setup::Lcal_VisAbsSolid  = 1;
+
 // default values for all setup parameters
 // for world
 Setup* Setup::theSetup = NULL;
@@ -43,14 +62,11 @@ G4String Setup::RootFileMode = "";
 G4double Setup::rangeCut = 0.005*mm;
 G4String Setup::SetupFile = "";
 
-G4double Setup::Nominal_Field_value = 3.5 *tesla;
-G4int    Setup::NoOfEventsToProcess = 0;
-G4int    Setup::LcalTBeam = 0;
-G4String Setup::Build_Beampipe = "Yes";
-G4String Setup::Build_LCal = "Yes";
-G4String Setup::Build_LHcal = "Yes";
-G4String Setup::Build_BCal = "Yes";
-G4String Setup::Build_Mask ="Yes";
+G4String Setup::Build_Beampipe = "No";
+G4String Setup::Build_LCal = "No";
+G4String Setup::Build_LHcal = "No";
+G4String Setup::Build_BCal = "No";
+G4String Setup::Build_Mask ="No";
 G4double Setup::LCal_Region_Cut =  0.005;
 G4double Setup::LHcal_Region_Cut = 1.;
 G4double Setup::BCal_Region_Cut  = 1.;
@@ -68,12 +84,7 @@ G4int    Setup::Mask_VisSolid      = 1 ;
 
 // for LCAL
 // base LCAL
-G4bool   Setup::Lcal_virtual_cells = true;
-G4bool   Setup::Lcal_layer_fan = false;
-G4int    Setup::Lcal_n_layers   = 30;
-G4int    Setup::Lcal_n_tiles    = 12;
-G4int    Setup::Lcal_n_sectors  = 48;
-G4int    Setup::Lcal_n_rings    = 64;
+
 
 G4double Setup::Lcal_z_end = 2635. *mm;
 G4double Setup::Lcal_inner_radius =  76.0 *mm;
@@ -99,13 +110,6 @@ G4double Setup::Lcal_FEChip_space  =   0.5  *mm;
 G4double Setup::Lcal_FEChip_rmax   = 250.0  *mm;
 G4double Setup::Lcal_FEChip_rmin   = 195.2  *mm;
 G4double Setup::Lcal_PCB_thickness =   0.9  *mm;
-
-G4int    Setup::Lcal_support      = 1 ;
-G4int    Setup::Lcal_use_absorber = 1 ;
-G4int    Setup::Lcal_use_fanout   = 1 ;
-G4int    Setup::Lcal_use_FE       = 1 ;
-G4int    Setup::Lcal_VisSensSolid = 0;
-G4int    Setup::Lcal_VisAbsSolid  = 0;
 
 // base fanout
 
@@ -224,7 +228,7 @@ void Setup::SetupInit(int argc, char *argv[]){
     G4cout<<"Setup::SetupInit is started: "<<ctime(&now)<<G4endl;
 
     int option;
-    while((option=getopt(argc, argv, ":A:hx:c:ibm:M:o:P:s:")) != -1){
+    while((option=getopt(argc, argv, ":hc:bm:M:o:P:s:")) != -1){
         switch(option){
             case 'h':
                 Usage();
