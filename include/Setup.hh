@@ -79,11 +79,7 @@ class Setup{
         static G4int Lcal_n_tiles;
         static G4int Lcal_n_sectors;
         static G4int Lcal_n_rings;
-        // itamar add for determin the senrio to build for test beam in the string :
-        //A For just absorber (3.5 mm + 1mm gup);
-        // AA is for absorber with gup (3.5 mm +5.5 mm gup);
-        //AS for sensor and absorber ib 4.5 mm gap;
-        //APS (for sensor absorbe and PCB in 9 mm gup;
+
         static G4String TBeam_senrio; 
         static G4double Lcal_z_end;
         static G4double Lcal_inner_radius;

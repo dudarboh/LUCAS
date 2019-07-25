@@ -5,7 +5,7 @@
 # Use these open statements to open selected visualization
 #
 # Use this open statement to create an OpenGL view:
-#/vis/open OGL 600x600-0+0
+/vis/open OGL 600x600-0+0
 #
 # Use this open statement to create an OpenInventor view:
 #/vis/open OI
@@ -16,7 +16,7 @@
 #
 # Use this open statement to create a .heprep file suitable for
 # viewing in HepRApp:
-/vis/open HepRepFile
+#/vis/open HepRepFile
 #
 # Use this open statement to create a .wrl file suitable for
 # viewing in a VRML viewer:
@@ -97,8 +97,7 @@
 /vis/set/lineWidth     # Revert to default line width (1.)
 #
 # To get nice view
-/vis/geometry/set/visibility World 0 false
-/vis/geometry/set/visibility Envelope 0 false
+#/vis/geometry/set/visibility World 0 false
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 210 150
@@ -111,15 +110,12 @@
 #/vis/viewer/flush
 
 
-##/generator/generator /home/sqy/work/lumical/egen/shmr505ev_electrons_250_GeV_vol2.HEPEvt
 ##/vis/scene/add/trajectories
 ##/vis/scene/add/hits
-/generator/generator particleGun
 /gun/particle e-
 /gun/energy 5. GeV
 /gun/position  0.  0.  0. mm
 /gun/direction 0. 0.  1.	
-/gun/info
 /vis/scene/add/trajectories
 /vis/scene/add/hits
 

@@ -119,15 +119,8 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *aStep, G4TouchableHistory *){
 
     // Find the unique volume path for a cell which has a hit
     // Which copy of LumiCal?
-    if(Setup::LcalTBeam){ 
-        LC_num = 1;
-        layer_num = theTouchable->GetHistory()->GetVolume(1)->GetCopyNo();
-    }
-    else{
-        LC_num = theTouchable->GetHistory()->GetVolume(1)->GetCopyNo();
-        // Which layer inside LumiCal?
-        layer_num = theTouchable->GetHistory()->GetVolume(2)->GetCopyNo();
-    }
+    LC_num = 1;
+    layer_num = theTouchable->GetHistory()->GetVolume(1)->GetCopyNo();
         
     if(!VirtualCell){
         // Which sector inside the tile? (sectors are replicated *after* the cells)

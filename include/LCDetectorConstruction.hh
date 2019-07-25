@@ -21,185 +21,76 @@ class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
 class G4Material;
-class G4Region;
 
 class LCDetectorConstruction : public G4VUserDetectorConstruction{
     public:
         LCDetectorConstruction();
         ~LCDetectorConstruction();
 
+        G4NistManager *materials = G4NistManager::Instance();
+
     public:
         G4VPhysicalVolume *Construct();
-        void CreateTheWorld();
-        void InitDetectorParameters();
-        void BuildField();
-        void BuildBeamPipe();
-        void BuildLCal();
-        void BuildLHcal();
-        void BuildBCal();
-        void BuildMask();
-        void BuildTBeam();
-        void BuildTBeamPT16();
-        void SetRegionCuts();
-        void Print();
+        void Sensor();
+        void Absorber();
+        void Slot();
+        void World();
 
-    // ================ Volumes ================
     private:
-        // world
         G4LogicalVolume *logicWorld;
-        G4VPhysicalVolume *physiWorld;
-
-        // Beam Pipe
-        G4LogicalVolume *logicLCalInnerTube;
-        G4LogicalVolume *logEndVac;
+        G4VPhysicalVolume *physicWorld;
  
-        // LumiCal Shell
-        G4LogicalVolume *logicWholeLC;
+        G4LogicalVolume *logicSlot;
 
-        // layer = SENSORS + TUNGSTEN ABSORBER + SUPPORT
-        // This volume is sensor, tungsten plate and connection between them.
-        // It is itterated inside LumiCal volume (logicWholeLC)
-        G4LogicalVolume *logicLayer;
-
-        // TUNGSTEN ABSORBER PLATE
-        G4LogicalVolume *logicAbsorber;
-
-        // Front and back FANOUT LAYERS
-        G4LogicalVolume *logicFanoutFrnt;
-        G4LogicalVolume *logicFanoutBack;
-
-        // SENSOR
         G4LogicalVolume *logicSensor;
-        G4LogicalVolume *logicSensorV;
-        G4LogicalVolume *logicSensorEnv;
 
-        // Metallization mother volume
-        G4LogicalVolume *logicMetSec;
-        G4LogicalVolume *logicMetalV;   
-        G4LogicalVolume *MetSector1;
-        G4LogicalVolume *MetSector2;
-        G4LogicalVolume *MetSector4; 
+        G4LogicalVolume *logicAbsorber;
+        G4LogicalVolume *logicFanoutFront;
+        G4LogicalVolume *logicFanoutBack;
+        G4LogicalVolume *logicAl;
+        G4LogicalVolume *logicSi;
 
-        // SECTOR
-        // 48 sectors per sensor; contains cells
-        G4LogicalVolume *logicFESector;
-        G4LogicalVolume *logicChip;
-        G4LogicalVolume *logicPCB;
-        G4LogicalVolume *logicSector1;
-        G4LogicalVolume *logicSector2;
-        G4LogicalVolume *logicSector4; 
-
-        // Cell and pad metalization volumes
-        // 64 cells per sector
-        G4LogicalVolume *logicCell;
-        G4LogicalVolume *logicCellMet;
-
-        // FE chips electronics mother volume
-        G4LogicalVolume *logicFEmother;
-
-    // ================ Materials ==============
     private:
-        G4Material  *Vacuum; // World
-        G4Material  *Air; // Filler
-        G4Material  *PLASTIC_SC;
-        G4Material  *Silicon; // Cell
-        G4Material  *Aluminium; // Cell metallization
-        G4Material  *BeamPipeMat; // central Beam pipe mat
-        G4Material  *Iron; // lateral Beam pipe mat
-        G4Material  *Tungsten; // Absorber plate
-        G4Material  *Copper; // Fanout component
-        G4Material  *Graphite; // BCal front shield
-        G4Material  *Kapton; // Fanout component
-        G4Material  *Epoxy; // Fanout component
-        G4Material  *FanoutMatF; // Front Fanout material
-        G4Material  *FanoutMatB; // Back Fanout material
-        G4Material  *LHcalMat;
-        G4Material  *BCalMat;
-        G4Material  *Mask_Mat;
-        G4Material  *WorldMat;
-        
-        // G4 regions created to set production cuts
-        G4Region *regionLCal;
-        G4Region *regionBCal;
-        G4Region *regionLHcal;
-        G4Region *regionMask;
+        G4Material *Air;
+        G4Material *W;
+        G4Material *Ni;
+        G4Material *Cu;
+        G4Material *matAbsorber;
+        G4Material *Si;
+        G4Material *Al;
+        G4Material *Carbon;
+        G4Material *Kapton;
+        G4Material *Epoxy;
+        G4Material *matFiber;
+        G4Material *matFanoutFront;
+        G4Material *matFanoutBack;
 
+        G4Element *H;
+        G4Element *C;
+        G4Element *O;
+
+        G4Material *PLASTIC_SC;
+
+    private:
+        G4double xWorldSize;
+        G4double yWorldSize;
+        G4double zWorldSize;
+
+        G4double xAbsorberSize;
+        G4double yAbsorberSize;
+        G4double zAbsorberSize;
+
+        G4double xSensorSize;
+        G4double ySensorSize;
+        G4double zSensorSize;
+
+        G4double xSlotSize;
+        G4double ySlotSize;
+        G4double zSlotSize;
+
+    private:
         G4bool VirtualCell;
-
-        // rotation angle
-        G4double rotAng, rotAng1, rotAng2;
-        // geometric parameters
-        G4double Lcal_zbegin;
-        G4double Lcal_zend;
-        G4double innerRad;
-        G4double outerRad;
-        G4double deadPhi;
-        G4int nLayers;
-        G4int nTiles;
-        G4int nSectors;
-        G4int nCells;
-        G4double startPhi;
-        G4double endPhi;
-        G4double phi_offset;
-        G4double Zcave;
-        G4double CaveDepth;
-        G4double hLumiCalDZ; // half length of LCAL
-        G4double Cell0_Rad;
-        G4double SensRadMin; // silicon sensor r-min
-        G4double SensRadMax; // silicon sensor r-max
-        G4double SensZ0;
-        G4double SensDZ ; // z distance between sensors
-        G4double CellPitch;
-        G4double hLayerDZ; // half thickness of the layer
-        G4double layer_gap; // air gap between layers
-        G4double hSiliconDZ; // half thickness of the siliconZ
-        G4double hMetalDZ; // half thickness of pad metallization
-        G4double hSensorDZ;
-        G4double hFanoutFrontDZ; // half thickness fanout front
-        G4double hFanoutBackDZ; // half thickness fanout back 
-        G4double hTungstenDZ; // half thickness absorber
-        G4double hAbsorberPitchDZ; // pitch between absorber layer defulte 1 mm 
-        G4double sectorPhi;
-        G4double tilePhi;
-        G4double FECave_hDZ;
-        G4double FECave_rmin ;
-        G4double FECave_rmax ;
-        G4double FEChip_hDZ;
-        G4double PCB_hDZ;
-        G4double Lcal_extra_size;
-        // Beam pipe
-        G4double Lcal_inner_pipe_zend;
-        G4double pipe_th;
-        G4double LcalToBeamTol;
-        G4double BCal_inner_outube_rmax;
-        G4double BCal_inner_intube_rmax;
-        // LHcal
-        G4double LHcalToLCalDist;
-        G4double LHcal_zbegin;
-        G4double LHcal_zend;
-        G4double LHcal_hDZ;
-        G4double LHcal_rmin;
-        G4double LHcal_rmax;
-        // BCal
-        G4double BCalToLHcalDist;
-        G4double BCal_rmin;
-        G4double BCal_rmax;
-        G4double BCal_zbegin;
-        G4double BCal_dPairMoni;
-        G4double BCal_dgraphite;
-        G4double BCal_zlength;
-        G4double BCal_sphi;
-        G4double BCal_dphi;
-        // mask
-        G4double Mask_zstart;
-        G4double Mask_thickness;
-        G4double Mask_hDX;
-        G4double Mask_hDY;
-        G4double Mask_rmin_at_zstart; 
-
-    // ================ Sensitive Detector =====
-    private:
-    // Implement a sensitive detector object
+        // Implement a sensitive detector object
         LCSensitiveDetector *SensDet;
 };
 

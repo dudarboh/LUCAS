@@ -92,19 +92,12 @@ int main(int argc, char* argv[]){
     G4cout<<"Setup::batchMode: "<<Setup::batchMode<<G4endl;
     G4cout<<"/control/execute " + Setup::macroName<<G4endl;
 
-    if(Setup::batchMode){
-        G4String command = "/control/execute ";
-        uiManager->ApplyCommand(command + Setup::macroName);
-    }
-    else{
-        uiManager->ApplyCommand("/control/execute init_vis.mac");
+    G4String command = "/control/execute ";
+    if(Setup::macroName != "") uiManager->ApplyCommand(command + Setup::macroName);
 
-        G4String command = "/control/execute ";
-        if(Setup::macroName != "") uiManager->ApplyCommand(command + Setup::macroName);
-
+    if(!Setup::batchMode){
         ui->SessionStart();
         delete ui;
-
         delete visManager;
     }
 

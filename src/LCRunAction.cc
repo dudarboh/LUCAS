@@ -85,16 +85,12 @@ void LCRunAction::Print(G4String now, const G4Run* Run){
             G4cout << "|       ROOT output file name:  "<< Setup::RootFileName << G4endl;
             G4cout << "|       ROOT output open mode:  "<< Setup::RootFileMode << G4endl;
         }
-        if(Setup::LcalTBeam) G4cout << "|             The senrio is  :  "<< Setup::TBeam_senrio << G4endl;
+
         G4cout << "|                   SetupFile:  "<< Setup::SetupFile << G4endl;
         G4cout << "|         Nominal field value:  "<< Setup::Nominal_Field_value / tesla << " [T]"<< G4endl;
         G4cout << "| Number of events to process:  "<< Setup::NoOfEventsToProcess << G4endl; 
         G4cout << "|   Detector components build:  "<< G4endl;
-        G4cout << "|                   Beam Tube:  "<< Setup:: Build_Beampipe << G4endl;
-        G4cout << "|                        LCAL:  "<< Setup:: Build_LCal << G4endl;
-        G4cout << "|                       LHCAL:  "<< Setup:: Build_LHcal << G4endl;
-        G4cout << "|                        BCAL:  "<< Setup:: Build_BCal << G4endl;
-        G4cout << "|                        MASK:  "<< Setup:: Build_Mask << G4endl;
+
         G4cout << "|                    rangeCut:  "<< Setup::rangeCut/ mm << " [mm]"<<G4endl;
         G4cout << "|   Region Production Cuts:     "<< G4endl;
         G4cout << "|                        LCAL:  "<<  Setup::LCal_Region_Cut / mm <<" [mm]"<< G4endl;
