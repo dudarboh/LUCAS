@@ -1,7 +1,5 @@
 #include "SteppingAction.hh"
 #include "G4SteppingManager.hh"
-#include "LCEventAction.hh"
-#include "Setup.hh"
 
 #include "G4SystemOfUnits.hh"
 

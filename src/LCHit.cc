@@ -1,12 +1,3 @@
-/*
- * LCHit.cc
- * 2ModLumiCal
- *
- *  Created on: Mar 28, 2009
- *      Author: aguilar
- *
- */
-
 #include "LCHit.hh"
 
 #include "G4ios.hh"
@@ -22,35 +13,54 @@
 
 G4Allocator<LCHit> LCHitAllocator;
 
-//constructor defined in the header
-LCHit::LCHit(G4double pXh, G4double pYh, G4double pZh, // hit position
-    G4double pXc, G4double pYc, G4double pZc, // cell position
-    G4double pE, G4int pPID, G4int pPDG, // parent ID number and particle type
-    cell_code pCode, // cell identifier
-    G4double pTOF){ // time of flight
+LCHit::LCHit(G4double xGlobal, G4double yGlobal, G4double zGlobal,
+            G4double sector, G4double pad, G4double layer,
+            G4double energy, G4int cellID):G4VHit(),
+            fXhit(xGlobal), fYhit(yGlobal), fZhit(zGlobal),
+            fXcell(sector), fYcell(pad), fZcell(layer),
+            fEnergy(energy), fCellID(cellID){
     
-    Xhit = pXh, Yhit = pYh, Zhit = pZh;
-    Xcell = pXc, Ycell = pYc, Zcell = pZc;
-    TOF = pTOF;
-    trackIDs = new PrimaryIDMap;
-    trackIDs->clear();
-    code.id0 = pCode.id0;
-    code.id1 = pCode.id1;
     SetEnergy(0.0);
-    NoOfContributingHits = 0;
-    AddEdep(pPID, pPDG, pE);
-}
-//destructor
-LCHit::~LCHit(){
-    trackIDs->clear();
-    delete trackIDs;
+    fNoOfContributingHits = 0;
+    AddEdep(energy);
 }
 
-// Accumulates energy from primary particles that enter the cell.
-void LCHit::AddEdep(G4int pPID, G4int pPDG, G4double de){
-    NoOfContributingHits ++;
-    // increment energy deposition per hit
-    Energy += de;
-    PrimaryIDMapIterator iter = trackIDs->find(pPID);
-    if(iter == trackIDs->end()) trackIDs->insert(PrimaryIDPair(pPID, pPDG));
+LCHit::LCHit(const LCHit& right):G4VHit(){
+    fXhit = right.fXhit;
+    fYhit = right.fYhit;
+    fZhit = right.fZhit;
+    fXcell = right.fXcell;
+    fYcell = right.fYcell;
+    fZcell = right.fZcell;
+    fEnergy = right.fEnergy;
+    fCellID = right.fCellID;
 }
+
+//destructor
+LCHit::~LCHit(){}
+
+
+// Accumulates energy from primary particles that enter the cell.
+void LCHit::AddEdep(G4double dE){
+    fNoOfContributingHits ++;
+    fEnergy += dE;
+}
+
+
+const LCHit& LCHit::operator=(const LCHit& right){
+    fXhit = right.fXhit;
+    fYhit = right.fYhit;
+    fZhit = right.fZhit;
+    fXcell = right.fXcell;
+    fYcell = right.fYcell;
+    fZcell = right.fZcell;
+    fEnergy = right.fEnergy;
+    fCellID = right.fCellID;
+
+    return *this;
+}
+
+G4int LCHit::operator==(const LCHit& right) const{
+  return (this == &right);
+}
+

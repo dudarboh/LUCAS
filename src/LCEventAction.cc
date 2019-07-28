@@ -11,10 +11,8 @@
  *      In this stand-alone version, there is only one hits collection.
  *      This name is HARD-CODED in.
  */
-#include <sys/times.h>
 #include <fstream>
 #include "LCEventAction.hh"
-#include "Setup.hh"
 
 #include "G4Event.hh"
 #include "G4EventManager.hh"
@@ -48,74 +46,23 @@ LCEventAction::LCEventAction(){
 LCEventAction::~LCEventAction(){}
 
 
-void LCEventAction::AddLeakEnergy(G4double eleak){
-    noTrackKilled++;
-    LeakEnergy += eleak;
-}
-
-
-G4double LCEventAction::GetLeakEnergy(){return LeakEnergy;}
-
-
 void LCEventAction::BeginOfEventAction(const G4Event*){
-    // reset energy counter
-    LeakEnergy = 0.;
-    noTrackKilled = 0;
-    // Check if the semaphore file exists, if so abort gently the run
 
-    std::ifstream semaphoreFile("aStopRun");
-    if(semaphoreFile){
-        G4RunManager::GetRunManager()->AbortRun(false); 
-        semaphoreFile.close();
-        G4cout<<" LCEventAction::BeginOfEventAction: Aborting the run on user request!"<<G4endl;  
-        // remove file to avoid unwanted abort of the next run
-        G4String rmCmd = "/control/shell rm aStopRun";
-        G4UImanager::GetUIpointer()->ApplyCommand(rmCmd);
-    }
-
-    // Use a Sensitive Detector manager to assign an ID # to the hits collections
-    SDman = G4SDManager::GetSDMpointer();
-    time(&_start);
-
-    if(collID<0) collID = SDman->GetCollectionID("LumiCalSD_HC");
 }
 
 void LCEventAction::EndOfEventAction(const G4Event* event){
-    // Check that a collection ID has been assigned
-    if(collID<0){return;}
-
-    G4int evtnum = (event->GetEventID())+1;
-
-    // report on track killed
-    if(noTrackKilled > 0) G4cout<<"Event: "<<evtnum<<" Back Energy Leak: "<<LeakEnergy / GeV <<" GeV"<<G4endl;
-
-    // Log Run progress
-    if(Setup::LogFreq > 0){
-        if(!(evtnum%(Setup::LogFreq))){
-            time_t now;
-            time(&now);
-            tms fTimeEnd;
-            clock_t fNow = times(&fTimeEnd);
-            G4double tdiff = 10. * (fNow - Setup::StartTime)*ms;
-            G4double evtime = tdiff / (G4double)(evtnum);
-            G4double evtleft = G4double(Setup::NoOfEventsToProcess - evtnum);
-            G4double EST = evtime * evtleft;
-            evtleft /= (G4double)Setup::NoOfEventsToProcess;
-            evtleft = (1. - evtleft) * 100.;
-            G4cout<<G4endl;
-            G4cout<<"LCEventAction::EndOfEventAction: "<<G4endl;
-            G4cout<<"Event number: "<<evtnum<<" - "<<evtleft<<"% done !"<<" current time is: "<<ctime(&now);
-            G4cout<<"Time elapsed: "<<tdiff / s <<"  time/event: "<<evtime/s<<"  EST: "<<EST/s<<G4endl;
-        }
-    }
+    // Use a Sensitive Detector manager to assign an ID # to the hits collections
+    if(collID<0) collID = G4SDManager::GetSDMpointer()->GetCollectionID("SDHitsCollection");
+    if(collID<0) G4cerr<<"WATAFACK???"<<endl;
 
     G4HCofThisEvent *HCE = event->GetHCofThisEvent();
-    LCHitsCollection *HitsColl = 0;
+
+    LCHitsCollection *HitsCollection = 0;
   
-    if(HCE) HitsColl = (LCHitsCollection*)(HCE->GetHC(collID));
+    if(HCE) HitsCollection = (LCHitsCollection*)(HCE->GetHC(collID));
 
     // fill the ROOT Tree
-    if(HitsColl){
-        if(RootOut) RootOut->ProcessEvent(event, HitsColl);
+    if(HitsCollection){
+        if(RootOut) RootOut->ProcessEvent(event, HitsCollection);
     }
 }

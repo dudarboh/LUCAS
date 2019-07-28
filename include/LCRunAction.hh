@@ -7,7 +7,7 @@
  */
 
 #ifndef LCRUNACTION_HH_
-#define LCRUNACTION_HH_
+#define LCRUNACTION_HH_ 1
 
 #include "LCRootOut.hh"
 

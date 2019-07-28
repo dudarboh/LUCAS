@@ -1,10 +1,4 @@
-// LCDetectorConstruction.cc
 // LumiCal
-//
-//  Created on: Feb 27, 2009
-//     Authors: Jonathan Aguilar
-//              bogdan.pawlik@ifj.edu.pl
-//---------------------------------------------
 //      sensor stracture from front to back  :
 //          1. 0.150 kapton front.
 //          1.2. 0.010 epoxy glue
@@ -16,11 +10,8 @@
 //          3.3. 0.065 kapton back
 //          3.4. 0.020 epoxy glue
 //          total 0.670  
-//---------------------------------------------
 
 #include "LCDetectorConstruction.hh"
-#include "Setup.hh"
-#include "LCSensitiveDetector.hh"
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -60,6 +51,7 @@
 #include "G4UserLimits.hh"
 
 #include "G4SystemOfUnits.hh"
+//  logicMetalV->SetVisAttributes( G4VisAttributes::Invisible );
 
 
 LCDetectorConstruction::LCDetectorConstruction()
@@ -76,31 +68,33 @@ LCDetectorConstruction::LCDetectorConstruction()
 LCDetectorConstruction::~LCDetectorConstruction(){}
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
-
-    G4cout<<"LCDetectorConstrucion::Construct(): Building TB16 DESY experiment setup"<<G4endl;
-
     World();
     Absorber();
     Sensor();
     Slot();
 
-    // // SENSITIVE DETECTOR
-    // G4SDManager *SDman = G4SDManager::GetSDMpointer();
+    // SENSITIVE DETECTOR
+    G4SDManager *SDman = G4SDManager::GetSDMpointer();
 
-    // // Initialize the Sensitive Detector
-    // SensDet = new LCSensitiveDetector("LumiCalSD", // name
-    //                                   Cell0_Rad, // inner LC radius
-    //                                   startPhi, // start angle
-    //                                   CellPitch, // radial cell size
-    //                                   sectorPhi, // angular cell width
-    //                                   nCells, // # cells in the rad dir
-    //                                   nSectors, // # cells in the phi dir
-    //                                   VirtualCell); // cell type real/virtual = false/true
+    // Initialize the Sensitive Detector
+    G4double cellPitch = (rSensorMax - rSensorMin - 2.*rSensorGap)/(2.*64);
+    G4double cell0Rad = rSensorMin + rSensorGap + cellPitch;
+    G4double phiStart = 0*deg;
+    G4double phiSector = 7.5*deg;
+    G4bool VirtualCell = true;
+    SensDet = new LCSensitiveDetector("LumiCalSD",  // name
+                                      cell0Rad,    // inner LC radius
+                                      phiStart,     // start angle
+                                      cellPitch,    // radial cell size
+                                      phiSector,    // angular cell width
+                                      64,       // # cells in the rad dir
+                                      4,     // # cells in the phi dir
+                                      VirtualCell); // cell type real/virtual =  false/true
 
-    // // Cells are the sensitive detectors
-    // SDman->AddNewDetector(SensDet);
+    // Cells are the sensitive detectors
+    SDman->AddNewDetector(SensDet);
    
-    // if(VirtualCell) logicSensorV->SetSensitiveDetector(SensDet);
+    if(VirtualCell) logicSi->SetSensitiveDetector(SensDet);
 
     return physicWorld;
 }
@@ -108,9 +102,9 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
 void LCDetectorConstruction::World(){
     //G4PVPlacement constructor: rotation, origin, logic, name, mother, binary, copy
-    xWorldSize = 1000.*mm;
-    yWorldSize = 1000.*mm;
-    zWorldSize = 10000.*mm;
+    G4double xWorldSize = 1000.*mm;
+    G4double yWorldSize = 1000.*mm;
+    G4double zWorldSize = 10000.*mm;
 
     Air = materials->FindOrBuildMaterial("G4_AIR");
 
@@ -142,6 +136,10 @@ void LCDetectorConstruction::Sensor(){
     xSensorSize = 70.0*mm;
     ySensorSize = 70.0*mm;
     zSensorSize = 0.395*mm;
+
+    rSensorMin = 80.*mm;
+    rSensorMax = 195.2*mm;
+    rSensorGap = 1.2*mm;
 
     //FanoutFront sizes
     G4double zFanoutFrontEpoxy = 0.065*mm;
@@ -190,10 +188,10 @@ void LCDetectorConstruction::Sensor(){
     matFanoutBack->AddMaterial(Epoxy, zFanoutBackEpoxy/(2.*zFanoutBack));
 
     G4Box *solidSensor = new G4Box("solidSensor", xSensorSize, ySensorSize, zSensorSize);
-    G4Tubs *solidFanoutFront = new G4Tubs("solidFanoutFront", 80.*mm, 195.2*mm, zFanoutFront, 75.*deg, 30.*deg);
-    G4Tubs *solidFanoutBack = new G4Tubs("solidFanoutBack", 80.*mm, 195.2*mm, zFanoutBack, 75.*deg, 30.*deg);
-    G4Tubs *solidSi = new G4Tubs("solidSi", (80.+1.2)*mm, (195.2-1.2)*mm, 0.5*0.32*mm, 75.*deg, 30.*deg);
-    G4Tubs *solidAl = new G4Tubs("solidAl", (80.+1.2)*mm, (195.2-1.2)*mm, 0.5*0.02*mm, 75.*deg, 30.*deg);
+    G4Tubs *solidFanoutFront = new G4Tubs("solidFanoutFront", rSensorMin, rSensorMax, zFanoutFront, 75.*deg, 30.*deg);
+    G4Tubs *solidFanoutBack = new G4Tubs("solidFanoutBack", rSensorMin, rSensorMax, zFanoutBack, 75.*deg, 30.*deg);
+    G4Tubs *solidSi = new G4Tubs("solidSi", rSensorMin+rSensorGap, rSensorMax-rSensorGap, 0.5*0.32*mm, 75.*deg, 30.*deg);
+    G4Tubs *solidAl = new G4Tubs("solidAl", rSensorMin+rSensorGap, rSensorMax-rSensorGap, 0.5*0.02*mm, 75.*deg, 30.*deg);
 
 
     logicSensor = new G4LogicalVolume(solidSensor, matFiber, "logicSensor", 0, 0, 0);
@@ -203,7 +201,7 @@ void LCDetectorConstruction::Sensor(){
     logicAl = new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 
     G4double zSensorPos = -zSensorSize + zFanoutFront;
-    G4double ySensorPos = -(80. + 0.5*(195.2-80.))*mm;
+    G4double ySensorPos = -(rSensorMin + 0.5*(rSensorMax - rSensorMin));
 
     new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicFanoutFront, "SensorFanFront", logicSensor, false, 0, 1);
     zSensorPos += zFanoutFront + 0.5*0.02*mm;
@@ -241,34 +239,4 @@ void LCDetectorConstruction::Slot(){
         zSlotPos += 2.*zSlotSize + 0.002*mm;
     }
 
-}
-
-
-// CELL PARAMETERIZATION
-LCCellParam::LCCellParam(G4int NoCells,
-    G4double startR,
-    G4double endR,
-    G4double SensHalfZ,
-    G4double SihalfZ,
-    G4double AlhalfZ,
-    G4double clipSize,
-    G4double startPhi,
-    G4double deltaPhi){
-    lNoCells = NoCells;
-    lstartR = startR + clipSize;
-    lendR = endR - clipSize;
-    lSenshalfZ= SensHalfZ;
-    lSihalfZ = SihalfZ;
-    lAlhalfZ = AlhalfZ;
-    lstartPhi = startPhi;
-    ldeltaPhi = deltaPhi;
-    lclipSize = (clipSize > 0.) ? clipSize + 0.05 : 0.;
-    ldeltaR = (lendR - lstartR) / (G4double)NoCells;
-}
-
-LCCellParam::~LCCellParam() {}
-
-void LCCellParam::ComputeTransformation(const G4int, G4VPhysicalVolume *physVol) const{
-    physVol->SetTranslation(G4ThreeVector(0., 0., 0));
-    physVol->SetRotation(0);
 }

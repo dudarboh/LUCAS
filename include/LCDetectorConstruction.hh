@@ -4,17 +4,17 @@
 //  Created on: Mar 2, 2009
 //      Author: aguilar
 
-#include <cstdlib> 
-#ifndef LCDETECTORCONSTRUCTION_HH_
-#define LCDETECTORCONSTRUCTION_HH_
 
+#ifndef LCDETECTORCONSTRUCTION_HH_
+#define LCDETECTORCONSTRUCTION_HH_ 1
+
+#include "LCSensitiveDetector.hh"
+#include <cstdlib> 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
 #include "G4PVDivision.hh"
-#include "G4VPVParameterisation.hh"
 #include "G4NistManager.hh"
 
-#include "LCSensitiveDetector.hh"
 
 class G4Box;
 class G4Tubs;
@@ -72,57 +72,26 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4Material *PLASTIC_SC;
 
     private:
-        G4double xWorldSize;
-        G4double yWorldSize;
-        G4double zWorldSize;
-
-        G4double xAbsorberSize;
-        G4double yAbsorberSize;
-        G4double zAbsorberSize;
-
         G4double xSensorSize;
         G4double ySensorSize;
         G4double zSensorSize;
+
+        G4double rSensorMin;
+        G4double rSensorMax;
+        G4double rSensorGap;
+        G4int nSensorPads;
 
         G4double xSlotSize;
         G4double ySlotSize;
         G4double zSlotSize;
 
+        G4double xAbsorberSize;
+        G4double yAbsorberSize;
+        G4double zAbsorberSize;
+
     private:
-        G4bool VirtualCell;
         // Implement a sensitive detector object
         LCSensitiveDetector *SensDet;
-};
-
-
-// ================ Cell Parameterization Class ================
-class LCCellParam : public G4VPVParameterisation{
-    public:
-        LCCellParam(G4int NoCells,
-                    G4double startR,
-                    G4double endR,
-                    G4double SensHalfZ,
-                    G4double SihalfZ,
-                    G4double AlhalfZ,
-                    G4double clipSize,
-                    G4double startPhi,
-                    G4double deltaPhi);
-        virtual ~LCCellParam();
-        virtual  void ComputeTransformation(const G4int repNo, G4VPhysicalVolume *physVol) const;
-
-    private:
-        G4int lNoCells;
-        G4int lNoLayers;
-        G4int lNoSectors;
-        G4double lstartR;
-        G4double lendR;
-        G4double lSenshalfZ;
-        G4double lSihalfZ;
-        G4double lAlhalfZ;
-        G4double lstartPhi;
-        G4double ldeltaPhi;
-        G4double lclipSize;
-        G4double ldeltaR;
 };
 
 #endif

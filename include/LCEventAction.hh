@@ -10,17 +10,14 @@
  */
 
 #ifndef LCEVENTACTION_HH_
-#define LCEVENTACTION_HH_
+#define LCEVENTACTION_HH_ 1
 
-#include "LCSensitiveDetector.hh" // need to get the SD name
-#include "LCHit.hh"
 #include "LCRootOut.hh"
 
 #include "G4UserEventAction.hh"
 #include "globals.hh"
 
 #include <stdio.h>
-#include <time.h>
 
 
 class G4PrimaryParticle;
@@ -31,19 +28,13 @@ class LCEventAction : public G4UserEventAction{
         LCEventAction();
         ~LCEventAction();
 
-        void BeginOfEventAction(const G4Event* );
-        void EndOfEventAction(const G4Event* );
-        void AddLeakEnergy ( G4double elost );
-        G4double GetLeakEnergy();
+        void BeginOfEventAction(const G4Event*);
+        void EndOfEventAction(const G4Event*);
 
     private:
         G4int collID; // ID number for a collection of calorimeter hits
         G4String collName; // hits collection name
         LCRootOut *RootOut; // Handles writing the ROOT tree
-        G4SDManager *SDman;
-        time_t  _start, _end;
-        G4int noTrackKilled;
-        G4double LeakEnergy; // Accumulates energy leak
 };
 
 #endif

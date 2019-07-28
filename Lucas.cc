@@ -25,9 +25,6 @@
 #include "QGSP_BERT.hh"
 
 #include "LCRunAction.hh"
-#include "LCEventAction.hh"
-#include "LCRootOut.hh"
-#include "Setup.hh"
 
 #include "G4SystemOfUnits.hh"
 
@@ -43,16 +40,16 @@ using namespace std;
 
 int main(int argc, char* argv[]){
   
-    G4RunManager *runManager = new G4RunManager;
+    G4UIExecutive* ui = 0;
+    if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
-    Setup *theSetup = Setup::GetSetup();
-    theSetup->SetupInit(argc, argv);
+    G4RunManager *runManager = new G4RunManager;
 
     // Detectron construction and physics list
     runManager->SetUserInitialization(new LCDetectorConstruction);
 
     G4VUserPhysicsList *theList = new QGSP_BERT;
-    theList->SetDefaultCutValue(Setup::rangeCut);
+    theList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(theList);
  
     tms fStartTime;
@@ -68,39 +65,34 @@ int main(int argc, char* argv[]){
     LCEventAction *theEventAction;
 
     // Batch mode is false by default
-    if(Setup::batchMode){
-        theRunAction = new LCRunAction(theRootOut);
-        theEventAction = new LCEventAction(theRootOut);
-    }
-    else{
-        theRunAction = new LCRunAction();
-        theEventAction = new LCEventAction();
-    }
+    theRunAction = new LCRunAction(theRootOut);
+    theEventAction = new LCEventAction(theRootOut);
 
     runManager->SetUserAction(theRunAction);
     runManager->SetUserAction(theEventAction);
     runManager->SetUserAction(new SteppingAction(theEventAction));
 
-    G4UIExecutive *ui;
-    if(Setup::batchMode) ui = 0;
-    else ui = new G4UIExecutive(argc, argv);
-
     G4VisManager *visManager = new G4VisExecutive;
     visManager->Initialize();
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
-    G4cout<<"Setup::batchMode: "<<Setup::batchMode<<G4endl;
-    G4cout<<"/control/execute " + Setup::macroName<<G4endl;
 
-    G4String command = "/control/execute ";
-    if(Setup::macroName != "") uiManager->ApplyCommand(command + Setup::macroName);
-
-    if(!Setup::batchMode){
+    if(!ui){
+        // batch mode
+        G4String command = "/control/execute ";
+        G4String fileName = argv[1];
+        uiManager->ApplyCommand(command+fileName);
+    }
+    else{
+        // interactive mode
+        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Documents/FCAL/LUCAS/");
+        uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;
-        delete visManager;
     }
 
+
+    delete visManager;
     delete runManager;
 
     time_t now;
@@ -111,7 +103,6 @@ int main(int argc, char* argv[]){
     G4double diff = 10.*( EndTime - StartTime )*ms ; 
     
     G4cout<<"End Job - time elapsed: " <<diff / s<<" seconds"<<G4endl; 
-    delete theSetup;
     G4cout<<"\n**** "<<" run ended  at "<<ctime(&now)<<G4endl;
     return 0;
 }

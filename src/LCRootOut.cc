@@ -1,13 +1,4 @@
-/*
- * LCRootOut.cc
- *
- *  Created on: Apr 23, 2009
- *      Author: aguilar
- */
-
 #include "LCRootOut.hh"
-#include "Setup.hh"
-#include "LCDetectorConstruction.hh"
 
 #include "G4SystemOfUnits.hh"
 
@@ -30,151 +21,127 @@ void LCRootOut::CreateNewTree(){
     // Create branches
     _LcalData->Branch("vX", &vX, "vX/D");
     _LcalData->Branch("vY", &vY, "vY/D");
-    _LcalData->Branch("vZ", &vZ, "vZ/D");
-    
+    _LcalData->Branch("vZ", &vZ, "vZ/D");    
     // Primary particles 
-    _LcalData->Branch("numPrim", &numPrim, "numPrim/I"); // number of primary particles
-    _LcalData->Branch("numHits", &numHits, "numHits/I"); // number of calo hits
-    _LcalData->Branch("Etot", Etot, "Etot[2]/D"); // total energy deposit per side 1
     _LcalData->Branch("Emax", &Emax, "Emax/D"); // max hit energy
 
     // Tracks
-    _LcalData->Branch("Tracks", "std::vector<Track_t>", &pTracks); // primary particles momenta
+    _LcalData->Branch("Track_N", &Track_N, "Track_N/I");
+    _LcalData->Branch("Track_px", Track_px, "Track_px[Track_N]/D");
+    _LcalData->Branch("Track_py", Track_py, "Track_py[Track_N]/D");
+    _LcalData->Branch("Track_pz", Track_pz, "Track_pz[Track_N]/D");
+    _LcalData->Branch("Track_ID", Track_ID, "Track_ID[Track_N]/I");
+    _LcalData->Branch("Track_PDG", Track_PDG, "Track_PDG[Track_N]/I");
 
     // Hits
-    _LcalData->Branch("Hits","std::vector<Hit_t>", &pHits); // calo hits
+    _LcalData->Branch("Hit_N",&Hit_N, "Hit_N/I");
+    _LcalData->Branch("Hit_cellID", Hit_cellID, "Hit_cellID[Hit_N]/I");
+    _LcalData->Branch("Hit_energy", Hit_energy, "Hit_energy[Hit_N]/D");
+    _LcalData->Branch("Hit_xCell", Hit_xCell, "Hit_xCell[Hit_N]/D");
+    _LcalData->Branch("Hit_yCell", Hit_yCell, "Hit_yCell[Hit_N]/D");
+    _LcalData->Branch("Hit_zCell", Hit_zCell, "Hit_zCell[Hit_N]/D");
+    _LcalData->Branch("Hit_xHit", Hit_xHit, "Hit_xHit[Hit_N]/D");
+    _LcalData->Branch("Hit_yHit", Hit_yHit, "Hit_yHit[Hit_N]/D");
+    _LcalData->Branch("Hit_zHit", Hit_zHit, "Hit_zHit[Hit_N]/D");
+    _LcalData->Branch("Hit_TOF", Hit_TOF, "Hit_TOF[Hit_N]/D");
+
 }
 
 void LCRootOut::SetAddresses(){
     _LcalData->SetBranchAddress("vX", &vX); 
     _LcalData->SetBranchAddress("vY", &vY); 
     _LcalData->SetBranchAddress("vZ", &vZ); 
-    _LcalData->SetBranchAddress("numPrim", &numPrim);
-    _LcalData->SetBranchAddress("numHits", &numHits);
-    _LcalData->SetBranchAddress("Etot", Etot);
     _LcalData->SetBranchAddress("Emax", &Emax);
-    _LcalData->SetBranchAddress("Tracks", &pTracks); 
-    _LcalData->SetBranchAddress("Hits",&pHits);
+
+    _LcalData->SetBranchAddress("Track_N", &Track_N);
+    _LcalData->SetBranchAddress("Track_px", Track_px);
+    _LcalData->SetBranchAddress("Track_py", Track_py);
+    _LcalData->SetBranchAddress("Track_pz", Track_pz);
+    _LcalData->SetBranchAddress("Track_ID", Track_ID);
+    _LcalData->SetBranchAddress("Track_PDG", Track_PDG);
+
+    _LcalData->SetBranchAddress("Hit_N", &Hit_N);
+    _LcalData->SetBranchAddress("Hit_cellID", Hit_cellID);
+    _LcalData->SetBranchAddress("Hit_energy", Hit_energy);
+    _LcalData->SetBranchAddress("Hit_xCell", Hit_xCell);
+    _LcalData->SetBranchAddress("Hit_yCell", Hit_yCell);
+    _LcalData->SetBranchAddress("Hit_zCell", Hit_zCell);
+    _LcalData->SetBranchAddress("Hit_xHit", Hit_xHit);
+    _LcalData->SetBranchAddress("Hit_yHit", Hit_yHit);
+    _LcalData->SetBranchAddress("Hit_zHit", Hit_zHit);
+    _LcalData->SetBranchAddress("Hit_TOF", Hit_TOF);
 }
 
 void LCRootOut::Init(){
-    numHits = 0;
-    numPrim = 0;
-    Etot[0] = 0.;
-    Etot[1] = 0.;
-    Emax = 0.;
-    pTracks = &Tracks;
-    pHits = &Hits;
 
+    G4String filename = "Lucas_output.root";
+    G4String open_option = "CREATE";
     // Open root file 
     if(!_file){
-        G4cout<<"LCRootOut::Opening file: "<<Setup::RootFileName<<" write mode: "<<Setup::RootFileMode<<G4endl;
-    
-        _file = new TFile(Setup::RootFileName, Setup::RootFileMode);
+        _file = new TFile(filename, open_option);
         LCRootOut::pRootFile = _file;
         _LcalData = (TTree*)_file->Get("Lcal");
 
-        // The following is attempt to fix weird GEANT4 behaviour:
-        // TFile object does not prevent against overwriting exiting file
-        // -in mode "NEW" or "CREATE" issues only warning message and continues
-        // this results in "empty run". Results are not written to a file
-        // -"RECREATE" mode causes overwriting exiting file without warning
-
-        if(_file && Setup::RootFileMode == "UPDATE"){
-            // This is correct situation. Don't create new tree, use existing one and set branch addresses.
-            if(_LcalData) SetAddresses();
-            else{
-                G4cout<<"File: "<<Setup::RootFileName<<" opened "<<G4endl;
-                CreateNewTree();
-            }
-        }
-        else if(_file->IsZombie() && (Setup::RootFileMode == "NEW" || Setup::RootFileMode == "CREATE")){
-            // Something is wrong - file exists, ROOT issues error message but run continues.
-            // User is going to waste time runing job with no output saved in root file.
-            // Abort the run
-            G4Exception("LCRootOut::Init:Attempt to override file:", Setup::RootFileName, RunMustBeAborted, ". Aborting!");
-        }
-        else if(_file && Setup::RootFileMode == "RECREATE"){ 
-            G4cerr<<"File: "<<Setup::RootFileName<<" is being overriden!!!"<<G4endl;
-            CreateNewTree();
-        }    
-        else{
-            // this covers "NEW"/"CREATE" (file not existing) situations
-            G4cout<<"New empty file: "<<Setup::RootFileName<<" opened "<<G4endl;
-            CreateNewTree();
-        }
+        CreateNewTree();
         
         G4cout<<"LCRootOut::Init completed."<<G4endl;
     }
     else{
         _LcalData = (TTree*)_file->Get("Lcal");
-        if(!_LcalData) G4Exception("File ", Setup::RootFileName, RunMustBeAborted," does not have class <Lcal>");
+        if(!_LcalData) G4Exception("File ", filename, RunMustBeAborted," does not have class <Lcal>");
     }
 }
 
 void LCRootOut::ProcessEvent(const G4Event* event, LCHitsCollection *collection){
-    numHits = 0;
-    numPrim = 0;
-    Etot[0] = 0.;
-    Etot[1] = 0.;
+    Track_N = 0;
+    Hit_N = 0;
     Emax = 0.;
 
-    // Get all primary MC particles
-    G4int nv = event->GetNumberOfPrimaryVertex();
+    G4int nVertices = event->GetNumberOfPrimaryVertex();
     G4int k=0;
-    for(int v=0; v<nv; v++){
-        G4PrimaryVertex *pv = event->GetPrimaryVertex(v);
-        vX = pv->GetX0();
-        vY = pv->GetY0();
-        vZ = pv->GetZ0();
-        G4PrimaryParticle *pp = pv->GetPrimary();
-        while(pp){
-            Track_t t;
-            t.pX = (pp->GetMomentum()).getX();
-            t.pY = (pp->GetMomentum()).getY();
-            t.pZ = (pp->GetMomentum()).getZ();
-            t.ID = pp->GetTrackID();
-            t.PDG = pp->GetPDGcode();
-
-            pTracks->push_back(t);
+    for(int v=0; v<nVertices; v++){
+        G4PrimaryVertex *pVertex = event->GetPrimaryVertex(v);
+        vX = pVertex->GetX0();
+        vY = pVertex->GetY0();
+        vZ = pVertex->GetZ0();
+        G4PrimaryParticle *pParticle = pVertex->GetPrimary();
+        while(pParticle){
+            Track_px[k] = (pParticle->GetMomentum()).getX();
+            Track_py[k] = (pParticle->GetMomentum()).getY();
+            Track_pz[k] = (pParticle->GetMomentum()).getZ();
+            Track_ID[k] = pParticle->GetTrackID();
+            Track_PDG[k] = pParticle->GetPDGcode();
             k++;
-            pp = pp->GetNext();
+            pParticle = pParticle->GetNext();
         }
     }
 
-    numPrim = k;
+    Track_N = k;
+    if(Track_N > 999)G4Exception("Number of tracks ", "Track_N", RunMustBeAborted," exceed array size of 999!");
 
     if(collection){
-        numHits = collection->entries();
+        G4cout<<"I WAS HEREEE"<<endl;
+        Hit_N = collection->entries();
         G4int i = 0;
-        while(i<numHits){
-            Hit_t hit;
-            hit.cellID = (*collection)[i]->GetCellCode();
-            G4int side = (hit.cellID >> 24) & 0xff ;
+        if(Hit_N > 2500)G4Exception("Number of hits ", "Hit_N", RunMustBeAborted," exceed array size of 2500!");
+        while(i<Hit_N){
+            Hit_cellID[i] = (*collection)[i]->GetCellCode();
 
-            hit.eHit = (*collection)[i]->GetEnergy();
-            hit.xCell = (hit.cellID>>8) & 0xFF;
-            hit.yCell = (hit.cellID) & 0xFF;
-            hit.zCell = (hit.cellID>>16) & 0xFF;
+            Hit_energy[i] = (*collection)[i]->GetEnergy();
+            Hit_xCell[i] = (Hit_cellID[i]>>8) & 0xFF;
+            Hit_yCell[i] = (Hit_cellID[i]) & 0xFF;
+            Hit_zCell[i] = (Hit_cellID[i]>>16) & 0xFF;
       
-            hit.xHit = (*collection)[i]->GetXhit();
-            hit.yHit = (*collection)[i]->GetYhit();
-            hit.zHit = (*collection)[i]->GetZhit();
-            hit.TOF = (*collection)[i]->GetTOF();
-            bool cellInTestBeam = false;
-            if(((hit.xCell == 12) && (hit.yCell > 49)) || ((hit.xCell == 13) && (hit.yCell > 45))) cellInTestBeam = true;
-            if((Setup::Lcal_n_layers > 12) || ((Setup::Lcal_n_layers <= 12) && (cellInTestBeam))){
-                Etot[side-1] += hit.eHit;
-                if(Emax < hit.eHit) Emax = hit.eHit;
-                pHits->push_back(hit);
-            }
-                i++;
+            Hit_xHit[i] = (*collection)[i]->GetXhit();
+            Hit_yHit[i] = (*collection)[i]->GetYhit();
+            Hit_zHit[i] = (*collection)[i]->GetZhit();
+
+            if(Emax < Hit_energy[i]) Emax = Hit_energy[i];
+            i++;
         }
 
         _LcalData->Fill();
-        // Clear vectors
-        pTracks->clear();
-        pHits->clear();
+
     }
 }
 
@@ -182,7 +149,7 @@ void LCRootOut::End(){
     // Fill tree, do not close the file. It will be closed by main()
     _file->Write();
     _file->Close();
-    G4cout<<"LCRootOut::Closed file: "<<Setup::RootFileName<<G4endl;
+    G4cout<<"LCRootOut::Closed file: "<<G4endl;
     delete _file;
     _file = NULL;
     _LcalData = NULL;

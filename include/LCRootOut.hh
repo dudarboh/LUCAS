@@ -14,8 +14,7 @@
 #ifndef LCROOTOUT_HH_
 #define LCROOTOUT_HH_ 1
 
-#include "LCSensitiveDetector.hh"
-#include "LCHit.hh"
+#include "LCDetectorConstruction.hh"
 
 #include "G4Event.hh"
 #include "G4SDManager.hh"
@@ -34,9 +33,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1.h"
-
-#include "Track_t.hh"
-#include "Hit_t.hh"
 
 // namespaces
 using namespace std;
@@ -77,15 +73,25 @@ class LCRootOut{
         vector<G4int> theUsedCells;
 
         G4double vX, vY, vZ;
-        G4int numPrim; // number of primary particles
-        vector<Track_t> Tracks;
-        vector<Track_t> *pTracks;
-        G4int numHits; // total number of hits
 
-        // caloHit
-        vector<Hit_t> Hits;
-        vector<Hit_t> *pHits;
-        G4double Etot[2]; // total energy deposit in arm per arm
+        G4int Track_N;
+        G4double Track_px[999];
+        G4double Track_py[999];
+        G4double Track_pz[999];
+        G4int Track_ID[999];
+        G4int Track_PDG[999];
+
+        G4int Hit_N;
+        G4int Hit_cellID[2500];
+        G4double Hit_energy[2500];
+        G4double Hit_xCell[2500];
+        G4double Hit_yCell[2500];
+        G4double Hit_zCell[2500];
+        G4double Hit_xHit[2500];
+        G4double Hit_yHit[2500];
+        G4double Hit_zHit[2500];
+        G4double Hit_TOF[2500];
+
         G4double Emax; // max  energy deposit in cell
 };
 
