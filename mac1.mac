@@ -1,3 +1,12 @@
+/control/verbose 2
+/control/saveHistory
+
+/run/verbose 2
+/vis/verbose errors
+/vis/verbose warnings
+
+/run/initialize
+
 /gun/particle e-
 /gun/energy 5. GeV
 /gun/position  0.  0.  0. mm

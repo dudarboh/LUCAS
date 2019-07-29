@@ -10,25 +10,17 @@
 #define LCHIT_HH_ 1
 
 #include "G4VHit.hh"
-#include "G4Allocator.hh"
 #include "G4THitsCollection.hh"
-
-
+#include "G4Allocator.hh"
 #include "G4ThreeVector.hh"
-#include "G4Circle.hh"
-#include <map>
+#include "G4Threading.hh"
 
-#include "G4LogicalVolume.hh"
-#include "G4Transform3D.hh"
-#include "G4RotationMatrix.hh"
 
 class LCHit:public G4VHit{
     public:
-        LCHit(G4double xGlobal, G4double yGlobal, G4double zGlobal, // hit position
-            G4double sector, G4double pad, G4double layer, // cell position
-            G4double energy, G4int cellID);
+        LCHit(G4int sector, G4int pad, G4int layer, G4double energy);
         LCHit(const LCHit&);
-        ~LCHit();
+        virtual ~LCHit();
 
         // operators
         const LCHit& operator=(const LCHit&);
@@ -37,47 +29,51 @@ class LCHit:public G4VHit{
         inline void* operator new(size_t);
         inline void  operator delete(void*);
 
-        void AddEdep(G4double dE);
+        // methods from base class
+        virtual void Draw(){}
+        virtual void Print();
 
-
-    private:
-
-        G4double fXhit,fYhit,fZhit; // spatial hit coordinates
-        G4double fXcell,fYcell,fZcell; // spatial cell coordinates
-        G4double fEnergy; // Total energy that has accumulated in the cell
-        G4int fCellID; // encoded cell id
-
-        G4int fNoOfContributingHits; // number of particles contributing to this hit
-
-    public:
+        void Add(G4double dE);
 
         inline G4double GetXhit() const {return fXhit;}
         inline G4double GetYhit() const {return fYhit;}
         inline G4double GetZhit() const {return fZhit;}
-        inline G4double GetXcell() const {return fXcell;}
-        inline G4double GetYcell() const {return fYcell;}
-        inline G4double GetZcell() const {return fZcell;}
+        inline G4int GetXcell() const {return fXcell;}
+        inline G4int GetYcell() const {return fYcell;}
+        inline G4int GetZcell() const {return fZcell;}
         inline G4int GetNoContributingHits() const {return fNoOfContributingHits;}
-        inline G4double GetEnergy() {return fEnergy;}
-        inline G4int GetCellCode() {return fCellID;}
+        inline G4double GetEnergy() const {return fEnergy;}
 
-        inline void SetEnergy(G4double Energy) {fEnergy = Energy;}
+    private:
+
+        G4double fXhit,fYhit,fZhit; // spatial hit coordinates
+        G4int fXcell,fYcell,fZcell; // spatial cell coordinates
+        G4double fEnergy; // Total energy that has accumulated in the cell
+        G4int fNoOfContributingHits; // number of particles contributing to this hit
+
 };
-
-typedef G4THitsCollection<LCHit> LCHitsCollection;
 
 
 // You just need it
-extern G4Allocator<LCHit> LCHitAllocator;
+using LCHitsCollection = G4THitsCollection<LCHit>;
+
+extern G4ThreadLocal G4Allocator<LCHit>* LCHitAllocator;
 
 inline void* LCHit::operator new(size_t){
-    void *aHit;
-    aHit = (void *) LCHitAllocator.MallocSingle();
-    return aHit;
+    if(!LCHitAllocator) LCHitAllocator = new G4Allocator<LCHit>;
+    void *hit;
+    hit = (void*)LCHitAllocator->MallocSingle();
+    return hit;
 }
 
-inline void LCHit::operator delete(void *aHit){
-    LCHitAllocator.FreeSingle((LCHit*) aHit);
+inline void LCHit::operator delete(void *hit){
+    if(!LCHitAllocator) LCHitAllocator = new G4Allocator<LCHit>;
+    LCHitAllocator->FreeSingle((LCHit*)hit);
+}
+
+inline void LCHit::Add(G4double dE){
+    fNoOfContributingHits ++;
+    fEnergy += dE;
 }
 
 #endif

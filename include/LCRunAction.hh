@@ -13,9 +13,6 @@
 
 #include "G4UserRunAction.hh"
 #include "globals.hh"
-#include <iostream>
-#include <fstream>
-
 
 class G4Run;
 
@@ -27,9 +24,8 @@ class LCRunAction : public G4UserRunAction{
 
         void BeginOfRunAction(const G4Run*);
         void EndOfRunAction (const G4Run*);
-        void Print(G4String flag, const G4Run*);
 
-        LCRootOut *RootOut;
+        LCRootOut *fRootOut;
 };
 
 #endif

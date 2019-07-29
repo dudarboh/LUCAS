@@ -16,7 +16,6 @@
 
 #include "G4RunManager.hh"
 
-
 #include "PrimaryGeneratorAction.hh"
 #include "SteppingAction.hh"
 
@@ -38,8 +37,10 @@
 #include <iostream>
 using namespace std;
 
-int main(int argc, char* argv[]){
-  
+int main(int argc, char** argv){
+    tms fStartTime;
+    clock_t StartTime = times(&fStartTime); // in miliseconds 
+
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
@@ -48,34 +49,42 @@ int main(int argc, char* argv[]){
     // Detectron construction and physics list
     runManager->SetUserInitialization(new LCDetectorConstruction);
 
-    G4VUserPhysicsList *theList = new QGSP_BERT;
-    theList->SetDefaultCutValue(0.005*mm);
-    runManager->SetUserInitialization(theList);
+    G4VUserPhysicsList *physicsList = new QGSP_BERT;
+    physicsList->SetVerboseLevel(1);
+    physicsList->SetDefaultCutValue(0.005*mm);
+    runManager->SetUserInitialization(physicsList);
  
-    tms fStartTime;
-    clock_t StartTime = times(&fStartTime); // in miliseconds 
-
-    runManager->Initialize();
-
     // User Action Classes
     runManager->SetUserAction(new PrimaryGeneratorAction);
 
-    LCRootOut *theRootOut = new LCRootOut();
-    LCRunAction *theRunAction;
-    LCEventAction *theEventAction;
+    LCRootOut *theRootOut = 0;
+    LCRunAction *theRunAction = 0;
+    LCEventAction *theEventAction = 0;
 
-    // Batch mode is false by default
-    theRunAction = new LCRunAction(theRootOut);
-    theEventAction = new LCEventAction(theRootOut);
+    if(!ui){
+        // batch mode
+        theRootOut = new LCRootOut();
+        theRunAction = new LCRunAction(theRootOut);
+        theEventAction = new LCEventAction(theRootOut);
+    }
+    else{
+        // interactive mode. Cant call ROOT in visualisation, or its crashes on BeamOn
+        theRunAction = new LCRunAction();
+        theEventAction = new LCEventAction();
+    }
+
+
 
     runManager->SetUserAction(theRunAction);
     runManager->SetUserAction(theEventAction);
     runManager->SetUserAction(new SteppingAction(theEventAction));
 
-    G4VisManager *visManager = new G4VisExecutive;
-    visManager->Initialize();
-    G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
+    G4VisManager *visManager = new G4VisExecutive;
+
+    visManager->Initialize();
+
+    G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
     if(!ui){
         // batch mode

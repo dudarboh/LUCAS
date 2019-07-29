@@ -1,29 +1,19 @@
 #include "LCHit.hh"
-
-#include "G4ios.hh"
+#include "G4UnitsTable.hh"
 #include "G4VVisManager.hh"
+#include "G4Circle.hh"
 #include "G4Colour.hh"
 #include "G4VisAttributes.hh"
-#include "G4LogicalVolume.hh"
-#include "G4UIcommand.hh"
-#include "G4UnitsTable.hh"
 
-#include <assert.h>
-#include <map>
+#include <iomanip>
 
-G4Allocator<LCHit> LCHitAllocator;
+G4ThreadLocal G4Allocator<LCHit>* LCHitAllocator = 0;
 
-LCHit::LCHit(G4double xGlobal, G4double yGlobal, G4double zGlobal,
-            G4double sector, G4double pad, G4double layer,
-            G4double energy, G4int cellID):G4VHit(),
-            fXhit(xGlobal), fYhit(yGlobal), fZhit(zGlobal),
+LCHit::LCHit(G4int sector, G4int pad, G4int layer, G4double energy):G4VHit(),
             fXcell(sector), fYcell(pad), fZcell(layer),
-            fEnergy(energy), fCellID(cellID){
-    
-    SetEnergy(0.0);
-    fNoOfContributingHits = 0;
-    AddEdep(energy);
-}
+            fEnergy(energy), fNoOfContributingHits(1){}
+
+LCHit::~LCHit(){}
 
 LCHit::LCHit(const LCHit& right):G4VHit(){
     fXhit = right.fXhit;
@@ -33,19 +23,8 @@ LCHit::LCHit(const LCHit& right):G4VHit(){
     fYcell = right.fYcell;
     fZcell = right.fZcell;
     fEnergy = right.fEnergy;
-    fCellID = right.fCellID;
+    fNoOfContributingHits = right.fNoOfContributingHits;
 }
-
-//destructor
-LCHit::~LCHit(){}
-
-
-// Accumulates energy from primary particles that enter the cell.
-void LCHit::AddEdep(G4double dE){
-    fNoOfContributingHits ++;
-    fEnergy += dE;
-}
-
 
 const LCHit& LCHit::operator=(const LCHit& right){
     fXhit = right.fXhit;
@@ -55,12 +34,25 @@ const LCHit& LCHit::operator=(const LCHit& right){
     fYcell = right.fYcell;
     fZcell = right.fZcell;
     fEnergy = right.fEnergy;
-    fCellID = right.fCellID;
+    fNoOfContributingHits = right.fNoOfContributingHits;
 
     return *this;
 }
 
 G4int LCHit::operator==(const LCHit& right) const{
-  return (this == &right);
+  
+  return (fXcell == right.fXcell) && (fYcell == right.fYcell) && (fZcell == right.fZcell);
 }
 
+void LCHit::Print(){
+    G4cout
+    <<"Edep: "<<std::setw(7)<<G4BestUnit(fEnergy, "Energy")
+    <<"Xhit: "<<std::setw(7)<<G4BestUnit(fXhit, "Length")
+    <<"Yhit: "<<std::setw(7)<<G4BestUnit(fYhit, "Length")
+    <<"Zhit: "<<std::setw(7)<<G4BestUnit(fZhit, "Length")
+    <<"Xcell: "<<std::setw(7)<<G4BestUnit(fXcell, "Length")
+    <<"Ycell: "<<std::setw(7)<<G4BestUnit(fYcell, "Length")
+    <<"Zcell: "<<std::setw(7)<<G4BestUnit(fZcell, "Length")
+    <<"fNoOfContributingHits: "<<std::setw(7)<<fNoOfContributingHits
+    << G4endl;
+}

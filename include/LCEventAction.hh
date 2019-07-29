@@ -12,29 +12,29 @@
 #ifndef LCEVENTACTION_HH_
 #define LCEVENTACTION_HH_ 1
 
+#include "G4UserEventAction.hh"
+
+#include "LCHit.hh"
 #include "LCRootOut.hh"
 
-#include "G4UserEventAction.hh"
 #include "globals.hh"
 
-#include <stdio.h>
-
-
-class G4PrimaryParticle;
 
 class LCEventAction : public G4UserEventAction{
     public:
         LCEventAction(LCRootOut *RO);
         LCEventAction();
-        ~LCEventAction();
+        virtual ~LCEventAction();
 
-        void BeginOfEventAction(const G4Event*);
-        void EndOfEventAction(const G4Event*);
+        virtual void BeginOfEventAction(const G4Event*);
+        virtual void EndOfEventAction(const G4Event*);
 
     private:
-        G4int collID; // ID number for a collection of calorimeter hits
-        G4String collName; // hits collection name
-        LCRootOut *RootOut; // Handles writing the ROOT tree
+        LCHitsCollection* GetHitsCollection(G4int hcID, const G4Event* event) const;
+
+        G4int fHCID; // ID number for a collection of calorimeter hits
+ 
+        LCRootOut *fRootOut; // Handles writing the ROOT tree
 };
 
 #endif

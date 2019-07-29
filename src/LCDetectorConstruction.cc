@@ -16,6 +16,7 @@
 #include <sstream>
 #include <string>
 #include "globals.hh"
+#include <G4VisAttributes.hh>
 
 #include "G4Box.hh"
 #include "G4Tubs.hh"
@@ -35,7 +36,6 @@
 #include "G4Region.hh"
 #include "G4ProductionCuts.hh"
 
-#include "G4VisAttributes.hh"
 #include "G4Colour.hh"
 
 #include "G4Material.hh"
@@ -77,24 +77,20 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4SDManager *SDman = G4SDManager::GetSDMpointer();
 
     // Initialize the Sensitive Detector
-    G4double cellPitch = (rSensorMax - rSensorMin - 2.*rSensorGap)/(2.*64);
-    G4double cell0Rad = rSensorMin + rSensorGap + cellPitch;
-    G4double phiStart = 0*deg;
+    G4double cellPitch = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.;
+    G4double cell0Rad = rSensorMin + rSensorGap + cellPitch/2.;
     G4double phiSector = 7.5*deg;
-    G4bool VirtualCell = true;
     SensDet = new LCSensitiveDetector("LumiCalSD",  // name
+                                      "LCHitsCollectionName", //This name connected with LCEventAction file EndofEvent extraction. Dont change it
                                       cell0Rad,    // inner LC radius
-                                      phiStart,     // start angle
                                       cellPitch,    // radial cell size
                                       phiSector,    // angular cell width
-                                      64,       // # cells in the rad dir
-                                      4,     // # cells in the phi dir
-                                      VirtualCell); // cell type real/virtual =  false/true
+                                      64);       // # cells in the rad dir
 
     // Cells are the sensitive detectors
     SDman->AddNewDetector(SensDet);
    
-    if(VirtualCell) logicSi->SetSensitiveDetector(SensDet);
+    logicSi->SetSensitiveDetector(SensDet);
 
     return physicWorld;
 }
@@ -110,7 +106,9 @@ void LCDetectorConstruction::World(){
 
     G4Box *solidWorld = new G4Box("World", xWorldSize, yWorldSize, zWorldSize);
     logicWorld = new G4LogicalVolume(solidWorld, Air, "World", 0, 0, 0);
-    physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0);
+    physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 1, 1);
+    G4VisAttributes* colorWorld = new G4VisAttributes(G4Color(1., 1., 1., 0.1));
+    logicWorld->SetVisAttributes(colorWorld);
 }
 
 void LCDetectorConstruction::Absorber(){
@@ -130,6 +128,10 @@ void LCDetectorConstruction::Absorber(){
 
     G4Box *solidAbsorber = new G4Box("solidAbsorber", xAbsorberSize, yAbsorberSize, zAbsorberSize);
     logicAbsorber = new G4LogicalVolume(solidAbsorber, matAbsorber, "logicAbsorber", 0, 0, 0); 
+
+    G4VisAttributes* absColor = new G4VisAttributes(G4Color(0., 0., 1.));
+    logicAbsorber->SetVisAttributes(absColor);
+
 }
 
 void LCDetectorConstruction::Sensor(){
@@ -200,18 +202,27 @@ void LCDetectorConstruction::Sensor(){
     logicSi = new G4LogicalVolume(solidSi, Si, "logicSi", 0, 0, 0);
     logicAl = new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 
+    logicSensor->SetVisAttributes(G4VisAttributes::Invisible);
+    logicFanoutFront->SetVisAttributes(G4VisAttributes::Invisible);
+    logicFanoutBack->SetVisAttributes(G4VisAttributes::Invisible);
+    logicAl->SetVisAttributes(G4VisAttributes::Invisible);
+    G4VisAttributes* sensorColor = new G4VisAttributes(G4Color(0.5, 0.5, 0.));
+
+    logicSi->SetVisAttributes(sensorColor);
+
+
     G4double zSensorPos = -zSensorSize + zFanoutFront;
     G4double ySensorPos = -(rSensorMin + 0.5*(rSensorMax - rSensorMin));
 
-    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicFanoutFront, "SensorFanFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicFanoutFront, "SensorFanFront", logicSensor, false, 1, 1);
     zSensorPos += zFanoutFront + 0.5*0.02*mm;
-    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicAl, "SensorAlFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicAl, "SensorAlFront", logicSensor, false, 1, 1);
     zSensorPos += (0.5*0.02 + 0.5*0.32)*mm;
-    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos),logicSi, "SensorSi", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos),logicSi, "SensorSi", logicSensor, false, 1, 1);
     zSensorPos += (0.5*0.32 + 0.5*0.02)*mm;
-    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicAl, "SensorAlBack", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicAl, "SensorAlBack", logicSensor, false, 1, 1);
     zSensorPos += 0.5*0.02*mm + zFanoutBack;
-    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicFanoutBack, "SensorFanBack", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySensorPos, zSensorPos), logicFanoutBack, "SensorFanBack", logicSensor, false, 1, 1);
 }
 
 void LCDetectorConstruction::Slot(){
@@ -224,18 +235,18 @@ void LCDetectorConstruction::Slot(){
     G4Box *solidSlot = new G4Box("solidSlot", xSlotSize, ySlotSize, zSlotSize);
     logicSlot = new G4LogicalVolume(solidSlot, Air, "logicSlot", 0, 0, 0);
 
-    new G4PVPlacement(0, G4ThreeVector(0., 0., -zSlotSize+zAbsorberSize), logicAbsorber, "Absorber", logicSlot, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., zSlotSize-zSensorSize), logicSensor, "Sensor", logicSlot, false, 0, 1);
-    
+    logicSlot->SetVisAttributes(G4VisAttributes::Invisible);
 
+    new G4PVPlacement(0, G4ThreeVector(0., 0., -zSlotSize+zAbsorberSize), logicAbsorber, "Absorber", logicSlot, false, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zSlotSize-zSensorSize), logicSensor, "Sensor", logicSlot, false, 1, 1);
 
     G4double ySlotPos = - 22./64. * (195.2 - 80.)*mm;
     G4double zSlotPos = 3300.*mm;
     for(int i=0; i<20; i++){
         std::ostringstream stringStream;
-        stringStream<<"Slot"<<i;
+        stringStream<<"Slot"<<i+1;
         G4String nameSlot = stringStream.str();
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos + zSlotSize), logicSlot, nameSlot, logicWorld, 0, false, i+1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos + zSlotSize), logicSlot, nameSlot, logicWorld, false, i+1, 1);
         zSlotPos += 2.*zSlotSize + 0.002*mm;
     }
 

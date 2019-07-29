@@ -1,24 +1,18 @@
-# Macro file for the initialization of example B1
-# in interactive session
-#
-# Set some default verbose
+
 /control/verbose 2
 /control/saveHistory
+
 /run/verbose 2
-#
-# Change the default number of threads (in multi-threaded mode)
-#/run/numberOfThreads 4
-#
-# Initialize kernel
+/vis/verbose errors
+/vis/verbose warnings
+
 /run/initialize
-#
-# Visualization setting
+
 /control/macroPath /home/FoxWise/Documents/FCAL/LUCAS/
 
 /vis/open OGL 600x600-0+0
 
 /vis/viewer/set/autoRefresh false
-/vis/verbose errors
 
 /vis/drawVolume
 
@@ -42,11 +36,8 @@
 /vis/set/colour        # Revert to default colour (white)
 /vis/set/lineWidth     # Revert to default line width (1.)
 
-/vis/geometry/set/visibility World 0 false
-
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 120 150
 
 /vis/viewer/set/autoRefresh true
-/vis/verbose warnings
