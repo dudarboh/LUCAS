@@ -9,18 +9,12 @@
 #define LCDETECTORCONSTRUCTION_HH_ 1
 
 #include "LCSensitiveDetector.hh"
-#include <cstdlib> 
 #include "G4VUserDetectorConstruction.hh"
 #include "globals.hh"
-#include "G4PVDivision.hh"
 #include "G4NistManager.hh"
 
-
-class G4Box;
-class G4Tubs;
 class G4LogicalVolume;
 class G4VPhysicalVolume;
-class G4Material;
 
 class LCDetectorConstruction : public G4VUserDetectorConstruction{
     public:
@@ -29,67 +23,39 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
 
         G4NistManager *materials = G4NistManager::Instance();
 
-    public:
         G4VPhysicalVolume *Construct();
-        void Sensor();
-        void Absorber();
-        void Slot();
-        void World();
+        G4LogicalVolume *buildWorld();
+        G4LogicalVolume *buildSlot();
+        G4LogicalVolume *buildSensor();
+        G4LogicalVolume *buildAbsorber();
+        G4LogicalVolume *buildFanout(G4double zEpoxy, G4double zKapton, G4double zCu);
+        G4LogicalVolume *buildAl();
+        G4LogicalVolume *buildSi();
+        void fancyVisualization();
 
     private:
-        G4LogicalVolume *logicWorld;
         G4VPhysicalVolume *physicWorld;
- 
+        G4LogicalVolume *logicWorld;
         G4LogicalVolume *logicSlot;
-
         G4LogicalVolume *logicSensor;
-
         G4LogicalVolume *logicAbsorber;
         G4LogicalVolume *logicFanoutFront;
         G4LogicalVolume *logicFanoutBack;
-        G4LogicalVolume *logicAl;
         G4LogicalVolume *logicSi;
+        G4LogicalVolume *logicAl;
 
-    private:
-        G4Material *Air;
-        G4Material *W;
-        G4Material *Ni;
-        G4Material *Cu;
-        G4Material *matAbsorber;
-        G4Material *Si;
-        G4Material *Al;
-        G4Material *Carbon;
-        G4Material *Kapton;
-        G4Material *Epoxy;
-        G4Material *matFiber;
-        G4Material *matFanoutFront;
-        G4Material *matFanoutBack;
+        G4double zSlot = 4.5*mm;
+        G4double zSensor = 0.79*mm;
+        G4double zAbsorber = 3.5*mm;
 
-        G4Element *H;
-        G4Element *C;
-        G4Element *O;
+        G4double zFanout = 0.15*mm;
+        G4double zAl = 0.02*mm;
+        G4double zSi = 0.32*mm;
 
-        G4Material *PLASTIC_SC;
+        G4double rSensorMin = 80.*mm;
+        G4double rSensorMax = 195.2*mm;
+        G4double rSensorGap = 0.*mm; // default 1.2mm I dont know which to choose :c
 
-    private:
-        G4double xSensorSize;
-        G4double ySensorSize;
-        G4double zSensorSize;
-
-        G4double rSensorMin;
-        G4double rSensorMax;
-        G4double rSensorGap;
-        G4int nSensorPads;
-
-        G4double xSlotSize;
-        G4double ySlotSize;
-        G4double zSlotSize;
-
-        G4double xAbsorberSize;
-        G4double yAbsorberSize;
-        G4double zAbsorberSize;
-
-    private:
         // Implement a sensitive detector object
         LCSensitiveDetector *SensDet;
 };
