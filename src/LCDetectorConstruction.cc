@@ -1,58 +1,18 @@
-// LumiCal
-//      sensor stracture from front to back  :
-//          1. 0.150 kapton front.
-//          1.2. 0.010 epoxy glue
-//          2.1. 0.020 AL on sensor
-//          2.2. 0.320 Si sensor
-//          2.3. 0.020 AL on sensor
-//          3.1. 0.040 epoxy (condactive - not take into acount)
-//          3.2. 0.025 cupper (on kapton)
-//          3.3. 0.065 kapton back
-//          3.4. 0.020 epoxy glue
-//          total 0.670  
-
 #include "LCDetectorConstruction.hh"
-#include <iostream>
-#include <sstream>
-#include <string>
-#include "globals.hh"
-#include <G4VisAttributes.hh>
-
+#include "G4RunManager.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
-#include "G4Polycone.hh"
-#include "G4Polyhedra.hh"
-#include "G4EllipticalTube.hh"
-#include "G4LogicalVolume.hh"
-#include "G4ThreeVector.hh"
 #include "G4PVPlacement.hh"
-#include "G4PVParameterised.hh"
-#include "G4SubtractionSolid.hh"
-#include "G4UnionSolid.hh"
-
-#include "G4TransportationManager.hh"
-#include "G4FieldManager.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4LogicalVolume.hh"
+#include <G4VisAttributes.hh>
 #include "G4SDManager.hh"
-#include "G4Region.hh"
-#include "G4ProductionCuts.hh"
-
 #include "G4Colour.hh"
 
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
 #include "G4Element.hh"
 #include "G4ElementTable.hh"
-#include "G4NistManager.hh"
-#include "G4ios.hh"
-
-#include "G4GeometryTolerance.hh"
-#include "G4GeometryManager.hh"
-
-#include "G4UserLimits.hh"
-
-#include "G4SystemOfUnits.hh"
-//  logicMetalV->SetVisAttributes( G4VisAttributes::Invisible );
-
 
 LCDetectorConstruction::LCDetectorConstruction()
     :logicWorld(0),

@@ -1,10 +1,3 @@
-// LCDetectorConstruction.hh
-// LumiCal
-//
-//  Created on: Mar 2, 2009
-//      Author: aguilar
-
-
 #ifndef LCDETECTORCONSTRUCTION_HH_
 #define LCDETECTORCONSTRUCTION_HH_ 1
 
@@ -57,7 +50,7 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4double rSensorGap = 0.*mm; // default 1.2mm I dont know which to choose :c
 
         // Implement a sensitive detector object
-        LCSensitiveDetector *SensDet;
+        LCSensitiveDetector *sensetiveDetector;
 };
 
 #endif
