@@ -3,8 +3,8 @@
 
 #include "LCSensitiveDetector.hh"
 #include "G4VUserDetectorConstruction.hh"
-#include "globals.hh"
 #include "G4NistManager.hh"
+#include "G4SystemOfUnits.hh"
 
 class G4LogicalVolume;
 class G4VPhysicalVolume;
@@ -21,17 +21,17 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4LogicalVolume *buildSlot();
         G4LogicalVolume *buildSensor();
         G4LogicalVolume *buildAbsorber();
-        G4LogicalVolume *buildFanout(G4double zEpoxy, G4double zKapton, G4double zCu);
+        G4LogicalVolume *buildFanout(G4String logicName, G4double zEpoxy, G4double zKapton, G4double zCu);
         G4LogicalVolume *buildAl();
         G4LogicalVolume *buildSi();
         void fancyVisualization();
 
     private:
-        G4VPhysicalVolume *physicWorld;
         G4LogicalVolume *logicWorld;
+        G4VPhysicalVolume *physicWorld;
         G4LogicalVolume *logicSlot;
-        G4LogicalVolume *logicSensor;
         G4LogicalVolume *logicAbsorber;
+        G4LogicalVolume *logicSensor;
         G4LogicalVolume *logicFanoutFront;
         G4LogicalVolume *logicFanoutBack;
         G4LogicalVolume *logicSi;

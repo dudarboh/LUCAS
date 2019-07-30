@@ -1,11 +1,9 @@
 #include "LCDetectorConstruction.hh"
-#include "G4RunManager.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4PVPlacement.hh"
-#include "G4SystemOfUnits.hh"
 #include "G4LogicalVolume.hh"
-#include <G4VisAttributes.hh>
+#include "G4VisAttributes.hh"
 #include "G4SDManager.hh"
 #include "G4Colour.hh"
 
@@ -136,7 +134,7 @@ G4LogicalVolume *LCDetectorConstruction::buildSensor(){
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4double zEpoxy, G4double zKapton, G4double zCu){
-    G4double zFanout = zEpoxy + zKapton + zCu;
+    // G4double zFanout = zEpoxy + zKapton + zCu; defined in hearder. It should sum to 0.15*mm
 
     //Create Epoxy material
     G4Element *H = new G4Element("Hydrogen", "H", 1., 1.01*g/mole);
@@ -148,7 +146,6 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
     Epoxy->AddElement(C, 0.5357);
     Epoxy->AddElement(O, 0.3333);
 
-    G4Material *Carbon = materials->FindOrBuildMaterial("G4_C");
     G4Material *Kapton = materials->FindOrBuildMaterial("G4_KAPTON");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
 
@@ -157,8 +154,9 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
     G4double densKapton = Kapton->GetDensity();
     G4double densCu = Cu->GetDensity();
 
-    if(logicName == "logicFanoutFront") G4double densFanout = (densEpoxy*zEpoxy/zFanout + densKapton*zKapton/zFanout + 0.5*densCu*zCu/zFanout);
-    if(logicName == "logicFanoutBack") G4double densFanout = (densEpoxy*zEpoxy/zFanout + densKapton*zKapton/zFanout + densCu*zCu/zFanout);
+    G4double densFanout;
+    if(logicName == "logicFanoutFront") densFanout = (densEpoxy*zEpoxy/zFanout + densKapton*zKapton/zFanout + 0.5*densCu*zCu/zFanout);
+    else densFanout = (densEpoxy*zEpoxy/zFanout + densKapton*zKapton/zFanout + densCu*zCu/zFanout);
 
     //Create Fanout material
     G4Material *matFanout = new G4Material("matFanout", densFanout, 3);
@@ -183,7 +181,7 @@ G4LogicalVolume *LCDetectorConstruction::buildAl(){
     return new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 }
 
-LCDetectorConstruction::fancyVisualization(){
+void LCDetectorConstruction::fancyVisualization(){
     G4VisAttributes* colorWorld = new G4VisAttributes(G4Color(1., 1., 1., 0.1));
     logicWorld->SetVisAttributes(colorWorld);
 

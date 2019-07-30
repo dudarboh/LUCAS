@@ -1,15 +1,8 @@
-/*
- *      Borrows heavily from Geant4 novice example 4 (ExN04)
- *      and LumiCalSD, written by Bogdan Pawlik
- */
-
 #ifndef LCSENSETIVEDETECTOR_HH_
 #define LCSENSETIVEDETECTOR_HH_ 1
 
 #include "G4VSensitiveDetector.hh"
 #include "LCHit.hh"
-
-#include <vector>
 
 class G4Step;
 class G4HCofThisEvent;

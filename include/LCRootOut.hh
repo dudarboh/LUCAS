@@ -1,44 +1,12 @@
-/*
- * LCRootOut.hh
- *
- *  Created on: Apr 23, 2009
- *      Author: aguilar
- *
- *      Fill a Tree object, then write the object to file
- *      You can get help from the ROOT documentation at http://root.cern.ch
- *
- *      MAJOR question: is there going to be just one tree,
- *      or one tree for each hit?
- */
-
 #ifndef LCROOTOUT_HH_
 #define LCROOTOUT_HH_ 1
 
-#include "LCDetectorConstruction.hh"
-
-#include "G4Event.hh"
-#include "G4SDManager.hh"
-
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-
-// root classes:
-#include "TROOT.h"
 #include "TFile.h"
 #include "TTree.h"
-#include "TH1.h"
 
-// namespaces
-using namespace std;
-using namespace TMath;
+#include "LCDetectorConstruction.hh"
+#include "G4Event.hh"
 
-// ROOT output class
 class LCRootOut{
     public:
         LCRootOut();

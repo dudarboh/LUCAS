@@ -1,11 +1,3 @@
-/*
- *      Borrowed heavily from Geant4 novice example 4
- *      and CalHit.hh from Mokka
- *
- *      CALORIMETER hits - that means one cell stores the total energy from
- *      primary particles that enter it - ignore the tracks of secondary
- *      particles
- */
 #ifndef LCHIT_HH_
 #define LCHIT_HH_ 1
 

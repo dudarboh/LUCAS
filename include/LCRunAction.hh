@@ -1,18 +1,8 @@
-/*
- * LCRunAction.hh
- * 2ModLumiCal
- *
- *  Created on: Apr 8, 2009
- *      Author: aguilar
- */
-
 #ifndef LCRUNACTION_HH_
 #define LCRUNACTION_HH_ 1
 
 #include "LCRootOut.hh"
-
 #include "G4UserRunAction.hh"
-#include "globals.hh"
 
 class G4Run;
 

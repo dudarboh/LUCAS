@@ -1,7 +1,5 @@
 #include "LCRootOut.hh"
 
-#include "G4SystemOfUnits.hh"
-
 LCRootOut::LCRootOut(){_file = NULL;}
 
 LCRootOut::~LCRootOut(){G4cout<<"LCRootOut is deleted!"<<G4endl;}
@@ -79,7 +77,7 @@ void LCRootOut::ProcessEvent(const G4Event* event, LCHitsCollection *collection)
     if(Track_N > 999)G4Exception("Number of tracks ", "Track_N", RunMustBeAborted," exceed array size of 999!");
 
     if(collection){
-        G4cout<<"Collection events:"<< collection->entries()<<endl;
+        G4cout<<"Collection events:"<< collection->entries()<<G4endl;
         Hit_N = collection->entries();
         G4int i = 0;
         if(Hit_N > 2500)G4Exception("Number of hits ", "Hit_N", RunMustBeAborted," exceed array size of 2500!");

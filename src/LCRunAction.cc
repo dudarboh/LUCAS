@@ -1,12 +1,7 @@
-
 #include "LCRunAction.hh"
-
 #include "G4Run.hh"
-#include "G4RunManager.hh"
-#include "G4UnitsTable.hh"
-#include "G4SystemOfUnits.hh"
-
 #include <sys/times.h>
+#include "Randomize.hh"
 
 LCRunAction::LCRunAction(LCRootOut *RO){fRootOut = RO;}
 
@@ -23,6 +18,4 @@ void LCRunAction::BeginOfRunAction(const G4Run*){
     if(fRootOut) fRootOut->Init();
 }
 
-void LCRunAction::EndOfRunAction(const G4Run*){
-    if(fRootOut) fRootOut->End();
-}
+void LCRunAction::EndOfRunAction(const G4Run*){if(fRootOut) fRootOut->End();}

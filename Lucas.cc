@@ -1,41 +1,19 @@
-//============================================================================
-// Name        : LumiCalJA.cpp
-// Author      : Jonathan Aguilar
-// Version     : 1
-// Copyright   :
-// Description : LumiCal stand-alone application for Geant4
-//============================================================================
-
-#include <sstream>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
 #include <sys/times.h>
-#include <string.h>
-#include <unistd.h>
 
-#include "G4RunManager.hh"
-
-#include "PrimaryGeneratorAction.hh"
-#include "SteppingAction.hh"
+// Include ROOT first to avoid shadowing 's' declaration warning due to ROOT/Geant4 names conflict
+#include "LCRootOut.hh"
 
 #include "LCDetectorConstruction.hh"
-
+#include "PrimaryGeneratorAction.hh"
 #include "QGSP_BERT.hh"
-
 #include "LCRunAction.hh"
+#include "LCEventAction.hh"
 
+#include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
-
 #include "G4UImanager.hh"
-#include "G4UItcsh.hh"
-#include "G4UIterminal.hh"
-
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
-
-#include <iostream>
-using namespace std;
 
 int main(int argc, char** argv){
     tms fStartTime;
@@ -74,11 +52,8 @@ int main(int argc, char** argv){
     }
 
 
-
     runManager->SetUserAction(theRunAction);
     runManager->SetUserAction(theEventAction);
-    runManager->SetUserAction(new SteppingAction(theEventAction));
-
 
     G4VisManager *visManager = new G4VisExecutive;
 
