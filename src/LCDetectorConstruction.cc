@@ -26,6 +26,8 @@ LCDetectorConstruction::LCDetectorConstruction()
 LCDetectorConstruction::~LCDetectorConstruction(){}
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
+    buildEpoxy();
+
     logicWorld = buildWorld();
     logicSlot = buildSlot();
     logicSensor = buildSensor();
@@ -72,9 +74,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4SDManager *SDmanager = G4SDManager::GetSDMpointer();
 
     G4double cellRho = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.; // 1.8 mm
-    G4double cell0RhoPos = rSensorMin + 0.5*cellRho + rSensorGap;
     G4double phiSector = 7.5*deg;
-    sensetiveDetector = new LCSensitiveDetector("LumiCalSD", "LCHitsCollectionName", cell0RhoPos, cellRho, phiSector, 64);
+    sensetiveDetector = new LCSensitiveDetector("LumiCalSD", "LCHitsCollectionName", rSensorMin, cellRho, phiSector, 64);
 
     // Cells are the sensitive detectors
     SDmanager->AddNewDetector(sensetiveDetector);
@@ -114,16 +115,7 @@ G4LogicalVolume *LCDetectorConstruction::buildAbsorber(){
 G4LogicalVolume *LCDetectorConstruction::buildSensor(){
     //This is carbon fiber support. Mother logic volum for sensor (Si, Al, Fanouts)
     G4Material *Carbon = materials->FindOrBuildMaterial("G4_C");
-
-    //Create Epoxy material
-    G4Element *H = new G4Element("Hydrogen", "H", 1., 1.01*g/mole);
-    G4Element *C = new G4Element("Carbon", "C", 6., 12.01*g/mole);
-    G4Element *O = new G4Element("Oxygen", "O", 8., 16.00*g/mole);
-
-    G4Material *Epoxy = new G4Material("Epoxy", 1.3*g/cm3, 3);
-    Epoxy->AddElement(H, 0.1310);
-    Epoxy->AddElement(C, 0.5357);
-    Epoxy->AddElement(O, 0.3333);
+    G4Material *Epoxy = materials->FindOrBuildMaterial("Epoxy", true, true);
 
     G4Material *matSensor = new G4Material("matSensor", 1.6*g/cm3, 2);
     matSensor->AddMaterial(Carbon, 0.5);
@@ -137,15 +129,8 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
     // G4double zFanout = zEpoxy + zKapton + zCu; defined in hearder. It should sum to 0.15*mm
 
     //Create Epoxy material
-    G4Element *H = new G4Element("Hydrogen", "H", 1., 1.01*g/mole);
-    G4Element *C = new G4Element("Carbon", "C", 6., 12.01*g/mole);
-    G4Element *O = new G4Element("Oxygen", "O", 8., 16.00*g/mole);
 
-    G4Material *Epoxy = new G4Material("Epoxy", 1.3*g/cm3, 3);
-    Epoxy->AddElement(H, 0.1310);
-    Epoxy->AddElement(C, 0.5357);
-    Epoxy->AddElement(O, 0.3333);
-
+    G4Material *Epoxy = materials->FindOrBuildMaterial("Epoxy", true, true);
     G4Material *Kapton = materials->FindOrBuildMaterial("G4_KAPTON");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
 
@@ -159,7 +144,10 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
     else densFanout = (densEpoxy*zEpoxy/zFanout + densKapton*zKapton/zFanout + densCu*zCu/zFanout);
 
     //Create Fanout material
-    G4Material *matFanout = new G4Material("matFanout", densFanout, 3);
+    G4String matName;
+    if(logicName == "logicFanoutFront") matName = "matFanoutFront";
+    else matName = "matFanoutBack";
+    G4Material *matFanout = new G4Material(matName, densFanout, 3);
     matFanout->AddMaterial(Epoxy, zEpoxy/zFanout);
     matFanout->AddMaterial(Kapton, zKapton/zFanout);
     matFanout->AddMaterial(Cu, zCu/zFanout);
@@ -198,4 +186,15 @@ void LCDetectorConstruction::fancyVisualization(){
     logicFanoutFront->SetVisAttributes(G4VisAttributes::Invisible);
     logicFanoutBack->SetVisAttributes(G4VisAttributes::Invisible);
     logicAl->SetVisAttributes(G4VisAttributes::Invisible);
+}
+
+void LCDetectorConstruction::buildEpoxy(){
+    G4Element *H = new G4Element("Hydrogen", "H", 1., 1.01*g/mole);
+    G4Element *C = new G4Element("Carbon", "C", 6., 12.01*g/mole);
+    G4Element *O = new G4Element("Oxygen", "O", 8., 16.00*g/mole);
+
+    G4Material *Epoxy = new G4Material("Epoxy", 1.3*g/cm3, 3);
+    Epoxy->AddElement(H, 0.1310);
+    Epoxy->AddElement(C, 0.5357);
+    Epoxy->AddElement(O, 0.3333);
 }

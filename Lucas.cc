@@ -15,6 +15,8 @@
 #include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
 
+#include <G4HadronicProcessStore.hh>
+
 int main(int argc, char** argv){
     tms fStartTime;
     clock_t StartTime = times(&fStartTime); // in miliseconds 
@@ -27,9 +29,9 @@ int main(int argc, char** argv){
     // Detectron construction and physics list
     runManager->SetUserInitialization(new LCDetectorConstruction);
 
-    G4VUserPhysicsList *physicsList = new QGSP_BERT;
-    physicsList->SetVerboseLevel(1);
+    G4VUserPhysicsList *physicsList = new QGSP_BERT(0);
     physicsList->SetDefaultCutValue(0.005*mm);
+
     runManager->SetUserInitialization(physicsList);
  
     // User Action Classes
@@ -55,9 +57,10 @@ int main(int argc, char** argv){
     runManager->SetUserAction(theRunAction);
     runManager->SetUserAction(theEventAction);
 
-    G4VisManager *visManager = new G4VisExecutive;
+    G4VisManager *visManager = new G4VisExecutive("0");
+    visManager->Initialise();
 
-    visManager->Initialize();
+    G4HadronicProcessStore::Instance()->SetVerbose(0); 
 
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
 

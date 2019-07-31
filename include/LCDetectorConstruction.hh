@@ -25,6 +25,7 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4LogicalVolume *buildAl();
         G4LogicalVolume *buildSi();
         void fancyVisualization();
+        void buildEpoxy();
 
     private:
         G4LogicalVolume *logicWorld;
