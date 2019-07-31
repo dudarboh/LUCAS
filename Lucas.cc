@@ -1,11 +1,11 @@
 // Include ROOT first to avoid shadowing 's' declaration warning due to ROOT/Geant4 names conflict
-#include "LCRootOut.hh"
 
 #include "LCDetectorConstruction.hh"
 #include "PrimaryGeneratorAction.hh"
 #include "QGSP_BERT.hh"
 #include "LCRunAction.hh"
 #include "LCEventAction.hh"
+#include "LCHit.hh"
 
 #include "G4RunManager.hh"
 #include "G4SystemOfUnits.hh"
@@ -34,20 +34,19 @@ int main(int argc, char** argv){
     // User Action Classes
     runManager->SetUserAction(new PrimaryGeneratorAction);
 
-    LCRootOut *theRootOut = 0;
+//    LCRootOut *theRootOut = 0;
     LCRunAction *theRunAction = 0;
     LCEventAction *theEventAction = 0;
 
     if(!ui){
         // batch mode
-        theRootOut = new LCRootOut();
-        theRunAction = new LCRunAction(theRootOut);
-        theEventAction = new LCEventAction(theRootOut);
+        theRunAction = new LCRunAction(1);
+        theEventAction = new LCEventAction(1);
     }
     else{
         // interactive mode. Cant call ROOT in visualisation, or its crashes on BeamOn
-        theRunAction = new LCRunAction();
-        theEventAction = new LCEventAction();
+        theRunAction = new LCRunAction(0);
+        theEventAction = new LCEventAction(0);
     }
 
 

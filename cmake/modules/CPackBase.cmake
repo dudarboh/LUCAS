@@ -113,13 +113,6 @@ cpack_add_component(Runtime
     INSTALL_TYPES runtime developer full
 )
 
-# - Components for Examples
-cpack_add_component(Examples 
-    DISPLAY_NAME "Application Examples"
-    DESCRIPTION "Install all Geant4 examples"
-    INSTALL_TYPES full developer
-)
-
 # - Components for Data
 cpack_add_component(Data 
     DISPLAY_NAME "Geant4 Data Files" 

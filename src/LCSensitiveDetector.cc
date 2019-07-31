@@ -25,9 +25,7 @@ LCSensitiveDetector::~LCSensitiveDetector(){}
 
 void LCSensitiveDetector::Initialize(G4HCofThisEvent *hce){
     fHitsCollection = new LCHitsCollection(SensitiveDetectorName, collectionName[0]);
-
     auto hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
-
     hce->AddHitsCollection(hcID, fHitsCollection);
 }
 
@@ -35,48 +33,46 @@ void LCSensitiveDetector::Initialize(G4HCofThisEvent *hce){
 G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
 
     G4double edep = step->GetTotalEnergyDeposit();
-
     if(edep == 0.) return false;
-    //Calculate hit's sector, pad, layer
+
+    //Calculate hit's characteristics
     G4ThreeVector GlobalHitPos = ((step->GetPreStepPoint()->GetPosition()) + (step->GetPostStepPoint()->GetPosition())) / 2.;
+    G4double x = GlobalHitPos.x();
+    G4double y = GlobalHitPos.y();
+    G4double z = GlobalHitPos.z();
+
     G4TouchableHandle touchable = step->GetPreStepPoint()->GetTouchableHandle();
 
     // Layer
-    G4int layer = touchable->GetCopyNumber(2) + 1;
-
-    // Cell
+    G4int layer = touchable->GetCopyNumber(1);
+    // Pad
     G4ThreeVector LocalHitPos = touchable->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
-    G4int cell = (G4int)floor((LocalHitPos.getRho() - fCalRhoMin) / fCellDimRho);
-    if(cell<0 || cell>fNumCellsRho){
-        G4ExceptionDescription msg;
-        msg<<"Hit cell is weird"<<cell; 
-        G4cout<<"rho: "<<LocalHitPos.getRho()<<"  Min: "<<fCalRhoMin<< "  dimrho:  "<<fCellDimRho<<std::endl;
-        G4Exception("B4cCalorimeterSD::ProcessHits()", "cell", FatalException, msg);
-    }
-
+    G4int pad = (G4int)floor((LocalHitPos.getRho() - fCalRhoMin) / fCellDimRho);
     // sector
     G4double phi = LocalHitPos.getPhi();
     G4int sector = (G4int)floor((phi - 5./12. * M_PI) / fCellDimPhi + 1);
+ 
+    G4int pdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
+    G4int direction;
+    if(step->GetTrack()->GetMomentum().z() >= 0) direction = 1;
+    else direction = -1;
+
+    G4int bornInSi;
+    if(step->GetPreStepPoint()->GetMaterial()->GetName() == "Si") bornInSi = 1;
+    else bornInSi = 0;
+
+    if(pad<0 || pad>fNumCellsRho){
+        G4ExceptionDescription msg;
+        msg<<"Hit pad is weird"<<pad; 
+        G4cout<<"rho: "<<LocalHitPos.getRho()<<"  Min: "<<fCalRhoMin<< "  dimrho:  "<<fCellDimRho<<std::endl;
+        G4Exception("B4cCalorimeterSD::ProcessHits()", "pad", FatalException, msg);
+    }
     if(sector < 1 || sector > 4 || phi < 5./12. * M_PI || phi > 7./12. * M_PI){
         G4ExceptionDescription msg;
         msg<<"Hit sector is weird: "<<sector<<std::endl; 
         G4Exception("B4cCalorimeterSD::ProcessHits()", "sector", FatalException, msg);
     }
 
-    // Check if hit for this position already exists:
-    LCHit *hit = new LCHit(sector, cell, layer, edep);
-
-    G4bool hitExist = false;
-    for(G4int i=0; i<fHitsCollection->entries(); i++){
-        auto existed_hit = (*fHitsCollection)[i];
-        if(existed_hit == hit){
-            existed_hit->Add(edep);
-            hitExist = true;
-            break;
-        }
-    }
-    if(!hitExist) fHitsCollection->insert(new LCHit(sector, cell, layer, edep));
+    fHitsCollection->insert(new LCHit(x, y, z, sector, pad, layer, edep, direction, bornInSi, pdg));
     return true;
 }
-
-void LCSensitiveDetector::EndOfEvent(G4HCofThisEvent *){}

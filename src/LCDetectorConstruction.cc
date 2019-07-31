@@ -59,8 +59,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4double zAbsorberPos = -0.5*zSlot + 0.5*zAbsorber;
     G4double zSensorPos = 0.5*zSlot - 0.5*zSensor;
 
-    new G4PVPlacement(0, G4ThreeVector(0., 0., zAbsorberPos), logicAbsorber, "Absorber", logicSlot, false, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., zSensorPos), logicSensor, "Sensor", logicSlot, false, 0, 1);
+    // new G4PVPlacement(0, G4ThreeVector(0., 0., zAbsorberPos), logicAbsorber, "Absorber", logicSlot, false, 1);
+    // new G4PVPlacement(0, G4ThreeVector(0., 0., zSensorPos), logicSensor, "Sensor", logicSlot, false, 0, 1);
 
     // Create world and place slots in it
     physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, 1);
@@ -80,7 +80,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor), logicSensor, "Tr2", logicWorld, 0, 6, 1);
 
     for(int i=0; i<20; i++){
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i]), logicSlot, "Slot", logicWorld, false, 21+i, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zAbsorberPos), logicAbsorber, "Absorber", logicWorld, false, 21+i, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zSensorPos), logicAbsorber, "Sensor", logicWorld, false, 21+i, 1);
     }
 
 

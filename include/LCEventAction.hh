@@ -2,12 +2,12 @@
 #define LCEVENTACTION_HH_ 1
 
 #include "G4UserEventAction.hh"
-#include "LCRootOut.hh"
+#include "tls.hh" //G4bool
+#include "LCHit.hh" // LCHitsCollection
 
-class LCEventAction : public G4UserEventAction{
+class LCEventAction:public G4UserEventAction{
     public:
-        LCEventAction(LCRootOut *RO);
-        LCEventAction();
+        LCEventAction(G4bool rootOutput);
         virtual ~LCEventAction();
 
         virtual void BeginOfEventAction(const G4Event*);
@@ -18,7 +18,7 @@ class LCEventAction : public G4UserEventAction{
 
         G4int fHCID; // ID number for a collection of calorimeter hits
  
-        LCRootOut *fRootOut; // Handles writing the ROOT tree
-};
+        G4bool fRootOutput;
+ };
 
 #endif
