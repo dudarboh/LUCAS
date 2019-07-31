@@ -10,6 +10,7 @@
 /control/macroPath /home/FoxWise/Documents/FCAL/LUCAS/
 
 /vis/open OGL 600x600-0+0
+/vis/ogl/set/displayListLimit 1000000
 
 /vis/drawVolume
 

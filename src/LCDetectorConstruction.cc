@@ -36,6 +36,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     logicFanoutBack = buildFanout("logicFanoutBack", 0.06*mm, 0.065*mm, 0.025*mm);
     logicSi = buildSi();
     logicAl = buildAl();
+    logicSc2 = buildSc2();
+    logicSc3 = buildSc3();
 
     fancyVisualization();
 
@@ -64,12 +66,23 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, 1);
 
     //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
-    G4double ySlotPos = - (163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
-    G4double zSlotPos = 3300.*mm;
+    G4double ySlotPos = -(163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
+    G4double zBoxPos = 3300.*mm;
+    G4double zSlotPos[40];
+    for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
+
+    // Trigger scintilators
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 20.*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
+
+    // Place Trackers in Slots
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor), logicSensor, "Tr1", logicWorld, 0, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor), logicSensor, "Tr2", logicWorld, 0, 6, 1);
+
     for(int i=0; i<20; i++){
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos + 0.5*zSlot), logicSlot, "Slot", logicWorld, false, i, 1);
-        zSlotPos += zSlot + 0.002*mm;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i]), logicSlot, "Slot", logicWorld, false, 21+i, 1);
     }
+
 
     // Create sensetive detector
     G4SDManager *SDmanager = G4SDManager::GetSDMpointer();
@@ -170,6 +183,18 @@ G4LogicalVolume *LCDetectorConstruction::buildAl(){
     return new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 }
 
+G4LogicalVolume *LCDetectorConstruction::buildSc2(){
+    G4Box *solidSc2 = new G4Box("solidSc2", 150.*mm, 150.*mm, 3.75*mm);
+    G4Material *matSc2 = materials->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    return new G4LogicalVolume (solidSc2, matSc2, "logicSc2", 0, 0, 0);
+}
+
+G4LogicalVolume *LCDetectorConstruction::buildSc3(){
+    G4Box *solidSc3 = new G4Box("solidSc3", 150.*mm, 150.*mm, 10.0*mm);
+    G4Material *matSc3 = materials->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    return new G4LogicalVolume (solidSc3, matSc3, "logicSc3", 0, 0, 0);
+}
+
 void LCDetectorConstruction::fancyVisualization(){
     G4VisAttributes* colorWorld = new G4VisAttributes(G4Color(1., 1., 1., 0.1));
     logicWorld->SetVisAttributes(colorWorld);
@@ -187,6 +212,9 @@ void LCDetectorConstruction::fancyVisualization(){
     logicFanoutFront->SetVisAttributes(G4VisAttributes::Invisible);
     logicFanoutBack->SetVisAttributes(G4VisAttributes::Invisible);
     logicAl->SetVisAttributes(G4VisAttributes::Invisible);
+
+    logicSc2->SetVisAttributes(G4Colour(1., 0., 1.));
+    logicSc3->SetVisAttributes(G4Colour(1., 0., 1.));
 }
 
 void LCDetectorConstruction::buildEpoxy(){
@@ -199,3 +227,5 @@ void LCDetectorConstruction::buildEpoxy(){
     Epoxy->AddElement(C, 0.5357);
     Epoxy->AddElement(O, 0.3333);
 }
+
+

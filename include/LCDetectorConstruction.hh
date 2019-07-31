@@ -24,6 +24,8 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4LogicalVolume *buildFanout(G4String logicName, G4double zEpoxy, G4double zKapton, G4double zCu);
         G4LogicalVolume *buildAl();
         G4LogicalVolume *buildSi();
+        G4LogicalVolume *buildSc2();
+        G4LogicalVolume *buildSc3();
         void fancyVisualization();
         void buildEpoxy();
 
@@ -37,6 +39,8 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4LogicalVolume *logicFanoutBack;
         G4LogicalVolume *logicSi;
         G4LogicalVolume *logicAl;
+        G4LogicalVolume *logicSc2;
+        G4LogicalVolume *logicSc3;
 
         G4double zSlot = 4.5*mm;
         G4double zSensor = 0.79*mm;

@@ -1,5 +1,3 @@
-#include <sys/times.h>
-
 // Include ROOT first to avoid shadowing 's' declaration warning due to ROOT/Geant4 names conflict
 #include "LCRootOut.hh"
 
@@ -19,8 +17,6 @@
 #include <G4ProductionCutsTable.hh>
 
 int main(int argc, char** argv){
-    tms fStartTime;
-    clock_t StartTime = times(&fStartTime); // in miliseconds 
 
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
@@ -83,13 +79,6 @@ int main(int argc, char** argv){
 
     delete visManager;
     delete runManager;
-
-    time_t now;
-    time(&now);
-    tms fEndTime;
-    
-    clock_t EndTime = times(&fEndTime);
-    G4double diff = 10.*( EndTime - StartTime )*ms ; 
 
     return 0;
 }

@@ -74,12 +74,6 @@
 # Copy all scripts to the build directory, i.e. the directory in which we
 # build Lucas. This is so that we can run the executable directly because it
 # relies on these scripts being in the current working directory.
-    set(Lucas_SCRIPTS lucas.steer tbeam.steer pairs.mac  bhabha.mac single-ele-scan.mac tbele.mac)
-
-    foreach(_script ${Lucas_SCRIPTS})
-        configure_file(${PROJECT_SOURCE_DIR}/examples/${_script} COPYONLY)
-    endforeach()
-
 
 # Install the executable and libraries to 'bin'and 'lib' directory under CMAKE_INSTALL_PREFIX
     install(PROGRAMS ${PROJECT_BINARY_DIR}/setup.sh ${PROJECT_BINARY_DIR}/setup.csh DESTINATION bin)
