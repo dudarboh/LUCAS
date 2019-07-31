@@ -47,26 +47,27 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4double zAlBackPos = zSiPos + 0.5*zSi + 0.5*zAl;
     G4double zFanoutBackPos = zAlBackPos + 0.5*zAl + 0.5*zFanout;
 
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFanoutFront, "FanoutFront", logicSensor, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicSensor, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "Si", logicSensor, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicSensor, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicFanoutBack, "FanoutBack", logicSensor, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFanoutFront, "FanoutFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "Si", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicFanoutBack, "FanoutBack", logicSensor, false, 0, 1);
 
     // Place Sensor and Absorber into Slot mother volume
     G4double zAbsorberPos = -0.5*zSlot + 0.5*zAbsorber;
     G4double zSensorPos = 0.5*zSlot - 0.5*zSensor;
 
     new G4PVPlacement(0, G4ThreeVector(0., 0., zAbsorberPos), logicAbsorber, "Absorber", logicSlot, false, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., zSensorPos), logicSensor, "Sensor", logicSlot, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., zSensorPos), logicSensor, "Sensor", logicSlot, false, 0, 1);
 
     // Create world and place slots in it
-    physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 1, 1);
+    physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, 1);
 
-    G4double ySlotPos = - 22./64. * (195.2 - 80.)*mm;
+    //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
+    G4double ySlotPos = - (163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
     G4double zSlotPos = 3300.*mm;
     for(int i=0; i<20; i++){
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos + 0.5*zSlot), logicSlot, "Slot", logicWorld, false, i+1, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos + 0.5*zSlot), logicSlot, "Slot", logicWorld, false, i, 1);
         zSlotPos += zSlot + 0.002*mm;
     }
 

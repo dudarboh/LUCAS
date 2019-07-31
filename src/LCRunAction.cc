@@ -9,6 +9,8 @@ LCRunAction::LCRunAction(){fRootOut = 0;}
 
 LCRunAction::~LCRunAction(){;}
 
+
+
 void LCRunAction::BeginOfRunAction(const G4Run*){
     tms fTimeNow;
     clock_t StartTime = times(&fTimeNow);

@@ -16,6 +16,7 @@
 #include "G4UIExecutive.hh"
 
 #include <G4HadronicProcessStore.hh>
+#include <G4ProductionCutsTable.hh>
 
 int main(int argc, char** argv){
     tms fStartTime;
@@ -61,6 +62,7 @@ int main(int argc, char** argv){
     visManager->Initialise();
 
     G4HadronicProcessStore::Instance()->SetVerbose(0); 
+    G4ProductionCutsTable::GetProductionCutsTable()->SetVerboseLevel(0);
 
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
@@ -88,8 +90,6 @@ int main(int argc, char** argv){
     
     clock_t EndTime = times(&fEndTime);
     G4double diff = 10.*( EndTime - StartTime )*ms ; 
-    
-    G4cout<<"End Job - time elapsed: " <<diff / s<<" seconds"<<G4endl; 
-    G4cout<<"\n**** "<<" run ended  at "<<ctime(&now)<<G4endl;
+
     return 0;
 }

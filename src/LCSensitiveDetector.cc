@@ -42,7 +42,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4TouchableHandle touchable = step->GetPreStepPoint()->GetTouchableHandle();
 
     // Layer
-    G4int layer = touchable->GetCopyNumber(2);
+    G4int layer = touchable->GetCopyNumber(2) + 1;
 
     // Cell
     G4ThreeVector LocalHitPos = touchable->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
