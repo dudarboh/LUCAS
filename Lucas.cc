@@ -4,7 +4,7 @@
 #include "LCHit.hh"
 #include "LCPrimaryGeneratorAction.hh"
 #include "LCRunAction.hh"
-#include "LCSensetiveDetector.hh"
+#include "LCSensitiveDetector.hh"
 
 #include "G4UIExecutive.hh"
 #include "G4RunManager.hh"
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
     runManager->SetUserInitialization(physicsList);
  
     // User Action Classes
-    runManager->SetUserAction(new PrimaryGeneratorAction);
+    runManager->SetUserAction(new LCPrimaryGeneratorAction);
 
     LCEventData *EventData = 0;
     LCRunAction *theRunAction = 0;
