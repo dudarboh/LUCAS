@@ -1,16 +1,16 @@
 #include "LCDetectorConstruction.hh"
+
 #include "G4Box.hh"
 #include "G4Tubs.hh"
-#include "G4PVPlacement.hh"
 #include "G4LogicalVolume.hh"
-#include "G4VisAttributes.hh"
+#include "G4PVPlacement.hh"
 #include "G4SDManager.hh"
-#include "G4Colour.hh"
-
 #include "G4Material.hh"
 #include "G4MaterialTable.hh"
 #include "G4Element.hh"
 #include "G4ElementTable.hh"
+#include "G4VisAttributes.hh"
+#include "G4Colour.hh"
 
 LCDetectorConstruction::LCDetectorConstruction()
     :logicWorld(0),
@@ -71,17 +71,20 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4double zSlotPos[40];
     for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
 
+    G4double tr1Pos = zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor;
+    G4double tr2Pos = zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor;
+
     // Trigger scintilators
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 20.*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
 
     // Place Trackers in Slots
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor), logicSensor, "Tr1", logicWorld, 0, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor), logicSensor, "Tr2", logicWorld, 0, 6, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
 
     for(int i=0; i<20; i++){
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zAbsorberPos), logicAbsorber, "Absorber", logicWorld, false, 21+i, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zSensorPos), logicAbsorber, "Sensor", logicWorld, false, 21+i, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zAbsorberPos), logicAbsorber, "Absorber", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zSensorPos), logicSensor, "Sensor", logicWorld, false, 21+i, 1);
     }
 
 

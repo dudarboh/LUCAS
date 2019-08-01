@@ -1,20 +1,17 @@
-// Include ROOT first to avoid shadowing 's' declaration warning due to ROOT/Geant4 names conflict
-
 #include "LCDetectorConstruction.hh"
-#include "PrimaryGeneratorAction.hh"
-#include "QGSP_BERT.hh"
-#include "LCRunAction.hh"
 #include "LCEventAction.hh"
+#include "LCEventData.hh"
 #include "LCHit.hh"
+#include "LCPrimaryGeneratorAction.hh"
+#include "LCRunAction.hh"
+#include "LCSensetiveDetector.hh"
 
-#include "G4RunManager.hh"
-#include "G4SystemOfUnits.hh"
-#include "G4UImanager.hh"
-#include "G4VisExecutive.hh"
 #include "G4UIExecutive.hh"
-
-#include <G4HadronicProcessStore.hh>
-#include <G4ProductionCutsTable.hh>
+#include "G4RunManager.hh"
+#include "QGSP_BERT.hh"
+#include "G4SystemOfUnits.hh"
+#include "G4VisExecutive.hh"
+#include "G4UImanager.hh"
 
 int main(int argc, char** argv){
 
@@ -34,30 +31,27 @@ int main(int argc, char** argv){
     // User Action Classes
     runManager->SetUserAction(new PrimaryGeneratorAction);
 
-//    LCRootOut *theRootOut = 0;
+    LCEventData *EventData = 0;
     LCRunAction *theRunAction = 0;
     LCEventAction *theEventAction = 0;
 
     if(!ui){
         // batch mode
-        theRunAction = new LCRunAction(1);
-        theEventAction = new LCEventAction(1);
+        EventData = new LCEventData();
+        theRunAction = new LCRunAction(EventData);
+        theEventAction = new LCEventAction(EventData);
     }
     else{
         // interactive mode. Cant call ROOT in visualisation, or its crashes on BeamOn
-        theRunAction = new LCRunAction(0);
-        theEventAction = new LCEventAction(0);
+        theRunAction = new LCRunAction();
+        theEventAction = new LCEventAction();
     }
-
 
     runManager->SetUserAction(theRunAction);
     runManager->SetUserAction(theEventAction);
 
     G4VisManager *visManager = new G4VisExecutive("0");
     visManager->Initialise();
-
-    G4HadronicProcessStore::Instance()->SetVerbose(0); 
-    G4ProductionCutsTable::GetProductionCutsTable()->SetVerboseLevel(0);
 
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
@@ -74,7 +68,6 @@ int main(int argc, char** argv){
         ui->SessionStart();
         delete ui;
     }
-
 
     delete visManager;
     delete runManager;

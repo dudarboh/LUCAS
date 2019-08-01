@@ -1,13 +1,15 @@
 #ifndef LCDETECTORCONSTRUCTION_HH_
 #define LCDETECTORCONSTRUCTION_HH_ 1
 
-#include "LCSensitiveDetector.hh"
 #include "G4VUserDetectorConstruction.hh"
 #include "G4NistManager.hh"
+#include "G4VPhysicalVolume.hh"
+#include "G4LogicalVolume.hh"
+
+#include "LCSensitiveDetector.hh"
+
 #include "G4SystemOfUnits.hh"
 
-class G4LogicalVolume;
-class G4VPhysicalVolume;
 
 class LCDetectorConstruction : public G4VUserDetectorConstruction{
     public:

@@ -1,9 +1,9 @@
 #include "LCSensitiveDetector.hh"
+
 #include "G4HCofThisEvent.hh"
 #include "G4Step.hh"
 #include "G4ThreeVector.hh"
 #include "G4SDManager.hh"
-#include "G4ios.hh"
 
 LCSensitiveDetector::LCSensitiveDetector(const G4String& name,
                                         const G4String& hitsCollectionName,
@@ -41,12 +41,11 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4double y = GlobalHitPos.y();
     G4double z = GlobalHitPos.z();
 
-    G4TouchableHandle touchable = step->GetPreStepPoint()->GetTouchableHandle();
-
     // Layer
-    G4int layer = touchable->GetCopyNumber(1);
+    G4int layer = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
+
     // Pad
-    G4ThreeVector LocalHitPos = touchable->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
+    G4ThreeVector LocalHitPos = step->GetPreStepPoint()->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
     G4int pad = (G4int)floor((LocalHitPos.getRho() - fCalRhoMin) / fCellDimRho);
     // sector
     G4double phi = LocalHitPos.getPhi();

@@ -4,7 +4,6 @@
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
 #include "G4Allocator.hh"
-#include "G4ThreeVector.hh"
 #include "G4Threading.hh"
 
 
@@ -39,7 +38,7 @@ class LCHit:public G4VHit{
 
 
 // You just need it
-using LCHitsCollection = G4THitsCollection<LCHit>;
+typedef G4THitsCollection<LCHit> LCHitsCollection;
 
 extern G4ThreadLocal G4Allocator<LCHit>* LCHitAllocator;
 

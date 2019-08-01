@@ -2,19 +2,19 @@
 #define LCRUNACTION_HH_ 1
 
 #include "G4UserRunAction.hh"
-
-class G4Run;
+#include "LCEventData.hh"
+#include "G4Run.hh"
 
 class LCRunAction : public G4UserRunAction{
     public:
-        LCRunAction(G4bool rootOutput);
         LCRunAction();
+        LCRunAction(LCEventData *EventData);
         ~LCRunAction();
 
         void BeginOfRunAction(const G4Run*);
         void EndOfRunAction (const G4Run*);
 
-        G4bool fRootOutput;
+        G4bool fEventData;
 };
 
 #endif

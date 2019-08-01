@@ -3,9 +3,8 @@
 
 #include "G4VSensitiveDetector.hh"
 #include "LCHit.hh"
-
-class G4Step;
-class G4HCofThisEvent;
+#include "G4Step.hh"
+#include "G4HCofThisEvent.hh"
 
 class LCSensitiveDetector : public G4VSensitiveDetector{
     public:
