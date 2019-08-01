@@ -51,14 +51,10 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4double phi = LocalHitPos.getPhi();
     G4int sector = (G4int)floor((phi - 5./12. * M_PI) / fCellDimPhi + 1);
  
-    G4int pdg = step->GetTrack()->GetDefinition()->GetPDGEncoding();
+    G4int pdg = step->GetTrack()->GetDynamicParticle()->GetPDGcode();
     G4int direction;
     if(step->GetTrack()->GetMomentum().z() >= 0) direction = 1;
     else direction = -1;
-
-    G4int bornInSi;
-    if(step->GetPreStepPoint()->GetMaterial()->GetName() == "Si") bornInSi = 1;
-    else bornInSi = 0;
 
     if(pad<0 || pad>fNumCellsRho){
         G4ExceptionDescription msg;
@@ -72,6 +68,6 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
         G4Exception("B4cCalorimeterSD::ProcessHits()", "sector", FatalException, msg);
     }
 
-    fHitsCollection->insert(new LCHit(x, y, z, sector, pad, layer, edep, direction, bornInSi, pdg));
+    fHitsCollection->insert(new LCHit(x, y, z, sector, pad, layer, edep, direction, pdg));
     return true;
 }

@@ -5,6 +5,10 @@
 #include "LCEventData.hh"
 #include "G4Run.hh"
 
+#include <chrono>
+
+extern std::chrono::time_point<std::chrono::system_clock> startTime;
+
 class LCRunAction : public G4UserRunAction{
     public:
         LCRunAction();
@@ -14,7 +18,7 @@ class LCRunAction : public G4UserRunAction{
         void BeginOfRunAction(const G4Run*);
         void EndOfRunAction (const G4Run*);
 
-        G4bool fEventData;
+        LCEventData *fEventData;
 };
 
 #endif

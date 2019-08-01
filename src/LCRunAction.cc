@@ -3,10 +3,13 @@
 #include "g4root.hh"
 #include "G4Run.hh"
 
+std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
+
 LCRunAction::LCRunAction():G4UserRunAction(){fEventData = 0;}
 
 
-LCRunAction::LCRunAction(LCEventData * EventData):G4UserRunAction(){
+LCRunAction::LCRunAction(LCEventData *EventData):G4UserRunAction(){
+
     fEventData = EventData;
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
@@ -31,7 +34,6 @@ LCRunAction::LCRunAction(LCEventData * EventData):G4UserRunAction(){
 
     analysisManager->CreateNtupleDColumn("hit_energy", EventData->hit_energy);
     analysisManager->CreateNtupleIColumn("hit_direction", EventData->hit_direction);
-    analysisManager->CreateNtupleIColumn("hit_born_in_si", EventData->hit_born_in_si);
     analysisManager->CreateNtupleIColumn("hit_pdg", EventData->hit_pdg);
 
     analysisManager->FinishNtuple();
@@ -40,9 +42,11 @@ LCRunAction::LCRunAction(LCEventData * EventData):G4UserRunAction(){
 LCRunAction::~LCRunAction(){;}
 
 
-void LCRunAction::BeginOfRunAction(const G4Run*){
+void LCRunAction::BeginOfRunAction(const G4Run* run){
+    G4cout<<"Number of events: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
+
     if(fEventData){
-        G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+        G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
         analysisManager->OpenFile("Lucas_output.root");
     }
 }

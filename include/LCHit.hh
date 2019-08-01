@@ -11,7 +11,7 @@ class LCHit:public G4VHit{
     public:
         LCHit(G4double x, G4double y, G4double z,
               G4int sector, G4int pad, G4int layer,
-              G4double energy, G4int direction, G4int bornInSi, G4int pdg);
+              G4double energy, G4int direction, G4int pdg);
 
         virtual ~LCHit();
 
@@ -26,14 +26,13 @@ class LCHit:public G4VHit{
         inline G4int GetLayer() const {return fLayer;}
         inline G4double GetEnergy() const {return fEnergy;}
         inline G4int GetDirection() const {return fDirection;}
-        inline G4int GetBornInSi() const {return fBornInSi;}
         inline G4int GetPDG() const {return fPDG;}
 
     private:
         G4double fHit_x, fHit_y, fHit_z;
         G4int fSector, fPad, fLayer;
         G4double fEnergy;
-        G4int fDirection, fBornInSi, fPDG;
+        G4int fDirection, fPDG;
 };
 
 
