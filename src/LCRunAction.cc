@@ -24,17 +24,10 @@ LCRunAction::LCRunAction(LCEventData *EventData):G4UserRunAction(){
 
     analysisManager->CreateNtupleIColumn("hit_n");
 
-    analysisManager->CreateNtupleDColumn("hit_x", EventData->hit_x);
-    analysisManager->CreateNtupleDColumn("hit_y", EventData->hit_y);
-    analysisManager->CreateNtupleDColumn("hit_z", EventData->hit_z);
-
     analysisManager->CreateNtupleIColumn("hit_sector", EventData->hit_sector);
     analysisManager->CreateNtupleIColumn("hit_pad", EventData->hit_pad);
     analysisManager->CreateNtupleIColumn("hit_layer", EventData->hit_layer);
-
     analysisManager->CreateNtupleDColumn("hit_energy", EventData->hit_energy);
-    analysisManager->CreateNtupleIColumn("hit_direction", EventData->hit_direction);
-    analysisManager->CreateNtupleIColumn("hit_pdg", EventData->hit_pdg);
 
     analysisManager->FinishNtuple();
 }
