@@ -41,20 +41,9 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
 
     G4int pad = (G4int)floor((LocalHitPos.getRho() - fCalRhoMin) / fCellDimRho);
     G4int sector = (G4int)floor((LocalHitPos.getPhi() - 5./12. * M_PI) / fCellDimPhi + 1);
+    if(sector == 5) sector = 4;
     G4int layer = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
  
-    if(pad<0 || pad>fNumCellsRho){
-        G4ExceptionDescription msg;
-        msg<<"Hit pad is weird"<<pad; 
-        G4cout<<"rho: "<<LocalHitPos.getRho()<<"  Min: "<<fCalRhoMin<< "  dimrho:  "<<fCellDimRho<<std::endl;
-        G4Exception("B4cCalorimeterSD::ProcessHits()", "pad", FatalException, msg);
-    }
-    if(sector < 1 || sector > 4){
-        G4ExceptionDescription msg;
-        msg<<"Hit sector is weird: "<<sector<<std::endl; 
-        G4Exception("B4cCalorimeterSD::ProcessHits()", "sector", FatalException, msg);
-    }
-
     LCHit *hit = new LCHit(sector, pad, layer, energy);
     LCHit *existing_hit;
 
