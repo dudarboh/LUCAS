@@ -19,7 +19,7 @@
 
 # set default installation destination
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX $ENV{HOME}/${PROJECT_NAME}/${PROJECT_VERSION} CACHE PATH "Lucas install prefix" FORCE)
+        set(CMAKE_INSTALL_PREFIX $ENV{HOME}/Software/${PROJECT_NAME}/${PROJECT_VERSION} CACHE PATH "Lucas install prefix" FORCE)
     endif()
 
 
