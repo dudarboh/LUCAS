@@ -1,19 +1,20 @@
 #include "LCDetectorConstruction.hh"
+#include "LCSensitiveDetector.hh"
 
+#include "G4Material.hh"
+#include "G4NistManager.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4LogicalVolume.hh"
 #include "G4PVPlacement.hh"
 #include "G4SDManager.hh"
-#include "G4Material.hh"
-#include "G4MaterialTable.hh"
 #include "G4Element.hh"
-#include "G4ElementTable.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
 
 LCDetectorConstruction::LCDetectorConstruction()
-    :logicWorld(0),
+    :G4VUserDetectorConstruction(),
+    logicWorld(0),
     physicWorld(0),
     logicAbsorberPL(0),
     logicAbsorberMSG(0),
@@ -48,17 +49,11 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     constructTB16();
     // construct20Planes()
 
-    // Create sensetive detector
-    G4SDManager *SDmanager = G4SDManager::GetSDMpointer();
-    G4double cellRho = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.; // 1.8 mm
-    sensetiveDetector = new LCSensitiveDetector("LumiCalSD", "LCHitsCollectionName", rSensorMin, cellRho, 7.5*deg, 64);
-    SDmanager->AddNewDetector(sensetiveDetector);   
-    logicSi->SetSensitiveDetector(sensetiveDetector);
-
     return physicWorld;
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildWorld(){
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *Air = materials->FindOrBuildMaterial("G4_AIR");
     G4Box *solidWorld = new G4Box("World", 1200.*mm, 1200.*mm, 10000.*mm);
     return new G4LogicalVolume(solidWorld, Air, "World", 0, 0, 0);
@@ -66,6 +61,7 @@ G4LogicalVolume *LCDetectorConstruction::buildWorld(){
 
 G4LogicalVolume *LCDetectorConstruction::buildAbsorberPL(){
     //PL absorber: (W:95%, Ni:2.5%, Cu:2.5%)    
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *W = materials->FindOrBuildMaterial("G4_W");
     G4Material *Ni = materials->FindOrBuildMaterial("G4_Ni");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
@@ -81,6 +77,7 @@ G4LogicalVolume *LCDetectorConstruction::buildAbsorberPL(){
 
 G4LogicalVolume *LCDetectorConstruction::buildAbsorberMSG(){
     //MSG: (W:93%, Ni:5.25%, Cu:1.75%)
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *W = materials->FindOrBuildMaterial("G4_W");
     G4Material *Ni = materials->FindOrBuildMaterial("G4_Ni");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
@@ -96,6 +93,7 @@ G4LogicalVolume *LCDetectorConstruction::buildAbsorberMSG(){
 
 G4LogicalVolume *LCDetectorConstruction::buildSensor(){
     //This is carbon fiber support. Mother logic volum for sensor (Si, Al, Fanouts)
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *Carbon = materials->FindOrBuildMaterial("G4_C");
     G4Material *Epoxy = materials->FindOrBuildMaterial("Epoxy", true, true);
 
@@ -111,7 +109,7 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
     // G4double zFanout = zEpoxy + zKapton + zCu; defined in hearder. It should sum to 0.15*mm
 
     //Create Epoxy material
-
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *Epoxy = materials->FindOrBuildMaterial("Epoxy", true, true);
     G4Material *Kapton = materials->FindOrBuildMaterial("G4_KAPTON");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
@@ -140,26 +138,30 @@ G4LogicalVolume *LCDetectorConstruction::buildFanout(G4String logicName, G4doubl
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildSi(){
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *Si = materials->FindOrBuildMaterial("G4_Si");
     G4Tubs *solidSi = new G4Tubs("solidSi", rSensorMin+rSensorGap, rSensorMax-rSensorGap, 0.5*zSi, 75.*deg, 30.*deg);
     return new G4LogicalVolume(solidSi, Si, "logicSi", 0, 0, 0);
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildAl(){
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *Al = materials->FindOrBuildMaterial("G4_Al");
     G4Tubs *solidAl = new G4Tubs("solidAl", rSensorMin+rSensorGap, rSensorMax-rSensorGap, 0.5*zAl, 75.*deg, 30.*deg);
     return new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildSc2(){
-    G4Box *solidSc2 = new G4Box("solidSc2", 150.*mm, 150.*mm, 3.75*mm);
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *matSc2 = materials->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    G4Box *solidSc2 = new G4Box("solidSc2", 150.*mm, 150.*mm, 3.75*mm);
     return new G4LogicalVolume (solidSc2, matSc2, "logicSc2", 0, 0, 0);
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildSc3(){
-    G4Box *solidSc3 = new G4Box("solidSc3", 150.*mm, 150.*mm, 10.0*mm);
+    G4NistManager *materials = G4NistManager::Instance();
     G4Material *matSc3 = materials->FindOrBuildMaterial("G4_PLASTIC_SC_VINYLTOLUENE");
+    G4Box *solidSc3 = new G4Box("solidSc3", 150.*mm, 150.*mm, 10.0*mm);
     return new G4LogicalVolume (solidSc3, matSc3, "logicSc3", 0, 0, 0);
 }
 
@@ -278,4 +280,11 @@ void LCDetectorConstruction::construct20Planes(){
         new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
     }
 
+}
+
+void LCDetectorConstruction::ConstructSDandField(){
+    G4double cellRho = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.; // 1.8 mm
+    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD", "LumiCalHitsCollection", rSensorMin, cellRho, 7.5*deg, 64);
+    G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
+    SetSensitiveDetector("logicSi", SDetector);
 }

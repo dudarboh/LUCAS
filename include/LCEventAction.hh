@@ -1,13 +1,13 @@
-#ifndef LCEVENTACTION_HH_
-#define LCEVENTACTION_HH_ 1
+#ifndef LCEventAction_h
+#define LCEventAction_h 1
 
 #include "G4UserEventAction.hh"
-#include "LCEventData.hh"
+#include "LCHit.hh"
+#include "LCRunAction.hh"
 
 class LCEventAction:public G4UserEventAction{
     public:
-        LCEventAction();
-        LCEventAction(LCEventData *EventData);
+        LCEventAction(LCRunAction *runAction);
         virtual ~LCEventAction();
 
         virtual void BeginOfEventAction(const G4Event*);
@@ -15,7 +15,8 @@ class LCEventAction:public G4UserEventAction{
 
     private:
         G4int fHCID; // ID number for a collection of hits
-        LCEventData *fEventData;
+        LCHitsCollection* GetHitsCollection(G4int hcID, const G4Event* event) const;
+        LCRunAction *fRunAction;
 };
 
 #endif

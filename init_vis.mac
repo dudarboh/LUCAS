@@ -3,7 +3,6 @@
 /control/verbose 1
 /run/verbose 1
 /vis/verbose 0
-/gps/verbose 0
 
 /run/initialize
 
@@ -30,6 +29,8 @@
 /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
 /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
 
+
+/vis/scene/add/gps
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 

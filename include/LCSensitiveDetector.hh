@@ -1,31 +1,31 @@
-#ifndef LCSENSETIVEDETECTOR_HH_
-#define LCSENSETIVEDETECTOR_HH_ 1
+#ifndef LCSensitiveDetector_h
+#define LCSensitiveDetector_h 1
 
 #include "G4VSensitiveDetector.hh"
 #include "LCHit.hh"
-#include "G4Step.hh"
-#include "G4HCofThisEvent.hh"
+
+class G4Step;
+class G4HCofThisEvent;
 
 class LCSensitiveDetector : public G4VSensitiveDetector{
     public:
         LCSensitiveDetector(const G4String& name,
                             const G4String& hitsCollectionName, 
-                            G4double rmin,
-                            G4double cRho,
-                            G4double cPhi,
-                            G4int nCellRho);
+                            G4double rho_min,
+                            G4double pad_rho_width,
+                            G4double pad_phi_width,
+                            G4int n_pads);
         virtual ~LCSensitiveDetector();
 
-        virtual void Initialize(G4HCofThisEvent *hce);
+        virtual void Initialize(G4HCofThisEvent *hitCollection);
         virtual G4bool ProcessHits(G4Step *step, G4TouchableHistory *history);
 
     private:
         LCHitsCollection *fHitsCollection;
 
-        G4double fCalRhoMin;
-        G4double fCellDimRho, fCellDimPhi;
-        G4int fNumCellsRho;
-
+        G4double fRhoMin;
+        G4double fPadRhoWidth, fPadPhiWidth;
+        G4int fNPads;
 };
 
 #endif

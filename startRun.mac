@@ -3,7 +3,6 @@
 /control/verbose 1
 /run/verbose 1
 /vis/verbose 0
-/gps/verbose 0
 
 /run/initialize
 
@@ -22,4 +21,4 @@
 /gps/pos/centre 0. 0. 0. mm
 /gps/pos/radius 3.8 mm
 
-/run/beamOn 1000
+/run/beamOn 100

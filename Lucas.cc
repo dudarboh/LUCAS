@@ -1,54 +1,44 @@
-#include "LCDetectorConstruction.hh"
-#include "LCEventAction.hh"
-#include "LCEventData.hh"
-#include "LCHit.hh"
-#include "LCPrimaryGeneratorAction.hh"
+#ifdef G4MULTITHREADED
+    #include "G4MTRunManager.hh"
+#else
+    #include "G4RunManager.hh"
+#endif
+
 #include "LCRunAction.hh"
+#include "LCDetectorConstruction.hh"
+#include "QGSP_BERT.hh"
+#include "LCActionInitialization.hh"
+
+#include "LCPrimaryGeneratorAction.hh"
+#include "LCEventAction.hh"
 #include "LCSensitiveDetector.hh"
+#include "LCHit.hh"
 
 #include "G4UIExecutive.hh"
-#include "G4RunManager.hh"
-#include "QGSP_BERT.hh"
 #include "G4SystemOfUnits.hh"
 #include "G4VisExecutive.hh"
 #include "G4UImanager.hh"
 
 int main(int argc, char** argv){
-
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
-    G4RunManager *runManager = new G4RunManager;
+    #ifdef G4MULTITHREADED
+        G4MTRunManager *runManager = new G4MTRunManager;
+        runManager->SetNumberOfThreads(2);
+    #else
+        G4RunManager *runManager = new G4RunManager;
+    #endif
 
-    // Detectron construction and physics list
-    runManager->SetUserInitialization(new LCDetectorConstruction);
+    LCDetectorConstruction *detector = new LCDetectorConstruction;
+    runManager->SetUserInitialization(detector);
 
     G4VUserPhysicsList *physicsList = new QGSP_BERT(0);
     physicsList->SetDefaultCutValue(0.005*mm);
-
     runManager->SetUserInitialization(physicsList);
  
-    // User Action Classes
-    runManager->SetUserAction(new LCPrimaryGeneratorAction);
-
-    LCEventData *EventData = 0;
-    LCRunAction *theRunAction = 0;
-    LCEventAction *theEventAction = 0;
-
-    if(!ui){
-        // batch mode
-        EventData = new LCEventData();
-        theRunAction = new LCRunAction(EventData);
-        theEventAction = new LCEventAction(EventData);
-    }
-    else{
-        // interactive mode. Cant call ROOT in visualisation, or its crashes on BeamOn
-        theRunAction = new LCRunAction();
-        theEventAction = new LCEventAction();
-    }
-
-    runManager->SetUserAction(theRunAction);
-    runManager->SetUserAction(theEventAction);
+    LCActionInitialization *action = new LCActionInitialization();
+    runManager->SetUserInitialization(action);
 
     G4VisManager *visManager = new G4VisExecutive("0");
     visManager->Initialise();
@@ -71,6 +61,4 @@ int main(int argc, char** argv){
 
     delete visManager;
     delete runManager;
-
-    return 0;
 }

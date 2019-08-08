@@ -1,24 +1,29 @@
-#ifndef LCDETECTORCONSTRUCTION_HH_
-#define LCDETECTORCONSTRUCTION_HH_ 1
+#ifndef LCDetectorConstruction_h
+#define LCDetectorConstruction_h 1
 
 #include "G4VUserDetectorConstruction.hh"
-#include "G4NistManager.hh"
-#include "G4VPhysicalVolume.hh"
-#include "G4LogicalVolume.hh"
-
-#include "LCSensitiveDetector.hh"
-
 #include "G4SystemOfUnits.hh"
 
+#include "G4LogicalVolume.hh"
+
+class G4VPhysicalVolume;
 
 class LCDetectorConstruction : public G4VUserDetectorConstruction{
     public:
         LCDetectorConstruction();
-        ~LCDetectorConstruction();
+        virtual ~LCDetectorConstruction();
 
-        G4NistManager *materials = G4NistManager::Instance();
+        virtual G4VPhysicalVolume *Construct();
+        virtual void ConstructSDandField();
 
-        G4VPhysicalVolume *Construct();
+    private:
+        void fancyVisualization();
+        void buildEpoxy();
+        void constructSensor();
+        void constructTB16();
+        void construct20Planes();
+
+        // Build logical volumes
         G4LogicalVolume *buildWorld();
         G4LogicalVolume *buildSensor();
         G4LogicalVolume *buildAbsorberPL();
@@ -28,13 +33,7 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4LogicalVolume *buildSi();
         G4LogicalVolume *buildSc2();
         G4LogicalVolume *buildSc3();
-        void fancyVisualization();
-        void buildEpoxy();
-        void constructSensor();
-        void constructTB16();
-        void construct20Planes();
 
-    private:
         G4LogicalVolume *logicWorld;
         G4VPhysicalVolume *physicWorld;
         G4LogicalVolume *logicAbsorberPL;
@@ -59,9 +58,6 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         G4double rSensorMin = 80.*mm;
         G4double rSensorMax = 195.2*mm;
         G4double rSensorGap = 0.*mm; // default 1.2mm I dont know which to choose :c
-
-        // Implement a sensitive detector object
-        LCSensitiveDetector *sensetiveDetector;
 };
 
 #endif

@@ -1,13 +1,27 @@
 #include "LCEventAction.hh"
+#include "LCSensitiveDetector.hh"
+#include "LCHit.hh"
 #include "LCRunAction.hh"
 
 #include "G4Event.hh"
 #include "G4SDManager.hh"
+#include "g4root.hh"
 
-LCEventAction::LCEventAction():fHCID(-1){fEventData = 0;}
-LCEventAction::LCEventAction(LCEventData *EventData):fHCID(-1){fEventData = EventData;}
+LCEventAction::LCEventAction(LCRunAction *runAction)
+    :G4UserEventAction(),
+    fHCID(-1){fRunAction = runAction;}
 
 LCEventAction::~LCEventAction(){;}
+
+LCHitsCollection* LCEventAction::GetHitsCollection(G4int hcID, const G4Event* event) const{
+    auto hitsCollection = static_cast<LCHitsCollection*>(event->GetHCofThisEvent()->GetHC(hcID));
+    if(!hitsCollection){
+        G4ExceptionDescription msg;
+        msg<<"Cannot access hitsCollection ID"<<hcID;
+        G4Exception("LCEventAction::GetHitsCollection()", "3:", FatalException, msg);
+    }
+    return hitsCollection;
+}
 
 void LCEventAction::BeginOfEventAction(const G4Event* event){
     if(event->GetEventID() % 100 == 0){
@@ -18,11 +32,11 @@ void LCEventAction::BeginOfEventAction(const G4Event* event){
 }
 
 void LCEventAction::EndOfEventAction(const G4Event* event){
-    if(fHCID<0) fHCID = G4SDManager::GetSDMpointer()->GetCollectionID("LCHitsCollectionName");
-    LCHitsCollection *HitsCollection = (LCHitsCollection*)(event->GetHCofThisEvent()->GetHC(fHCID));
+    if(fHCID<0) fHCID = G4SDManager::GetSDMpointer()->GetCollectionID("LumiCalHitsCollection");
+    LCHitsCollection *HitsCollection = GetHitsCollection(fHCID, event);
 
-    if(HitsCollection && fEventData){
-        fEventData->FillEventData(event, HitsCollection);
-        fEventData->Clear();
+    if(HitsCollection && fRunAction){
+        fRunAction->FillEventData(event, HitsCollection);
+        fRunAction->ClearVectors();
     }
 }
