@@ -17,6 +17,7 @@ class LCEventData{
         std::vector<G4int> hit_pad;
         std::vector<G4int> hit_layer;
         std::vector<G4double> hit_energy;
+        std::vector<G4int> hit_bs;
 };
 
 #endif

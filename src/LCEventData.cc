@@ -34,10 +34,11 @@ void LCEventData::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
 
     for(G4int i=0; i<hit_n; i++){
         hit = (*HitsCollection)[i];
-        hit_sector.push_back(hit->fSector);
-        hit_pad.push_back(hit->fPad);
-        hit_layer.push_back(hit->fLayer);
-        hit_energy.push_back(hit->fEnergy);
+        hit_sector.push_back(hit->hit_sector);
+        hit_pad.push_back(hit->hit_pad);
+        hit_layer.push_back(hit->hit_layer);
+        hit_energy.push_back(hit->hit_energy);
+        hit_bs.push_back(hit->hit_bs);
     }
     analysisManager->AddNtupleRow();
 }
@@ -47,4 +48,5 @@ void LCEventData::Clear(){
     hit_pad.clear();
     hit_layer.clear();
     hit_energy.clear();
+    hit_bs.clear();
 }

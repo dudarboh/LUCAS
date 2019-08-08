@@ -15,8 +15,8 @@
 LCDetectorConstruction::LCDetectorConstruction()
     :logicWorld(0),
     physicWorld(0),
-    logicSlot(0),
-    logicAbsorber(0),
+    logicAbsorberPL(0),
+    logicAbsorberMSG(0),
     logicSensor(0),
     logicFanoutFront(0),
     logicFanoutBack(0),
@@ -28,10 +28,11 @@ LCDetectorConstruction::~LCDetectorConstruction(){}
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     buildEpoxy();
 
+    // Create logic volumes
     logicWorld = buildWorld();
-    logicSlot = buildSlot();
     logicSensor = buildSensor();
-    logicAbsorber = buildAbsorber();
+    logicAbsorberPL = buildAbsorberPL();
+    logicAbsorberMSG = buildAbsorberMSG();
     logicFanoutFront = buildFanout("logicFanoutFront", 0.065*mm, 0.05*mm, 0.035*mm);
     logicFanoutBack = buildFanout("logicFanoutBack", 0.06*mm, 0.065*mm, 0.025*mm);
     logicSi = buildSi();
@@ -40,64 +41,18 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     logicSc3 = buildSc3();
 
     fancyVisualization();
+    //Place all components into mother Sensor volume
+    constructSensor();
 
-    // Place all Si, Al, Fanout volumes inside carbon fiber support (create sensor)
-    G4double yPos = -(rSensorMin + 0.5*(rSensorMax - rSensorMin));
-    G4double zFanoutFrontPos = -0.5*zSensor + 0.5*zFanout;
-    G4double zAlFrontPos = zFanoutFrontPos + 0.5*zFanout + 0.5*zAl;
-    G4double zSiPos = zAlFrontPos + 0.5*zAl + 0.5*zSi;
-    G4double zAlBackPos = zSiPos + 0.5*zSi + 0.5*zAl;
-    G4double zFanoutBackPos = zAlBackPos + 0.5*zAl + 0.5*zFanout;
-
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFanoutFront, "FanoutFront", logicSensor, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicSensor, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "Si", logicSensor, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicSensor, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicFanoutBack, "FanoutBack", logicSensor, false, 0, 1);
-
-    // Place Sensor and Absorber into Slot mother volume
-    G4double zAbsorberPos = -0.5*zSlot + 0.5*zAbsorber;
-    G4double zSensorPos = 0.5*zSlot - 0.5*zSensor;
-
-    // new G4PVPlacement(0, G4ThreeVector(0., 0., zAbsorberPos), logicAbsorber, "Absorber", logicSlot, false, 1);
-    // new G4PVPlacement(0, G4ThreeVector(0., 0., zSensorPos), logicSensor, "Sensor", logicSlot, false, 0, 1);
-
-    // Create world and place slots in it
     physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, 1);
-
-    //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
-    G4double ySlotPos = -(163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
-    G4double zBoxPos = 3300.*mm;
-    G4double zSlotPos[40];
-    for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
-
-    G4double tr1Pos = zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor;
-    G4double tr2Pos = zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor;
-
-    // Trigger scintilators
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 20.*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
-
-    // Place Trackers in Slots
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
-
-    for(int i=0; i<20; i++){
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zAbsorberPos), logicAbsorber, "Absorber", logicWorld, false, 0, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSlotPos[20+i] + zSensorPos), logicSensor, "Sensor", logicWorld, false, 21+i, 1);
-    }
-
+    constructTB16();
+    // construct20Planes()
 
     // Create sensetive detector
     G4SDManager *SDmanager = G4SDManager::GetSDMpointer();
-
     G4double cellRho = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.; // 1.8 mm
-    G4double phiSector = 7.5*deg;
-    sensetiveDetector = new LCSensitiveDetector("LumiCalSD", "LCHitsCollectionName", rSensorMin, cellRho, phiSector, 64);
-
-    // Cells are the sensitive detectors
-    SDmanager->AddNewDetector(sensetiveDetector);
-   
+    sensetiveDetector = new LCSensitiveDetector("LumiCalSD", "LCHitsCollectionName", rSensorMin, cellRho, 7.5*deg, 64);
+    SDmanager->AddNewDetector(sensetiveDetector);   
     logicSi->SetSensitiveDetector(sensetiveDetector);
 
     return physicWorld;
@@ -109,25 +64,34 @@ G4LogicalVolume *LCDetectorConstruction::buildWorld(){
     return new G4LogicalVolume(solidWorld, Air, "World", 0, 0, 0);
 }
 
-G4LogicalVolume *LCDetectorConstruction::buildSlot(){
-    G4Material *Air = materials->FindOrBuildMaterial("G4_AIR");
-    G4Box *solidSlot = new G4Box("solidSlot", 150.0*mm, 150.0*mm, 0.5*zSlot);
-    return new G4LogicalVolume(solidSlot, Air, "logicSlot", 0, 0, 0);
-}
-
-G4LogicalVolume *LCDetectorConstruction::buildAbsorber(){
-    // For simulation PL absorber is used (W:95%, Ni:2.5%, Cu:2.5%)    
+G4LogicalVolume *LCDetectorConstruction::buildAbsorberPL(){
+    //PL absorber: (W:95%, Ni:2.5%, Cu:2.5%)    
     G4Material *W = materials->FindOrBuildMaterial("G4_W");
     G4Material *Ni = materials->FindOrBuildMaterial("G4_Ni");
     G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
 
-    G4Material *matAbsorber = new G4Material("matAbsorber", 18.0*g/cm3, 3);
-    matAbsorber->AddMaterial(W,0.95); 
-    matAbsorber->AddMaterial(Ni,0.025); 
-    matAbsorber->AddMaterial(Cu,0.025);  
+    G4Material *matAbsorberPL = new G4Material("matAbsorberPL", 18.0*g/cm3, 3);
+    matAbsorberPL->AddMaterial(W, 0.95); 
+    matAbsorberPL->AddMaterial(Ni, 0.025); 
+    matAbsorberPL->AddMaterial(Cu, 0.025);  
 
-    G4Box *solidAbsorber = new G4Box("solidAbsorber", 70.0*mm, 70.0*mm, 0.5*zAbsorber);
-    return new G4LogicalVolume(solidAbsorber, matAbsorber, "logicAbsorber", 0, 0, 0);
+    G4Box *solidAbsorberPL = new G4Box("solidAbsorberPL", 70.0*mm, 70.0*mm, 0.5*zAbsorberPL);
+    return new G4LogicalVolume(solidAbsorberPL, matAbsorberPL, "logicAbsorberPL", 0, 0, 0);
+}
+
+G4LogicalVolume *LCDetectorConstruction::buildAbsorberMSG(){
+    //MSG: (W:93%, Ni:5.25%, Cu:1.75%)
+    G4Material *W = materials->FindOrBuildMaterial("G4_W");
+    G4Material *Ni = materials->FindOrBuildMaterial("G4_Ni");
+    G4Material *Cu = materials->FindOrBuildMaterial("G4_Cu");
+
+    G4Material *matAbsorberMSG = new G4Material("matAbsorberMSG", 17.7*g/cm3, 3);
+    matAbsorberMSG->AddMaterial(W,0.93); 
+    matAbsorberMSG->AddMaterial(Ni,0.0525); 
+    matAbsorberMSG->AddMaterial(Cu,0.0175);  
+
+    G4Box *solidAbsorberMSG = new G4Box("solidAbsorberMSG", 70.0*mm, 70.0*mm, 0.5*zAbsorberMSG);
+    return new G4LogicalVolume(solidAbsorberMSG, matAbsorberMSG, "logicAbsorberMSG", 0, 0, 0);
 }
 
 G4LogicalVolume *LCDetectorConstruction::buildSensor(){
@@ -200,25 +164,26 @@ G4LogicalVolume *LCDetectorConstruction::buildSc3(){
 }
 
 void LCDetectorConstruction::fancyVisualization(){
-    G4VisAttributes* colorWorld = new G4VisAttributes(G4Color(1., 1., 1., 0.1));
+    G4VisAttributes* colorWorld = new G4VisAttributes(G4Color(0.79, 1.00, 0.90, 0.1));
     logicWorld->SetVisAttributes(colorWorld);
 
-    logicSlot->SetVisAttributes(G4VisAttributes::Invisible);
+    G4VisAttributes* absPLColor = new G4VisAttributes(G4Color(0.23, 0.48, 0.34));
+    logicAbsorberPL->SetVisAttributes(absPLColor);
 
-    G4VisAttributes* absColor = new G4VisAttributes(G4Color(0.5, 0.5, 0.5));
-    logicAbsorber->SetVisAttributes(absColor);
+    G4VisAttributes* absMSGColor = new G4VisAttributes(G4Color(0.25, 0.51, 0.43));
+    logicAbsorberMSG->SetVisAttributes(absMSGColor);
 
     logicSensor->SetVisAttributes(G4VisAttributes::Invisible);
 
-    G4VisAttributes* sensorColor = new G4VisAttributes(G4Color(0.5, 0.5, 0.));
+    G4VisAttributes* sensorColor = new G4VisAttributes(G4Color(1., 0.75, 0.));
     logicSi->SetVisAttributes(sensorColor);
 
     logicFanoutFront->SetVisAttributes(G4VisAttributes::Invisible);
     logicFanoutBack->SetVisAttributes(G4VisAttributes::Invisible);
     logicAl->SetVisAttributes(G4VisAttributes::Invisible);
 
-    logicSc2->SetVisAttributes(G4Colour(1., 0., 1.));
-    logicSc3->SetVisAttributes(G4Colour(1., 0., 1.));
+    logicSc2->SetVisAttributes(G4Colour(0.2, 0., 0.2));
+    logicSc3->SetVisAttributes(G4Colour(0.2, 0., 0.2));
 }
 
 void LCDetectorConstruction::buildEpoxy(){
@@ -232,4 +197,85 @@ void LCDetectorConstruction::buildEpoxy(){
     Epoxy->AddElement(O, 0.3333);
 }
 
+void LCDetectorConstruction::constructSensor(){
+    // Place all Si, Al, Fanout volumes inside carbon fiber support (create sensor)
+    G4double yPos = -(rSensorMin + 0.5*(rSensorMax - rSensorMin));
+    G4double zFanoutFrontPos = -0.5*zSensor + 0.5*zFanout;
+    G4double zAlFrontPos = zFanoutFrontPos + 0.5*zFanout + 0.5*zAl;
+    G4double zSiPos = zAlFrontPos + 0.5*zAl + 0.5*zSi;
+    G4double zAlBackPos = zSiPos + 0.5*zSi + 0.5*zAl;
+    G4double zFanoutBackPos = zAlBackPos + 0.5*zAl + 0.5*zFanout;
 
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFanoutFront, "FanoutFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "Si", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicFanoutBack, "FanoutBack", logicSensor, false, 0, 1);
+}
+
+void LCDetectorConstruction::constructTB16(){
+    //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
+    G4double ySlotPos = -(163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
+    // Trigger scintilators
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 20.*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
+
+    G4double zBoxPos = 3300.*mm;
+    G4double zSlotPos[40];
+    for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
+
+    //Trackers
+    G4double tr1Pos = zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor;
+    G4double tr2Pos = zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor;
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
+
+    G4double zAbsorberPos;
+    G4double zSensorPos;
+    // Place 2 MSG absorbers
+    for(int i=20; i<22; i++){
+        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
+    }
+    // Place 1 MSG absorbers + Sensor
+    for(int i=22; i<23; i++){
+        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
+        zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+    }
+
+    // Place 5 PL absorbers + Sensors
+    for(int i=23; i<28; i++){
+        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberPL;
+        zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+    }
+
+    //Final MSG absorber
+    for(int i=28; i<29; i++){
+        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
+    }
+
+}
+
+void LCDetectorConstruction::construct20Planes(){
+    //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
+    G4double ySlotPos = -(163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
+
+    G4double zBoxPos = 3300.*mm;
+    G4double zSlotPos[40];
+    for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
+
+    G4double zAbsorberPos;
+    G4double zSensorPos;
+    for(int i=20; i<40; i++){
+        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberPL;
+        zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+    }
+
+}

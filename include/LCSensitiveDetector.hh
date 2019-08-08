@@ -16,7 +16,7 @@ class LCSensitiveDetector : public G4VSensitiveDetector{
                             G4int nCellRho);
         virtual ~LCSensitiveDetector();
 
-        virtual void Initialize(G4HCofThisEvent *hitCollection);
+        virtual void Initialize(G4HCofThisEvent *hce);
         virtual G4bool ProcessHits(G4Step *step, G4TouchableHistory *history);
 
     private:

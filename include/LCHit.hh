@@ -9,18 +9,18 @@
 
 class LCHit:public G4VHit{
     public:
-        LCHit(G4int sector, G4int pad, G4int layer, G4double energy);
+    LCHit(G4int sector, G4int pad, G4int layer);
 
         virtual ~LCHit();
 
         inline void* operator new(size_t);
         inline void  operator delete(void*);
 
-        inline void AddEnergy(G4double energy);
+        inline void AddHitEnergy(G4double energy);
 
-        G4int fSector, fPad, fLayer;
-        G4double fEnergy;
-};
+        G4int hit_sector, hit_pad, hit_layer, hit_bs;
+        G4double hit_energy;
+};  
 
 
 // You just need it
@@ -40,6 +40,6 @@ inline void LCHit::operator delete(void *hit){
     LCHitAllocator->FreeSingle((LCHit*)hit);
 }
 
-inline void LCHit::AddEnergy(G4double energy){fEnergy += energy;}
+inline void LCHit::AddHitEnergy(G4double energy){hit_energy += energy;}
 
 #endif

@@ -3,7 +3,7 @@
 #include "g4root.hh"
 #include "G4Run.hh"
 
-std::chrono::time_point<std::chrono::system_clock> startTime = std::chrono::system_clock::now();
+std::chrono::time_point<std::chrono::system_clock> launchTime = std::chrono::system_clock::now();
 
 LCRunAction::LCRunAction():G4UserRunAction(){fEventData = 0;}
 
@@ -28,6 +28,7 @@ LCRunAction::LCRunAction(LCEventData *EventData):G4UserRunAction(){
     analysisManager->CreateNtupleIColumn("hit_pad", EventData->hit_pad);
     analysisManager->CreateNtupleIColumn("hit_layer", EventData->hit_layer);
     analysisManager->CreateNtupleDColumn("hit_energy", EventData->hit_energy);
+    analysisManager->CreateNtupleIColumn("hit_bs", EventData->hit_bs);
 
     analysisManager->FinishNtuple();
 }

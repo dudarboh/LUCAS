@@ -7,7 +7,7 @@
 
 #include <chrono>
 
-extern std::chrono::time_point<std::chrono::system_clock> startTime;
+extern std::chrono::time_point<std::chrono::system_clock> launchTime;
 
 class LCRunAction : public G4UserRunAction{
     public:
