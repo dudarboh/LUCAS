@@ -5,6 +5,7 @@
 #include "G4Event.hh"
 #include "G4PrimaryParticle.hh"
 #include "G4PrimaryVertex.hh"
+#include <ctime>
 
 std::chrono::time_point<std::chrono::system_clock> launchTime = std::chrono::system_clock::now();
 
@@ -35,10 +36,12 @@ LCRunAction::~LCRunAction(){delete G4AnalysisManager::Instance();}
 
 
 void LCRunAction::BeginOfRunAction(const G4Run* run){
-    G4cout<<"Number of events: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
+    G4cout<<"Start of the run."<<G4endl;
+    G4cout<<"Number of events to process: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
 
     G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
-    analysisManager->OpenFile("Lucas_output.root");
+    
+    analysisManager->OpenFile("Lucas_output_" + std::to_string(std::time(nullptr)) + ".root");
 }
 
 void LCRunAction::EndOfRunAction(const G4Run*){

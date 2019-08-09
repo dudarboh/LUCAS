@@ -1,3 +1,4 @@
+// Change this to turn on/off multithreaded mode
 #ifdef G4MULTITHREADED
     #include "G4MTRunManager.hh"
 #else
@@ -25,7 +26,7 @@ int main(int argc, char** argv){
 
     #ifdef G4MULTITHREADED
         G4MTRunManager *runManager = new G4MTRunManager;
-        runManager->SetNumberOfThreads(2);
+        runManager->SetNumberOfThreads(1);
     #else
         G4RunManager *runManager = new G4RunManager;
     #endif
