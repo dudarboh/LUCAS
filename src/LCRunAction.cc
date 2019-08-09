@@ -42,7 +42,7 @@ void LCRunAction::BeginOfRunAction(const G4Run* run){
     G4cout<<"Number of events to process: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
 
     long seeds[2];
-    systime = time(NULL);
+    long systime = time(NULL);
     seeds[0] = (long) systime;
     seeds[1] = (long) (systime*G4UniformRand());
     G4Random::setTheSeeds(seeds);
