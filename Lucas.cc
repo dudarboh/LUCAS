@@ -19,8 +19,19 @@
 #include "G4SystemOfUnits.hh"
 #include "G4VisExecutive.hh"
 #include "G4UImanager.hh"
+#include "Randomize.hh"
+#include "time.h"
+
+//choose the Random engine
+//set random seed with system time
+
 
 int main(int argc, char** argv){
+
+    CLHEP::HepRandom::setTheEngine(new CLHEP::RanecuEngine());
+    G4long seed = time(NULL);
+    CLHEP::HepRandom::setTheSeed(seed);
+
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
