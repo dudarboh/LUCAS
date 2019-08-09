@@ -5,6 +5,8 @@
 #include "G4Event.hh"
 #include "G4PrimaryParticle.hh"
 #include "G4PrimaryVertex.hh"
+#include "Randomize.hh"
+
 #include <ctime>
 
 std::chrono::time_point<std::chrono::system_clock> launchTime = std::chrono::system_clock::now();
@@ -38,6 +40,12 @@ LCRunAction::~LCRunAction(){delete G4AnalysisManager::Instance();}
 void LCRunAction::BeginOfRunAction(const G4Run* run){
     G4cout<<"Start of the run."<<G4endl;
     G4cout<<"Number of events to process: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
+
+    long seeds[2];
+    systime = time(NULL);
+    seeds[0] = (long) systime;
+    seeds[1] = (long) (systime*G4UniformRand());
+    G4Random::setTheSeeds(seeds);
 
     G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
     
