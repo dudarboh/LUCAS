@@ -11,7 +11,6 @@
 class G4Run;
 
 extern std::chrono::time_point<std::chrono::system_clock> launchTime;
-extern G4String root_output_name;
 
 class LCRunAction : public G4UserRunAction{
     public:

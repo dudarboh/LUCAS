@@ -21,11 +21,8 @@
 #include "G4UImanager.hh"
 #include "Randomize.hh"
 
-G4String root_output_name = "";
 
 int main(int argc, char** argv){
-    if (argc > 2) root_output_name = argv[2];
-
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
 
     G4UIExecutive* ui = 0;

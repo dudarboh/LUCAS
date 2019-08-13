@@ -46,9 +46,8 @@ void LCRunAction::BeginOfRunAction(const G4Run* run){
     seeds[0] = (long) systime;
     seeds[1] = (long) (systime*G4UniformRand());
     G4Random::setTheSeeds(seeds);
-
     G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
-    analysisManager->OpenFile(root_output_name);
+    analysisManager->OpenFile("output_" + std::to_string(seeds[0]) + "_" + std::to_string(seeds[1]) + ".root");
 }
 
 void LCRunAction::EndOfRunAction(const G4Run*){
