@@ -218,6 +218,9 @@ void LCDetectorConstruction::constructSensor(){
 void LCDetectorConstruction::constructTB16(){
     //ySlotPos is choosen to hit in the same area as 5 GeV electron on the TB16
     G4double ySlotPos = -(163.*mm - rSensorMin - (rSensorMax - rSensorMin) / 2.);
+    // misalignment is taken from Itamar simulation
+    G4double misalignment[8] = {-0.11*mm, -1.26*mm, 0.46*mm, -0.275644*mm, 1.87705*mm, -1.2183*mm, 0.53323*mm, 0.*mm};
+
     // Trigger scintilators
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 20.*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
@@ -229,8 +232,8 @@ void LCDetectorConstruction::constructTB16(){
     //Trackers
     G4double tr1Pos = zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor;
     G4double tr2Pos = zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor;
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[0], tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[1], tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
 
     G4double zAbsorberPos;
     G4double zSensorPos;
@@ -243,16 +246,16 @@ void LCDetectorConstruction::constructTB16(){
     for(int i=22; i<23; i++){
         zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
         zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[2], zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[2], zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
     }
 
     // Place 5 PL absorbers + Sensors
     for(int i=23; i<28; i++){
         zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberPL;
         zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-20], zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-20], zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
     }
 
     //Final MSG absorber
