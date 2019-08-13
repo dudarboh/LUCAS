@@ -226,44 +226,36 @@ void LCDetectorConstruction::constructTB16(){
     new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, 1130.*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
 
     G4double zBoxPos = 3300.*mm;
-    G4double zSlotPos[40];
-    for(G4int i=0; i<40; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
+    G4double zSlotPos[29];
+    for(G4int i=0; i<29; i++) zSlotPos[i] = zBoxPos + 0.5*zSlot + (zSlot + 0.002*mm)*i;
 
     //Trackers
-    G4double tr1Pos = zSlotPos[0]-0.5*zSlot+1.*mm-0.5*zSensor;
-    G4double tr2Pos = zSlotPos[5]-0.5*zSlot+1.*mm-0.5*zSensor;
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[0], tr1Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[1], tr2Pos), logicSensor, "Sensor", logicWorld, false, 6, 1);
+    G4double zTr1Pos = zSlotPos[0] - 0.5*zSensor;
+    G4double zTr2Pos = zSlotPos[6] - 0.5*zSensor;
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[0], zTr1Pos), logicSensor, "Sensor", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[1], zTr2Pos), logicSensor, "Sensor", logicWorld, false, 1, 1);
 
-    G4double zAbsorberPos;
     G4double zSensorPos;
-    // Place 2 MSG absorbers
-    for(int i=20; i<22; i++){
-        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
+    G4double zAbsorberPos;
+    // Place 3 MSG absorbers
+    for(G4int i=20; i<23; i++){
+        zAbsorberPos = zSlotPos[i] + 0.5*zAbsorberMSG;
         new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
     }
-    // Place 1 MSG absorbers + Sensor
-    for(int i=22; i<23; i++){
-        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
-        zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[2], zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[2], zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+    // Place 5 Sensors + PL absorbers
+    for(G4int i=23; i<28; i++){
+        zSensorPos = zSlotPos[i] - 0.5*zSensor;
+        zAbsorberPos = zSlotPos[i] + 0.5*zAbsorberPL;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicSensor, "Sensor", logicWorld, false, i-21, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
     }
-
-    // Place 5 PL absorbers + Sensors
-    for(int i=23; i<28; i++){
-        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberPL;
-        zSensorPos = zSlotPos[i] + 0.5*zSlot - 0.5*zSensor;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-20], zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-20], zSensorPos), logicSensor, "Sensor", logicWorld, false, i+1, 1);
+    //Final Sensor + MSG absorber
+    for(G4int i=28; i<29; i++){
+        zSensorPos = zSlotPos[i] - 0.5*zSensor;
+        zAbsorberPos = zSlotPos[i] + 0.5*zAbsorberMSG;
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicSensor, "Sensor", logicWorld, false, i-21, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
     }
-
-    //Final MSG absorber
-    for(int i=28; i<29; i++){
-        zAbsorberPos = zSlotPos[i] - 0.5*zSlot + 0.5*zAbsorberMSG;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos, zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
-    }
-
 }
 
 void LCDetectorConstruction::construct20Planes(){

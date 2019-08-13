@@ -35,9 +35,9 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4ThreeVector GlobalHitPos = step->GetPreStepPoint()->GetPosition();
     G4ThreeVector LocalHitPos = step->GetPreStepPoint()->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
     // Sector, pad, layer of hit
-    G4int sector = (G4int)floor((LocalHitPos.getPhi() - 5./12. * M_PI) / fPadPhiWidth + 1);
-    if(sector == 5) sector = 4;
-    G4int pad = (G4int)floor((LocalHitPos.getRho() - fRhoMin) / fPadRhoWidth);
+    G4int sector = floor((LocalHitPos.getPhi() - 5./12. * M_PI) / fPadPhiWidth);
+    if(sector == 4) sector = 3;
+    G4int pad = floor((LocalHitPos.getRho() - fRhoMin) / fPadRhoWidth);
     G4int layer = step->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber(1);
     // Check if hit exists, if not create a new one
     
@@ -58,7 +58,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     processed_hit->AddHitEnergy(step_energy);
 
     // Check only trackers. Because its a mess in calorimeter
-    if((layer == 1 || layer == 6) && processed_hit->GetBS() == -999){
+    if((layer == 0 || layer == 1) && processed_hit->GetBS() == -999){
         if(step->GetTrack()->GetMomentum().getZ() > 0.) processed_hit->SetBS(0);
         else processed_hit->SetBS(1);
     }
