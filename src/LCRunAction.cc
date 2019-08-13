@@ -48,7 +48,7 @@ void LCRunAction::BeginOfRunAction(const G4Run* run){
     G4Random::setTheSeeds(seeds);
 
     G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
-    analysisManager->OpenFile("Lucas_output_" + std::to_string(std::time(nullptr)) + ".root");
+    analysisManager->OpenFile(root_output_name);
 }
 
 void LCRunAction::EndOfRunAction(const G4Run*){
