@@ -13,8 +13,7 @@ class LCSensitiveDetector : public G4VSensitiveDetector{
                             const G4String& hitsCollectionName, 
                             G4double rho_min,
                             G4double pad_rho_width,
-                            G4double pad_phi_width,
-                            G4int n_pads);
+                            G4double pad_phi_width);
         virtual ~LCSensitiveDetector();
 
         virtual void Initialize(G4HCofThisEvent *hitCollection);
@@ -25,7 +24,6 @@ class LCSensitiveDetector : public G4VSensitiveDetector{
 
         G4double fRhoMin;
         G4double fPadRhoWidth, fPadPhiWidth;
-        G4int fNPads;
 };
 
 #endif

@@ -279,7 +279,7 @@ void LCDetectorConstruction::construct20Planes(){
 
 void LCDetectorConstruction::ConstructSDandField(){
     G4double cellRho = (rSensorMax - rSensorMin - 2.*rSensorGap)/64.; // 1.8 mm
-    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD", "LumiCalHitsCollection", rSensorMin, cellRho, 7.5*deg, 64);
+    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD", "LumiCalHitsCollection", rSensorMin, cellRho, 7.5*deg);
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSi", SDetector);
 }

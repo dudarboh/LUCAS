@@ -8,6 +8,7 @@
 #include "Randomize.hh"
 
 #include <ctime>
+#include <fstream>
 
 std::chrono::time_point<std::chrono::system_clock> launchTime = std::chrono::system_clock::now();
 
@@ -29,7 +30,8 @@ LCRunAction::LCRunAction():G4UserRunAction(){
     analysisManager->CreateNtupleIColumn("hit_pad", hit_pad);
     analysisManager->CreateNtupleIColumn("hit_layer", hit_layer);
     analysisManager->CreateNtupleDColumn("hit_energy", hit_energy);
-    analysisManager->CreateNtupleIColumn("hit_bs", hit_bs);
+    analysisManager->CreateNtupleIColumn("n_bs_particles", n_bs_particles);
+    analysisManager->CreateNtupleIColumn("n_dir_particles", n_dir_particles);
 
     analysisManager->FinishNtuple();
 }
@@ -45,7 +47,11 @@ void LCRunAction::BeginOfRunAction(const G4Run* run){
     long systime = time(NULL);
     seeds[0] = (long) systime;
     seeds[1] = (long) (systime*G4UniformRand());
+
     G4Random::setTheSeeds(seeds);
+
+    SimulateNoise();
+
     G4AnalysisManager *analysisManager = G4AnalysisManager::Instance();
     analysisManager->OpenFile("output_" + std::to_string(seeds[0]) + "_" + std::to_string(seeds[1]) + ".root");
 }
@@ -76,20 +82,49 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
     analysisManager->FillNtupleDColumn(3, prim_px);
     analysisManager->FillNtupleDColumn(4, prim_py);
     analysisManager->FillNtupleDColumn(5, prim_pz);
-
-    G4int hit_n = HitsCollection->entries();
-    analysisManager->FillNtupleIColumn(6, hit_n);
+    G4int hit_n = 0;
 
     LCHit *hit;
 
-    for(G4int i=0; i<hit_n; i++){
+    //Simulation of efficiency of calorimeter
+    G4double S0_cal = 0.819;
+    G4double p1_cal = 2.166;
+
+    G4double S0_tr1 = 0.328;
+    G4double p1_tr1 = 0.075833;
+
+    G4double S0_tr2 = 0.365;
+    G4double p1_tr2 = 0.0809155;
+
+    G4double p0 = 0.999 / 2.;
+
+    G4double noise_energy;
+    G4double energy_in_mips;
+
+    for(G4int i=0; i<HitsCollection->entries(); i++){
         hit = (*HitsCollection)[i];
+        noise_energy = G4RandGauss::shoot(0., fApvNoise[hit->GetSector()][hit->GetPad()][hit->GetLayer()]);
+
+        hit->AddHitEnergy(noise_energy);
+        // Fill only cells with more than 0.2 MIP energy threshold
+        energy_in_mips = (hit->GetEnergy())/0.0885;
+
+        if(energy_in_mips < 0.2) continue;
+        if(hit->GetLayer() > 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
+        if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
+        if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
+    
         hit_sector.push_back(hit->GetSector());
         hit_pad.push_back(hit->GetPad());
         hit_layer.push_back(hit->GetLayer());
-        hit_energy.push_back(hit->GetEnergy());
-        hit_bs.push_back(hit->GetBS());
+        hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
+        n_bs_particles.push_back(hit->GetBS());
+        n_dir_particles.push_back(hit->GetDir());
+    
+        hit_n ++;
     }
+    analysisManager->FillNtupleIColumn(6, hit_n);
+    
     analysisManager->AddNtupleRow();
 }
 
@@ -98,5 +133,29 @@ void LCRunAction::ClearVectors(){
     hit_pad.clear();
     hit_layer.clear();
     hit_energy.clear();
-    hit_bs.clear();
+    n_bs_particles.clear();
+    n_dir_particles.clear();
+}
+
+void LCRunAction::SimulateNoise(){
+    std::ifstream file;
+    file.open("../noise.txt");
+
+    if(!file.is_open()){
+        G4ExceptionDescription msg;
+        msg<<"Cannot find noise file";
+        G4Exception("LCRunAction::SimulateNoise()", "no file found to simulate noise", FatalException, msg);
+    }
+    std::string line;
+    std::getline(file, line); // Skip 1st line
+
+    G4int sector;
+    G4int pad;
+    G4int layer;
+    G4double noise;
+
+    while(file>>sector>>pad>>layer>>noise){
+        if(sector != -1) fApvNoise[sector][pad][layer] = noise;
+    }
+    file.close();
 }

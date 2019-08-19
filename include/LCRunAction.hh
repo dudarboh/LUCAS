@@ -22,12 +22,16 @@ class LCRunAction : public G4UserRunAction{
 
         void FillEventData(const G4Event* event, LCHitsCollection *HitsCollection);
         void ClearVectors();
+        void SimulateNoise();
 
         std::vector<G4int> hit_sector;
         std::vector<G4int> hit_pad;
         std::vector<G4int> hit_layer;
         std::vector<G4double> hit_energy;
-        std::vector<G4int> hit_bs;
+        std::vector<G4int> n_bs_particles;
+        std::vector<G4int> n_dir_particles;
+
+        G4double fApvNoise[4][64][8] = {};
 };
 
 #endif

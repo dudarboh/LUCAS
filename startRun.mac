@@ -21,4 +21,4 @@
 /gps/pos/centre 0. 0. 0. mm
 /gps/pos/radius 3.8 mm
 
-/run/beamOn 100
+/run/beamOn 1000

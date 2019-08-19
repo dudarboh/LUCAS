@@ -30,7 +30,7 @@ int main(int argc, char** argv){
 
     #ifdef G4MULTITHREADED
         G4MTRunManager *runManager = new G4MTRunManager;
-        runManager->SetNumberOfThreads(1);
+        runManager->SetNumberOfThreads(2);
     #else
         G4RunManager *runManager = new G4RunManager;
     #endif
@@ -41,7 +41,7 @@ int main(int argc, char** argv){
     G4VUserPhysicsList *physicsList = new QGSP_BERT(0);
     physicsList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(physicsList);
- 
+
     LCActionInitialization *action = new LCActionInitialization();
     runManager->SetUserInitialization(action);
 

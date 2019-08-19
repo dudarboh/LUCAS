@@ -7,7 +7,8 @@ LCHit::LCHit(G4int sector, G4int pad, G4int layer)
     hit_sector(sector),
     hit_pad(pad),
     hit_layer(layer),
-    hit_bs(-999),
+    n_bs_particles(0),
+    n_dir_particles(0),
     hit_energy(0.){}
 
 LCHit::~LCHit(){}
