@@ -103,20 +103,24 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
 
     for(G4int i=0; i<HitsCollection->entries(); i++){
         hit = (*HitsCollection)[i];
-        noise_energy = G4RandGauss::shoot(0., fApvNoise[hit->GetSector()][hit->GetPad()][hit->GetLayer()]);
+        G4int sector = hit->GetSector();
+        G4int pad = hit->GetPad();
+        G4int layer = hit->GetLayer();
 
+        noise_energy = G4RandGauss::shoot(0., fApvNoise[sector][pad][layer]);
         hit->AddHitEnergy(noise_energy);
-        // Fill only cells with more than 0.2 MIP energy threshold
         energy_in_mips = (hit->GetEnergy())/0.0885;
 
-        if(energy_in_mips < 0.2) continue;
-        if(hit->GetLayer() > 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
-        if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
-        if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
+        if(energy_in_mips <= 0.) continue;
+        // if(layer > 1){
+        //     if(G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
+        // }
+        // if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
+        // if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
     
-        hit_sector.push_back(hit->GetSector());
-        hit_pad.push_back(hit->GetPad());
-        hit_layer.push_back(hit->GetLayer());
+        hit_sector.push_back(sector);
+        hit_pad.push_back(pad);
+        hit_layer.push_back(layer);
         hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
         n_bs_particles.push_back(hit->GetBS());
         n_dir_particles.push_back(hit->GetDir());

@@ -55,7 +55,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4int pad = floor((LocalHitPos.getRho() - fRhoMin) / fPadRhoWidth);
     G4int layer = preStepPoint->GetTouchableHandle()->GetCopyNumber(1);
     
-    G4int cellID = pad + 64 * sector + 128 * layer;
+    G4int cellID = pad + 64 * sector + 256 * layer;
 
     LCHit *hit = (*fHitsCollection)[cellID];
     if(!hit){
