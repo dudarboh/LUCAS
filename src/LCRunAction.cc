@@ -87,8 +87,11 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
     LCHit *hit;
 
     //Simulation of efficiency of calorimeter
-    G4double S0_cal = 1.72418;
-    G4double p1_cal = 0.804531;
+    // G4double S0_cal = 1.72418;
+    // G4double p1_cal = 0.804531;
+    // Paper numbers
+    G4double S0_cal = 0.819;
+    G4double p1_cal = 2.166;
 
     G4double S0_tr1 = 0.659858;
     G4double p1_tr1 = 0.166297;
@@ -109,14 +112,16 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
 
         noise_energy = G4RandGauss::shoot(0., fApvNoise[sector][pad][layer]);
         hit->AddHitEnergy(noise_energy);
+
+        if(hit->GetEnergy() <= 2. * fApvNoise[sector][pad][layer]) continue;
+
         energy_in_mips = (hit->GetEnergy())/0.0885;
 
-        if(energy_in_mips <= 0.) continue;
         if(layer > 1){
             if(G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
         }
-        if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
-        if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
+        // if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
+        // if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
     
         hit_sector.push_back(sector);
         hit_pad.push_back(pad);
