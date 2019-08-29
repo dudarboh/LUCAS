@@ -7,13 +7,13 @@
 
 #include "LCRunAction.hh"
 #include "LCDetectorConstruction.hh"
-#include "QGSP_BERT.hh"
 #include "LCActionInitialization.hh"
-
 #include "LCPrimaryGeneratorAction.hh"
 #include "LCEventAction.hh"
 #include "LCSensitiveDetector.hh"
 #include "LCHit.hh"
+
+#include "G4PhysListFactory.hh"
 
 #include "G4UIExecutive.hh"
 #include "G4SystemOfUnits.hh"
@@ -38,7 +38,10 @@ int main(int argc, char** argv){
     LCDetectorConstruction *detector = new LCDetectorConstruction;
     runManager->SetUserInitialization(detector);
 
-    G4VUserPhysicsList *physicsList = new QGSP_BERT(0);
+    G4PhysListFactory factory;
+    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
+    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
+    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMZ");
     physicsList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(physicsList);
 
