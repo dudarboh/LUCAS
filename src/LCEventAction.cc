@@ -24,7 +24,7 @@ LCHitsCollection* LCEventAction::GetHitsCollection(G4int hcID, const G4Event* ev
 }
 
 void LCEventAction::BeginOfEventAction(const G4Event* event){
-    if(event->GetEventID() % 100 == 0){
+    if(event->GetEventID() % 1000 == 0){
         G4cout<<"Event number: "<<event->GetEventID()<<G4endl;
         std::chrono::duration<double> timeElapsed = std::chrono::system_clock::now() - launchTime;
         G4cout<<"Time elapsed: "<<timeElapsed.count()<<" sec"<<G4endl;

@@ -1,24 +1,29 @@
+/control/verbose 2
 /control/saveHistory runLog.txt
-
-/control/verbose 1
-/run/verbose 1
-/vis/verbose 0
+/run/verbose 2
 
 /run/initialize
 
-#Define isotropic source. Rotate it so Z-axis looks as global Z axis. And Smear it for 0.0016 rad
+#Define isotropic source
 /gps/ang/type iso
+# x-axis stays on its place
 /gps/pos/rot1 1 0 0
+# rotate y-axis by pi. It makes z-axis also rotate by pi and match global z-axis
 /gps/pos/rot2 0 -1 0
+# Minimum polar smearing angle
 /gps/ang/mintheta 0. rad
+# Maximum polar smearing angle
 /gps/ang/maxtheta 0.0016 rad
 
+# Monoenergetic 5 GeV electrons
 /gps/particle e-
 /gps/ene/mono 5. GeV
 
+# Source is a plane circle with radius 3.8 mm
 /gps/pos/type Plane
 /gps/pos/shape Circle
 /gps/pos/centre 0. 0. 0. mm
 /gps/pos/radius 3.8 mm
 
-/run/beamOn 1000
+# Number of events to proceed
+/run/beamOn 100

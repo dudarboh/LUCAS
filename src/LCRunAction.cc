@@ -5,6 +5,7 @@
 #include "G4Event.hh"
 #include "G4PrimaryParticle.hh"
 #include "G4PrimaryVertex.hh"
+#include "G4RunManager.hh"
 #include "Randomize.hh"
 
 #include <ctime>
@@ -13,13 +14,18 @@
 std::chrono::time_point<std::chrono::system_clock> launchTime = std::chrono::system_clock::now();
 
 LCRunAction::LCRunAction():G4UserRunAction(){
-    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
+    G4RunManager::GetRunManager()->SetPrintProgress(1000);     
+
+    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
+    
+    analysisManager->SetVerboseLevel(1);
+    analysisManager->SetNtupleMerging(true);
+    
     analysisManager->CreateNtuple("LumiCal", "LumiCal TB simulation");
     analysisManager->CreateNtupleDColumn("prim_x");
     analysisManager->CreateNtupleDColumn("prim_y");
     analysisManager->CreateNtupleDColumn("prim_z");
-
     analysisManager->CreateNtupleDColumn("prim_px");
     analysisManager->CreateNtupleDColumn("prim_py");
     analysisManager->CreateNtupleDColumn("prim_pz");
@@ -40,7 +46,6 @@ LCRunAction::~LCRunAction(){delete G4AnalysisManager::Instance();}
 
 
 void LCRunAction::BeginOfRunAction(const G4Run* run){
-    G4cout<<"Start of the run."<<G4endl;
     G4cout<<"Number of events to process: "<<run->GetNumberOfEventToBeProcessed()<<G4endl;
 
     long seeds[2];

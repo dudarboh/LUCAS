@@ -39,16 +39,16 @@ int main(int argc, char** argv){
     runManager->SetUserInitialization(detector);
 
     G4PhysListFactory factory;
-    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
-    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
+    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
+    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
     // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMZ");
     physicsList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(physicsList);
 
-    LCActionInitialization *action = new LCActionInitialization();
+    LCActionInitialization *action = new LCActionInitialization;
     runManager->SetUserInitialization(action);
 
-    G4VisManager *visManager = new G4VisExecutive("0");
+    G4VisManager *visManager = new G4VisExecutive;
     visManager->Initialise();
 
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     }
     else{
         // interactive mode
-        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Documents/FCAL/LUCAS/");
+        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Software/Lucas");
         uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;

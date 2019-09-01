@@ -1,12 +1,9 @@
+/control/verbose 2
 /control/saveHistory runLog.txt
-
-/control/verbose 1
-/run/verbose 1
-/vis/verbose 0
+/run/verbose 2
+/vis/verbose warnings
 
 /run/initialize
-
-/control/macroPath /home/FoxWise/Documents/FCAL/LUCAS/
 
 /vis/open OGL 600x600-0+0
 /vis/ogl/set/displayListLimit 1000000
@@ -21,6 +18,7 @@
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 120 150
+
 /vis/viewer/set/autoRefresh true
 
 /vis/viewer/set/targetPoint 0 -25.4 3343 mm
