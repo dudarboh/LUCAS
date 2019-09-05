@@ -4,7 +4,7 @@ project(Lucas)
 add_definitions("-Wall")
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX $ENV{HOME}/Lucas CACHE PATH "Lucas install prefix" FORCE)
+    set(CMAKE_INSTALL_PREFIX $ENV{HOME}/Software/Lucas CACHE PATH "Lucas install prefix" FORCE)
 endif()
 
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
@@ -29,7 +29,3 @@ target_link_libraries(Lucas ${Geant4_LIBRARIES})
 # endforeach()
 
 install(TARGETS Lucas DESTINATION bin)
-install(FILES init_vis.mac startRun.mac noise.txt DESTINATION . 
-        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
-        GROUP_READ GROUP_WRITE GROUP_EXECUTE
-        WORLD_READ WORLD_WRITE WORLD_EXECUTE)

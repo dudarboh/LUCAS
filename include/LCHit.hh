@@ -13,6 +13,10 @@ class LCHit:public G4VHit{
 
         virtual ~LCHit();
 
+        // operators
+        const LCHit& operator=(const LCHit&);
+        G4bool operator==(const LCHit&) const;
+
         inline void* operator new(size_t);
         inline void  operator delete(void*);
 

@@ -24,13 +24,10 @@ LCSensitiveDetector::LCSensitiveDetector(const G4String& name,
 LCSensitiveDetector::~LCSensitiveDetector(){}
 
 void LCSensitiveDetector::Initialize(G4HCofThisEvent *hce){
-    // Create hits collection
     fHitsCollection = new LCHitsCollection(SensitiveDetectorName, collectionName[0]);
 
-    // Add this collection to HCofThisEvent
     auto hcID = G4SDManager::GetSDMpointer()->GetCollectionID(collectionName[0]);
     hce->AddHitsCollection(hcID, fHitsCollection);
-    // Create hits for each calorimeter cell
     for(G4int layer=0; layer<8; layer++){
         for(G4int sector=0; sector<4; sector++){
             for(G4int pad=0; pad<64; pad++){
@@ -45,16 +42,17 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4double step_energy = step->GetTotalEnergyDeposit();
     if(step_energy == 0.) return false;
 
-    G4StepPoint* preStepPoint = step->GetPreStepPoint();
-    G4ThreeVector GlobalHitPos = preStepPoint->GetPosition();
-    G4ThreeVector LocalHitPos = preStepPoint->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
+    G4StepPoint* prePoint = step->GetPreStepPoint();
+    G4StepPoint* postPoint = step->GetPostStepPoint();
 
-    // Sector, pad, layer of hit
+    G4ThreeVector GlobalHitPos = 0.5*(prePoint->GetPosition() + postPoint->GetPosition());
+    G4ThreeVector LocalHitPos = prePoint->GetTouchableHandle()->GetHistory()->GetTopTransform().TransformPoint(GlobalHitPos);
+
     G4int sector = floor((LocalHitPos.getPhi() - 5./12. * M_PI) / fPadPhiWidth);
     if(sector == 4) sector = 3;
     G4int pad = floor((LocalHitPos.getRho() - fRhoMin) / fPadRhoWidth);
     if(pad == 64) pad = 63;
-    G4int layer = preStepPoint->GetTouchableHandle()->GetCopyNumber(1);
+    G4int layer = prePoint->GetTouchableHandle()->GetCopyNumber(1);
     
     G4int cellID = pad + 64 * sector + 256 * layer;
 
@@ -66,17 +64,13 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     }
     hit->AddHitEnergy(step_energy);
 
-    // If this step by Transportation process (Cross the boundary)
-    // If this step goes in, not out (Check the VolumeName)
-
-    const G4VProcess* currentProcess=preStepPoint->GetProcessDefinedStep();
-    if(currentProcess != 0){
-        const G4String & stepProcessName = currentProcess->GetProcessName();
-        G4String volumePos = step->GetTrack()->GetNextVolume()->GetName();
-        if(stepProcessName == "Transportation" && volumePos == "Si"){
-            G4double pz = (step->GetTrack()->GetMomentum()).getZ();
-            if(pz > 0.) hit->AddDirParticle();
-            else hit->AddBSParticle();
+    if(prePoint->GetStepStatus() == fGeomBoundary){
+        G4double pz = (step->GetTrack()->GetMomentum()).getZ();
+        if(pz > 0.){
+            hit->AddDirParticle();
+        }
+        else{
+            hit->AddBSParticle();
         }
     }
 

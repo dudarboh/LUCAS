@@ -210,7 +210,7 @@ void LCDetectorConstruction::constructSensor(){
 
     new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFanoutFront, "FanoutFront", logicSensor, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicSensor, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "Si", logicSensor, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSi, "SiSensor", logicSensor, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicSensor, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicFanoutBack, "FanoutBack", logicSensor, false, 0, 1);
 }
