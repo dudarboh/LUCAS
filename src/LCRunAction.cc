@@ -92,21 +92,21 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
     LCHit *hit;
 
     //Simulation of efficiency of calorimeter
-    G4double S0_cal = 1.72418;
-    G4double p1_cal = 0.804531;
+    // G4double S0_cal = 1.72418;
+    // G4double p1_cal = 0.804531;
     // Paper numbers
-    // G4double S0_cal = 0.819;
-    // G4double p1_cal = 2.166;
+    G4double S0_cal = 0.819;
+    G4double p1_cal = 2.166;
 
-    G4double S0_tr1 = 0.659858;
-    G4double p1_tr1 = 0.166297;
+    // G4double S0_tr1 = 0.659858;
+    // G4double p1_tr1 = 0.166297;
 
-    G4double S0_tr2 = 0.534811;
-    G4double p1_tr2 = 0.114698;
+    // G4double S0_tr2 = 0.534811;
+    // G4double p1_tr2 = 0.114698;
 
     G4double p0 = 0.999 / 2.;
 
-    G4double noise_energy;
+    // G4double noise_energy;
     G4double energy_in_mips;
 
     for(G4int i=0; i<HitsCollection->entries(); i++){
@@ -115,18 +115,18 @@ void LCRunAction::FillEventData(const G4Event* event, LCHitsCollection *HitsColl
         G4int pad = hit->GetPad();
         G4int layer = hit->GetLayer();
 
-        noise_energy = G4RandGauss::shoot(0., fApvNoise[sector][pad][layer]);
-        hit->AddHitEnergy(noise_energy);
+        // noise_energy = G4RandGauss::shoot(0., fApvNoise[sector][pad][layer]);
+        // hit->AddHitEnergy(noise_energy);
 
-        if(hit->GetEnergy() <= 2. * fApvNoise[sector][pad][layer]) continue;
+        // if(hit->GetEnergy() <= 2. * fApvNoise[sector][pad][layer]) continue;
 
         energy_in_mips = (hit->GetEnergy())/0.0885;
 
         if(layer > 1){
             if(G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
         }
-        if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
-        if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
+        // if(hit->GetLayer() == 1 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr2) / p1_tr2)) * p0) continue;
+        // if(hit->GetLayer() == 0 && G4UniformRand() > (1. + std::erf((energy_in_mips - S0_tr1) / p1_tr1)) * p0) continue;
          
         hit_sector.push_back(sector);
         hit_pad.push_back(pad);

@@ -61,7 +61,7 @@ int main(int argc, char** argv){
     }
     else{
         // interactive mode
-        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Software/Lucas");
+        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Documents/FCAL/LUCAS");
         uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;

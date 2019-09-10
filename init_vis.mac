@@ -21,7 +21,7 @@
 
 /vis/viewer/set/autoRefresh true
 
-/vis/viewer/set/targetPoint 0 -25.4 3343 mm
+/vis/viewer/set/targetPoint 0 -25.4 6767 mm
 
 /vis/modeling/trajectories/create/drawByCharge
 /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
@@ -37,12 +37,15 @@
 /gps/pos/rot1 1 0 0
 /gps/pos/rot2 0 -1 0
 /gps/ang/mintheta 0. rad
-/gps/ang/maxtheta 0.0016 rad
+/gps/ang/maxtheta 0.001 rad
 
 /gps/particle e-
+/gps/ene/type Gauss
 /gps/ene/mono 5. GeV
+/gps/ene/sigma 0.125 GeV
 
 /gps/pos/type Plane
-/gps/pos/shape Circle
+/gps/pos/shape Square
 /gps/pos/centre 0. 0. 0. mm
-/gps/pos/radius 3.8 mm
+/gps/pos/halfx 3.8 mm
+/gps/pos/halfy 3.8 mm

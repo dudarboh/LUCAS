@@ -6,24 +6,21 @@
 
 #Define isotropic source
 /gps/ang/type iso
-# x-axis stays on its place
 /gps/pos/rot1 1 0 0
-# rotate y-axis by pi. It makes z-axis also rotate by pi and match global z-axis
 /gps/pos/rot2 0 -1 0
-# Minimum polar smearing angle
 /gps/ang/mintheta 0. rad
-# Maximum polar smearing angle
-/gps/ang/maxtheta 0.0016 rad
+/gps/ang/maxtheta 0.001 rad
 
-# Monoenergetic 5 GeV electrons
 /gps/particle e-
+/gps/ene/type Gauss
 /gps/ene/mono 5. GeV
+/gps/ene/sigma 0.125 GeV
 
-# Source is a plane circle with radius 3.8 mm
 /gps/pos/type Plane
-/gps/pos/shape Circle
+/gps/pos/shape Square
 /gps/pos/centre 0. 0. 0. mm
-/gps/pos/radius 3.8 mm
+/gps/pos/halfx 3.8 mm
+/gps/pos/halfy 3.8 mm
 
 # Number of events to proceed
-/run/beamOn 10000
+/run/beamOn 1000
