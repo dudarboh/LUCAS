@@ -3,6 +3,8 @@
 
 #include "G4VUserDetectorConstruction.hh"
 #include "G4SystemOfUnits.hh"
+#include "G4Types.hh"
+#include "G4LogicalVolume.hh"
 
 class G4VPhysicalVolume;
 
@@ -13,6 +15,8 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
 
         virtual G4VPhysicalVolume *Construct();
         virtual void ConstructSDandField();
+    private:
+        G4LogicalVolume *logicMagnet;
 };
 
 #endif

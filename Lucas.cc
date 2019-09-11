@@ -25,6 +25,9 @@
 int main(int argc, char** argv){
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
 
+    G4int seed = time(NULL);
+    G4Random::setTheSeed(seed);
+
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 

@@ -1,11 +1,14 @@
 #include "LCDetectorConstruction.hh"
 #include "LCSensitiveDetector.hh"
 
+#include "G4FieldManager.hh"
+#include "G4UniformMagField.hh"
+#include "G4TransportationManager.hh"
+
 #include "G4Material.hh"
 #include "G4NistManager.hh"
 #include "G4Box.hh"
 #include "G4Tubs.hh"
-#include "G4LogicalVolume.hh"
 #include "G4PVReplica.hh"
 
 #include "G4PVPlacement.hh"
@@ -121,7 +124,7 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4LogicalVolume *logicMimosa26 = new G4LogicalVolume(solidMimosa26, Air, "logicMimosa26", 0, 0, 0);
 
     G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, Air, "logicTarget", 0, 0, 0); // Copper target
-    G4LogicalVolume *logicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
+    logicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
 
     G4LogicalVolume *logicAbsorberPL = new G4LogicalVolume(solidAbsorberPL, matAbsorberPL, "logicAbsorberPL", 0, 0, 0);
     G4LogicalVolume *logicAbsorberMSG = new G4LogicalVolume(solidAbsorberMSG, matAbsorberMSG, "logicAbsorberMSG", 0, 0, 0);
@@ -239,7 +242,14 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 }
 
 void LCDetectorConstruction::ConstructSDandField(){
-    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD", "LumiCalHitsCollection");
+    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD");
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
+
+    G4UniformMagField *magField = new G4UniformMagField(0., 0., 0.);
+    G4FieldManager *fieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+    fieldManager->SetDetectorField(magField);
+    fieldManager->CreateChordFinder(magField);
+    logicMagnet->SetFieldManager(fieldManager, false);
+
 }

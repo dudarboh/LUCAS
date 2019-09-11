@@ -1,12 +1,11 @@
 /control/verbose 2
-/control/saveHistory runLog.txt
 /run/verbose 2
 
 /run/initialize
 
 #Define isotropic source
 /gps/ang/type iso
-/gps/pos/rot1 1 0 0
+/gps/pos/rot1 1 1 0
 /gps/pos/rot2 0 -1 0
 /gps/ang/mintheta 0. rad
 /gps/ang/maxtheta 0.001 rad
@@ -19,8 +18,8 @@
 /gps/pos/type Plane
 /gps/pos/shape Square
 /gps/pos/centre 0. 0. 0. mm
-/gps/pos/halfx 3.8 mm
-/gps/pos/halfy 3.8 mm
+/gps/pos/halfx 2.5 mm
+/gps/pos/halfy 2.5 mm
 
 # Number of events to proceed
-/run/beamOn 1000
+/run/beamOn 500

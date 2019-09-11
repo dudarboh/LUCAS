@@ -3,9 +3,7 @@
 
 #include "G4VHit.hh"
 #include "G4THitsCollection.hh"
-#include "G4Allocator.hh"
-#include "G4Threading.hh"
-
+#include "G4Types.hh"
 
 class LCHit:public G4VHit{
     public:
