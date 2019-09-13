@@ -8,19 +8,18 @@
 /gps/pos/rot1 1 1 0
 /gps/pos/rot2 0 -1 0
 /gps/ang/mintheta 0. rad
-# /gps/ang/maxtheta 0.001 rad
-/gps/ang/maxtheta 0.000904333 rad
+/gps/ang/maxtheta 0.001 rad
 
 /gps/particle e-
 /gps/ene/type Gauss
 /gps/ene/mono 5. GeV
-#/gps/ene/sigma 0.125 GeV
+/gps/ene/sigma 0.105 GeV
 
 /gps/pos/type Plane
 /gps/pos/shape Square
 /gps/pos/centre 0. 0. 0. mm
-/gps/pos/halfx 2.5 mm
-/gps/pos/halfy 2.5 mm
+/gps/pos/halfx 2.2608 mm
+/gps/pos/halfy 2.2608 mm
 
 # Number of events to proceed
-/run/beamOn 200000
+/run/beamOn 100000

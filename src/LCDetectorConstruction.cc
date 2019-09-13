@@ -246,10 +246,10 @@ void LCDetectorConstruction::ConstructSDandField(){
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
 
-    G4UniformMagField *magField = new G4UniformMagField(0., 0., 0.);
-    G4FieldManager *fieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-    fieldManager->SetDetectorField(magField);
-    fieldManager->CreateChordFinder(magField);
-    logicMagnet->SetFieldManager(fieldManager, false);
+    // G4UniformMagField *magField = new G4UniformMagField(0., 0., 0.);
+    // G4FieldManager *fieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+    // fieldManager->SetDetectorField(magField);
+    // fieldManager->CreateChordFinder(magField);
+    // logicMagnet->SetFieldManager(fieldManager, false);
 
 }
