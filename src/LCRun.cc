@@ -113,7 +113,7 @@ void LCRun::RecordEvent(const G4Event* event){
             G4int pad = hit->GetPad();
             G4int layer = hit->GetLayer();
 
-            noise_energy = G4RandGauss::shoot(0., 0.1*fApvNoise[sector][pad][layer]);
+            noise_energy = G4RandGauss::shoot(0., 0.6*fApvNoise[sector][pad][layer]);
             hit->AddHitEnergy(noise_energy);
 
             energy_in_mips = (hit->GetEnergy())/0.0885;
