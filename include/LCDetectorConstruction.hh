@@ -15,8 +15,8 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
 
         virtual G4VPhysicalVolume *Construct();
         virtual void ConstructSDandField();
-    private:
-        G4LogicalVolume *logicMagnet;
+    // private:
+    //     G4LogicalVolume *logicMagnet;
 };
 
 #endif

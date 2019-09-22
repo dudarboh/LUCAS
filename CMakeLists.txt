@@ -23,9 +23,4 @@ file(GLOB headers ${PROJECT_SOURCE_DIR}/include/*.hh)
 add_executable(Lucas Lucas.cc ${sources} ${headers})
 target_link_libraries(Lucas ${Geant4_LIBRARIES})
 
-# set(COPY_FILES noise.txt)
-# foreach(file ${COPY_FILES})
-#     configure_file(${PROJECT_SOURCE_DIR}/${file} ${PROJECT_BINARY_DIR}/${file} COPYONLY)
-# endforeach()
-
 install(TARGETS Lucas DESTINATION bin)

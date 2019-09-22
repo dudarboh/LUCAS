@@ -32,21 +32,20 @@
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
 
-#Define isotropic source. Rotate it so Z-axis looks as global Z axis. And Smear it for 0.0016 rad
+#Define isotropic source
 /gps/ang/type iso
 /gps/pos/rot1 1 1 0
 /gps/pos/rot2 0 -1 0
 /gps/ang/mintheta 0. rad
-/gps/ang/maxtheta 0.001 rad
+/gps/ang/maxtheta 0.752 mrad
 
-/gps/particle geantino
+/gps/particle e-
 /gps/ene/type Gauss
 /gps/ene/mono 5. GeV
-/gps/ene/sigma 0.125 GeV
+/gps/ene/sigma 0.105 GeV
 
 /gps/pos/type Plane
 /gps/pos/shape Square
-/gps/pos/centre 0. 0. 0. mm
+/gps/pos/centre -0.6 0. 0. mm
 /gps/pos/halfx 2.5 mm
 /gps/pos/halfy 2.5 mm
-

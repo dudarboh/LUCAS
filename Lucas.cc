@@ -1,4 +1,3 @@
-// Change this to turn on/off multithreaded mode
 #ifdef G4MULTITHREADED
     #include "G4MTRunManager.hh"
 #else
@@ -45,6 +44,7 @@ int main(int argc, char** argv){
     G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
     // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
     // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMZ");
+
     physicsList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(physicsList);
 
@@ -64,7 +64,7 @@ int main(int argc, char** argv){
     }
     else{
         // interactive mode
-        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/Documents/FCAL/LUCAS");
+        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/FCAL/LUCAS");
         uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;

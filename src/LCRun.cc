@@ -97,7 +97,6 @@ void LCRun::RecordEvent(const G4Event* event){
         LCHit *hit;
 
         //Simulation of efficiency of calorimeter
-        // Paper numbers
         G4double S0_cal = 0.819;
         G4double p1_cal = 2.166;
         G4double p0 = 0.999 / 2.;
