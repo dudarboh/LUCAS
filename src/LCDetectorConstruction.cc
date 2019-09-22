@@ -107,6 +107,9 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4Box *solidMimosa26 = new G4Box("solidMimosa26", 10.6*mm, 5.3*mm, 0.05*mm);
 
     // Absorbers
+    G4Box *solidTarget = new G4Box("solidTarget", 70.*mm, 70.*mm, 0.75*mm);
+    G4Box *solidMagnet = new G4Box("solidMagnet", 750*mm, 175.*mm, 500*mm);
+
     G4Box *solidAbsorberPL = new G4Box("solidAbsorberPL", 70.0*mm, 70.0*mm, 1.75*mm);
     G4Box *solidAbsorberMSG = new G4Box("solidAbsorberMSG", 70.0*mm, 70.0*mm, 1.785*mm);
 
@@ -135,6 +138,9 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4LogicalVolume *logicMimosa26 = new G4LogicalVolume(solidMimosa26, Air, "logicMimosa26", 0, 0, 0);
 
     // Absorbers
+    G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, Cu, "logicTarget", 0, 0, 0); // Copper target
+    logicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
+
     G4LogicalVolume *logicAbsorberPL = new G4LogicalVolume(solidAbsorberPL, matAbsorberPL, "logicAbsorberPL", 0, 0, 0);
     G4LogicalVolume *logicAbsorberMSG = new G4LogicalVolume(solidAbsorberMSG, matAbsorberMSG, "logicAbsorberMSG", 0, 0, 0);
 
@@ -169,6 +175,12 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3477.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 3, 1);
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3528.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 4, 1);
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3578.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 5, 1);
+
+    //Place target
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 1351.*mm), logicTarget, "logicTarget", logicWorld, false, 0, 1);
+
+    // //Place magnet
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 2118.*mm), logicMagnet, "logicMagnet", logicWorld, false, 0, 1);
 
     // Construct sensor mounted in carbon fiber
     G4double yPos = -(80. + 0.5 * (195.2 - 80.))*mm;
@@ -261,4 +273,10 @@ void LCDetectorConstruction::ConstructSDandField(){
     LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD");
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
+
+    G4UniformMagField *magField = new G4UniformMagField(0.2, 0., 0.);
+    G4FieldManager *fieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
+    fieldManager->SetDetectorField(magField);
+    fieldManager->CreateChordFinder(magField);
+    logicMagnet->SetFieldManager(fieldManager, false);
 }
