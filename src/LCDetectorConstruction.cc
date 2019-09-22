@@ -214,8 +214,6 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     logicMimosaSi->SetVisAttributes(G4VisAttributes::Invisible);
     logicMimosaKapton->SetVisAttributes(G4VisAttributes::Invisible);
     logicMimosa26->SetVisAttributes(G4Color(0.847, 0.835, 0.047));
-    logicTarget->SetVisAttributes(G4Color(0.52, 0.63, 0.12));
-    logicMagnet->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     logicAbsorberPL->SetVisAttributes(G4Color(0.23, 0.48, 0.34));
     logicAbsorberMSG->SetVisAttributes(G4Color(0.25, 0.51, 0.43));
     logicCarbonFiber->SetVisAttributes(G4VisAttributes::Invisible);

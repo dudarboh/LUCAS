@@ -11,6 +11,14 @@ LCRun::LCRun(){
 
     G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
     
+    long seeds[2];
+    long systime = time(NULL);
+    seeds[0] = (long) systime;
+    seeds[1] = (long) (systime*G4UniformRand());
+
+    G4Random::setTheSeeds(seeds);
+    analysisManager->OpenFile("output_" + std::to_string(seeds[0]) + "_" + std::to_string(seeds[1]) + ".root");
+
     analysisManager->SetVerboseLevel(1);
     analysisManager->SetNtupleMerging(true);
     analysisManager->CreateNtuple("LumiCal", "LumiCal TB simulation");
@@ -30,14 +38,6 @@ LCRun::LCRun(){
     analysisManager->CreateNtupleIColumn("n_dir_particles", n_dir_particles);
 
     analysisManager->FinishNtuple();
-
-    long seeds[2];
-    long systime = time(NULL);
-    seeds[0] = (long) systime;
-    seeds[1] = (long) (systime*G4UniformRand());
-
-    G4Random::setTheSeeds(seeds);
-    analysisManager->OpenFile("output_" + std::to_string(seeds[0]) + "_" + std::to_string(seeds[1]) + ".root");
 }
 
 LCRun::~LCRun(){;}

@@ -20,8 +20,8 @@
 
 /vis/viewer/set/autoRefresh true
 
-#/vis/viewer/set/targetPoint 0 -25.4 6767 mm
-/vis/viewer/set/targetPoint 0 0 0 mm
+/vis/viewer/set/targetPoint 0 -25.4 6767 mm
+#/vis/viewer/set/targetPoint 0 0 0 mm
 
 /vis/modeling/trajectories/create/drawByCharge
 /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
