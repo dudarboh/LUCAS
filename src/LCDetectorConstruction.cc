@@ -1,8 +1,6 @@
 #include "LCDetectorConstruction.hh"
 #include "LCSensitiveDetector.hh"
 
-#include "G4FieldManager.hh"
-#include "G4UniformMagField.hh"
 #include "G4TransportationManager.hh"
 
 #include "G4Material.hh"
@@ -16,6 +14,9 @@
 #include "G4Element.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
+
+G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagField = 0;
+G4ThreadLocal G4FieldManager* LCDetectorConstruction::fFieldMgr = 0;
 
 LCDetectorConstruction::LCDetectorConstruction():G4VUserDetectorConstruction(){}
 
@@ -108,7 +109,7 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
     // Absorbers
     G4Box *solidTarget = new G4Box("solidTarget", 70.*mm, 70.*mm, 0.75*mm);
-    G4Box *solidMagnet = new G4Box("solidMagnet", 750*mm, 175.*mm, 500*mm);
+    G4Box *solidMagnet = new G4Box("solidMagnet", 750*mm, 175*mm, 500*mm);
 
     G4Box *solidAbsorberPL = new G4Box("solidAbsorberPL", 70.0*mm, 70.0*mm, 1.75*mm);
     G4Box *solidAbsorberMSG = new G4Box("solidAbsorberMSG", 70.0*mm, 70.0*mm, 1.785*mm);
@@ -274,9 +275,9 @@ void LCDetectorConstruction::ConstructSDandField(){
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
 
-    G4UniformMagField *magField = new G4UniformMagField(0.2, 0., 0.);
-    G4FieldManager *fieldManager = G4TransportationManager::GetTransportationManager()->GetFieldManager();
-    fieldManager->SetDetectorField(magField);
-    fieldManager->CreateChordFinder(magField);
-    logicMagnet->SetFieldManager(fieldManager, false);
+    fMagField = new G4UniformMagField(7/80.*tesla, 0.*tesla, 0.*tesla);
+    fFieldMgr = new G4FieldManager();
+    fFieldMgr->SetDetectorField(fMagField);
+    fFieldMgr->CreateChordFinder(fMagField);
+    logicMagnet->SetFieldManager(fFieldMgr, true);
 }
