@@ -46,14 +46,8 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
 
     hit->AddHitEnergy(step_energy);
 
-    if(prePoint->GetStepStatus() == fGeomBoundary){
-        G4double pz = (step->GetTrack()->GetMomentum()).getZ();
-        if(pz > 0.){
-            hit->AddDirParticle();
-        }
-        else{
-            hit->AddBSParticle();
-        }
+    if(hit->GetIsPrimary() == 0 && step->GetTrack()->GetTrackID() == 1){
+        hit->SetIsPrimary();
     }
 
     return true;

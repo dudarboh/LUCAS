@@ -22,20 +22,13 @@ LCRun::LCRun(){
     analysisManager->SetVerboseLevel(1);
     analysisManager->SetNtupleMerging(true);
     analysisManager->CreateNtuple("LumiCal", "LumiCal TB simulation");
-    analysisManager->CreateNtupleDColumn("prim_x");
-    analysisManager->CreateNtupleDColumn("prim_y");
-    analysisManager->CreateNtupleDColumn("prim_z");
-    analysisManager->CreateNtupleDColumn("prim_px");
-    analysisManager->CreateNtupleDColumn("prim_py");
-    analysisManager->CreateNtupleDColumn("prim_pz");
 
     analysisManager->CreateNtupleIColumn("hit_n");
     analysisManager->CreateNtupleIColumn("hit_sector", hit_sector);
     analysisManager->CreateNtupleIColumn("hit_pad", hit_pad);
     analysisManager->CreateNtupleIColumn("hit_layer", hit_layer);
     analysisManager->CreateNtupleDColumn("hit_energy", hit_energy);
-    analysisManager->CreateNtupleIColumn("n_bs_particles", n_bs_particles);
-    analysisManager->CreateNtupleIColumn("n_dir_particles", n_dir_particles);
+    analysisManager->CreateNtupleIColumn("hit_primary", hit_primary);
 
     analysisManager->FinishNtuple();
 }
@@ -75,32 +68,14 @@ void LCRun::RecordEvent(const G4Event* event){
 
         G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
-        G4PrimaryVertex *pVertex = event->GetPrimaryVertex(0);
-        G4double prim_x = pVertex->GetX0();
-        G4double prim_y = pVertex->GetY0();
-        G4double prim_z = pVertex->GetZ0();
-
-        G4PrimaryParticle *pParticle = pVertex->GetPrimary();
-        G4double prim_px = (pParticle->GetMomentum()).getX();
-        G4double prim_py = (pParticle->GetMomentum()).getY();
-        G4double prim_pz = (pParticle->GetMomentum()).getZ();
-
-        analysisManager->FillNtupleDColumn(0, prim_x);
-        analysisManager->FillNtupleDColumn(1, prim_y);
-        analysisManager->FillNtupleDColumn(2, prim_z);
-
-        analysisManager->FillNtupleDColumn(3, prim_px);
-        analysisManager->FillNtupleDColumn(4, prim_py);
-        analysisManager->FillNtupleDColumn(5, prim_pz);
         G4int hit_n = 0;
-
         LCHit *hit;
-
         //Simulation of efficiency of calorimeter
         G4double S0_cal = 0.819;
         G4double p1_cal = 2.166;
         G4double p0 = 0.999 / 2.;
 
+        G4int sector, pad, layer;
         G4double noise_energy;
         G4double energy_in_mips;
 
@@ -108,9 +83,9 @@ void LCRun::RecordEvent(const G4Event* event){
             hit = (*HitsCollection)[i];
             if(hit->GetEnergy() <= 0.) continue;
 
-            G4int sector = hit->GetSector();
-            G4int pad = hit->GetPad();
-            G4int layer = hit->GetLayer();
+            sector = hit->GetSector();
+            pad = hit->GetPad();
+            layer = hit->GetLayer();
 
             noise_energy = G4RandGauss::shoot(0., 0.6*fApvNoise[sector][pad][layer]);
             hit->AddHitEnergy(noise_energy);
@@ -126,20 +101,18 @@ void LCRun::RecordEvent(const G4Event* event){
             hit_pad.push_back(pad);
             hit_layer.push_back(layer);
             hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
-            n_bs_particles.push_back(hit->GetBS());
-            n_dir_particles.push_back(hit->GetDir());
+            hit_primary.push_back(hit->GetIsPrimary());
         
             hit_n ++;
         }
-        analysisManager->FillNtupleIColumn(6, hit_n);
+        analysisManager->FillNtupleIColumn(0, hit_n);
         
         analysisManager->AddNtupleRow();
         hit_sector.clear();
         hit_pad.clear();
         hit_layer.clear();
         hit_energy.clear();
-        n_bs_particles.clear();
-        n_dir_particles.clear();
+        hit_primary.clear();
     }
     G4Run::RecordEvent(event);
 }

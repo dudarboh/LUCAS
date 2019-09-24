@@ -19,8 +19,7 @@ class LCRun:public G4Run{
         std::vector<G4int> hit_pad;
         std::vector<G4int> hit_layer;
         std::vector<G4double> hit_energy;
-        std::vector<G4int> n_bs_particles;
-        std::vector<G4int> n_dir_particles;
+        std::vector<G4int> hit_primary;
 
         G4double fApvNoise[4][64][8] = {};
 };
