@@ -32,27 +32,27 @@ Geant4 simulation of LumiCal test beam setup in 2016
     -- Sensor thicknes - +-0.8 mm
 
 2- PHYSICS LIST
-    
     QGSP_BERT
     Two different EM physics models mentioned by Sasha are commented in Lucas.cc
   
 3- ACTION INITALIZATION
-    
-    Standart action initialization class
+
+    Standart action initialization class to support multi-threading
 
 4- PRIMARY GENERATOR
-    
-    Gun settings are tuned in startRun.mac macro.
-    There you can define particle type, energy, position, energy smearing, angular smearing, size, etc.
+
+    GPS settings are tuned in startRun.mac macro.
+
+    It defines particle type, energy, position, energy smearing, angular smearing, size 
  
-5- RUNS
+5- RUNS and EVENTS
 
-    Run class is used for writing data in a  output root file by virtual RecordEvent
-    function of a base class which is called in the end of each event.
+    Event class used only for printout to check speed of cimputation
+    Run class is used for writing collected data by Senstivive detector in the root file
+    In the end of each event.
 
-    Run class also simulates electronic noise energy smearing.
-    You need NOISE.TXT file for this in the upstream directory (../)
-    If you don't have it, remove all lines which use this file and fApvNoise array in LCRun class
+    Run class also simulates electronic noise smearing.
+    NOISE.TXT file is needed in ../ directory of compiled code
    
 6- DETECTOR RESPONSE
       
