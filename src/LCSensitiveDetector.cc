@@ -19,6 +19,8 @@ void LCSensitiveDetector::Initialize(G4HCofThisEvent *HCE){
     fHitsCollection = new LCHitsCollection(SensitiveDetectorName, collectionName[0]);
     HCE->AddHitsCollection(GetCollectionID(0), fHitsCollection);
 
+    // Create LCHit object for each pad position and add it to the hit collection.
+    // Hit collection is created at the begining of each event
     for(G4int layer=0; layer<8; layer++){
         for(G4int sector=0; sector<4; sector++){
             for(G4int pad=0; pad<64; pad++){
@@ -29,23 +31,26 @@ void LCSensitiveDetector::Initialize(G4HCofThisEvent *HCE){
 }
 
 G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
-
+    // If step has no energy deposit - skip
     G4double step_energy = step->GetTotalEnergyDeposit();
     if(step_energy == 0.) return false;
 
     G4StepPoint* prePoint = step->GetPreStepPoint();
 
+    //Calculate pad,sector,layer position based on replica number or Copy number
     G4int pad = prePoint->GetTouchable()->GetReplicaNumber(0);
     G4int sector = prePoint->GetTouchable()->GetReplicaNumber(1);
     //Carbon fiber copy number
     G4int layer = prePoint->GetTouchable()->GetCopyNumber(3);
 
+    // Get the hit from the collection corresponding to this position
     G4int cellID = pad + 64 * sector + 256 * layer;
-
     LCHit *hit = (*fHitsCollection)[cellID];
 
+    //Add step energy to it
     hit->AddHitEnergy(step_energy);
 
+    //Check if Step from a primary particle. If so, set IsPrimary to 1
     if(hit->GetIsPrimary() == 0 && step->GetTrack()->GetTrackID() == 1){
         hit->SetIsPrimary();
     }

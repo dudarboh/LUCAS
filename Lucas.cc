@@ -22,14 +22,17 @@
 
 
 int main(int argc, char** argv){
+    //Set random seeds
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
-
     G4int seed = time(NULL);
     G4Random::setTheSeed(seed);
 
+    // If no arguments passed - visualization mode
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
+    // Set here the number of threads for multithreaded mode.
+    // Not 100% tested. But seems to work good
     #ifdef G4MULTITHREADED
         G4MTRunManager *runManager = new G4MTRunManager;
         runManager->SetNumberOfThreads(1);
@@ -37,33 +40,39 @@ int main(int argc, char** argv){
         G4RunManager *runManager = new G4RunManager;
     #endif
 
+    // Define detector construction
     LCDetectorConstruction *detector = new LCDetectorConstruction;
     runManager->SetUserInitialization(detector);
 
+    //Physics list
+    // EMY and EMZ - claimed by Sasha to give different results at low angles
     G4PhysListFactory factory;
     G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
     // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
     // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMZ");
 
+    // 5 mkm Cut
     physicsList->SetDefaultCutValue(0.005*mm);
     runManager->SetUserInitialization(physicsList);
 
     LCActionInitialization *action = new LCActionInitialization;
     runManager->SetUserInitialization(action);
 
+    // Visualization
     G4VisManager *visManager = new G4VisExecutive;
     visManager->Initialise();
 
     G4UImanager *uiManager = G4UImanager::GetUIpointer();
 
     if(!ui){
-        // batch mode
+        // batch mode execute filname.mac
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
         uiManager->ApplyCommand(command+fileName);
     }
     else{
         // interactive mode
+        // CHANGE THIS macroPath so it can find init_vis.mac
         uiManager->ApplyCommand("/control/macroPath /home/FoxWise/FCAL/LUCAS");
         uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();

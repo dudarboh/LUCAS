@@ -15,12 +15,15 @@ class LCRun:public G4Run{
         virtual void RecordEvent(const G4Event*);
         void SimulateNoise();
     private:
+        //Vectors to be written as branches in the output root file
         std::vector<G4int> hit_sector;
         std::vector<G4int> hit_pad;
         std::vector<G4int> hit_layer;
         std::vector<G4double> hit_energy;
         std::vector<G4int> hit_primary;
 
+        //This array stores APV channels noise sigmas
+        // 4 sectors, 64 pads, 8 layers
         G4double fApvNoise[4][64][8] = {};
 };
 

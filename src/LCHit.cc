@@ -2,6 +2,9 @@
 
 G4ThreadLocal G4Allocator<LCHit>* LCHitAllocator = 0;
 
+
+// Hit is the energy deposit in a pad with a certain sector, pad, layer and hit_energy.
+// It also tracks whether Primary particle was crossing the pad or not
 LCHit::LCHit(G4int sector, G4int pad, G4int layer)
     :G4VHit(),
     hit_sector(sector),

@@ -3,23 +3,41 @@
 
 /run/initialize
 
-#Define isotropic source
+# Define electron gun
+
+# Angular isotropic distribution
 /gps/ang/type iso
+
+# Rotate it to shoot particles in the detector.
+# And make it diamond as in the test beam 2016
 /gps/pos/rot1 1 1 0
 /gps/pos/rot2 0 -1 0
+
+# Set theta smeating range.
 /gps/ang/mintheta 0. rad
 /gps/ang/maxtheta 0.752 mrad
 
+# Particle type
 /gps/particle e-
+
+# Energy distribution is a Gauss with mean of 5 GeV
+# and sigma 100 Mev
 /gps/ene/type Gauss
 /gps/ene/mono 5. GeV
 /gps/ene/sigma 0.105 GeV
 
+# Particle Sourse is plane square
 /gps/pos/type Plane
 /gps/pos/shape Square
+
+# Center of a square. Shifted a little bit to match data
 /gps/pos/centre -0.6 0. 0. mm
+
+# Half sizes of the beam
 /gps/pos/halfx 2.5 mm
 /gps/pos/halfy 2.5 mm
 
 # Number of events to proceed
 /run/beamOn 200000
+
+
