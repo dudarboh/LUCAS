@@ -32,13 +32,16 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
     -- Sensor thicknes - 0.8 mm
 
 2- PHYSICS LIST
+    
     QGSP_BERT
     Two different EM physics models mentioned by Sasha are commented in Lucas.cc
   
 3- ACTION INITALIZATION
+    
     Standart action initialization class to support multi-threading
 
 4- PRIMARY GENERATOR
+    
     GPS settings are tuned in startRun.mac macro.
 
     It defines particle type, energy, position, energy smearing, angular smearing, size 
@@ -48,7 +51,8 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
     Run class is used for writing collected data by Senstivive detector in the root file
     In the end of each event.
 
-    Run class also simulates electronic noise smearing. NOISE.TXT file is needed in ../ directory of comlied code
+    Run class also simulates electronic noise smearing.
+    NOISE.TXT file is needed in ../ directory of comlied code
    
 6- DETECTOR RESPONSE
       
