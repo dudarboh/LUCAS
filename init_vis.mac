@@ -25,7 +25,6 @@
 # for easy observation of the details
 /vis/viewer/set/targetPoint 0 -25.4 6767 mm
 #/vis/viewer/set/targetPoint 0 0 0 mm
-beam desy documentation of big red magnet
 
 # Draw trajectories
 /vis/modeling/trajectories/create/drawByCharge
@@ -33,7 +32,6 @@ beam desy documentation of big red magnet
 /vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
 
 # Draw gps source
-beam desy documentation of big red magnet
 /vis/scene/add/gps
 /vis/scene/add/trajectories smooth
 /vis/scene/endOfEventAction accumulate
