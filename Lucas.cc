@@ -8,7 +8,6 @@
 #include "LCDetectorConstruction.hh"
 #include "LCActionInitialization.hh"
 #include "LCPrimaryGeneratorAction.hh"
-#include "LCEventAction.hh"
 #include "LCSensitiveDetector.hh"
 #include "LCHit.hh"
 
@@ -73,7 +72,7 @@ int main(int argc, char** argv){
     else{
         // interactive mode
         // CHANGE THIS macroPath so it can find init_vis.mac
-        uiManager->ApplyCommand("/control/macroPath /home/FoxWise/FCAL/LUCAS");
+        uiManager->ApplyCommand("/control/macroPath ../");
         uiManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;

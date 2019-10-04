@@ -6,8 +6,6 @@
 #include "Randomize.hh"
 
 LCRun::LCRun(){
-    G4cout<<"LCRun Constructor is called";
-
     // Measure launch time
     fLaunchTime = std::chrono::system_clock::now();
 
@@ -46,9 +44,7 @@ LCRun::LCRun(){
     analysisManager->FinishNtuple();
 }
 
-LCRun::~LCRun(){
-    G4cout<<"LCRun destructor is called";
-}
+LCRun::~LCRun(){;}
 
 
 void LCRun::SimulateNoise(){

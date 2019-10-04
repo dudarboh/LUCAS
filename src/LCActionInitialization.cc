@@ -1,7 +1,6 @@
 #include "LCActionInitialization.hh"
 #include "LCPrimaryGeneratorAction.hh"
 #include "LCRunAction.hh"
-#include "LCEventAction.hh"
 
 LCActionInitialization::LCActionInitialization():G4VUserActionInitialization(){}
 
