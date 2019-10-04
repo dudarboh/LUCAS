@@ -12,5 +12,4 @@ void LCActionInitialization::BuildForMaster() const{SetUserAction(new LCRunActio
 void LCActionInitialization::Build() const{
     SetUserAction(new LCPrimaryGeneratorAction);
     SetUserAction(new LCRunAction);
-    SetUserAction(new LCEventAction);
 }

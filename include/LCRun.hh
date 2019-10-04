@@ -7,6 +7,8 @@
 #include "g4root.hh"
 
 #include <vector>
+#include <chrono>
+#include <ctime>
 
 class LCRun:public G4Run{
     public:
@@ -25,6 +27,9 @@ class LCRun:public G4Run{
         //This array stores APV channels noise sigmas
         // 4 sectors, 64 pads, 8 layers
         G4double fApvNoise[4][64][8] = {};
+
+        // Launch time
+        std::chrono::time_point<std::chrono::system_clock> fLaunchTime;
 };
 
 #endif

@@ -6,6 +6,11 @@
 #include "Randomize.hh"
 
 LCRun::LCRun(){
+    G4cout<<"LCRun Constructor is called";
+
+    // Measure launch time
+    fLaunchTime = std::chrono::system_clock::now();
+
     // This puts APV channel noise values into fApvNoise array
     SimulateNoise();
 
@@ -41,7 +46,9 @@ LCRun::LCRun(){
     analysisManager->FinishNtuple();
 }
 
-LCRun::~LCRun(){;}
+LCRun::~LCRun(){
+    G4cout<<"LCRun destructor is called";
+}
 
 
 void LCRun::SimulateNoise(){
@@ -71,6 +78,12 @@ void LCRun::SimulateNoise(){
 }
 
 void LCRun::RecordEvent(const G4Event* event){
+    //Count how much time elapsed
+    if(event->GetEventID() % 1000 == 0){
+        std::chrono::duration<double> timeElapsed = std::chrono::system_clock::now() - fLaunchTime;
+        G4cout<<"Time elapsed: "<<timeElapsed.count()<<" sec"<<G4endl;
+    }
+
     //Get hits collection ID for this event
     G4int HCID = G4SDManager::GetSDMpointer()->GetCollectionID("LumiCalHitsCollection"); 
 

@@ -1,5 +1,5 @@
 
-This is Geant4 simulation of LumiCal test beam setup in 2016
+Geant4 simulation of LumiCal test beam setup in 2016
 
 1- GEOMETRY DEFINITION
  
@@ -7,12 +7,12 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
 
 ![Test beam setup proportions](https://github.com/FoxWise/LUCAS/blob/master/TB2016setup_2.png)
 
-    Geometry of the testbeam in simulation is the following:
+    Geometry of the test beam in simulation is the following:
     - Primary particle source (gun) at the exit of colimator
     - 1st trigger scintilator
     - 3 MIMOSA Telescope planes
-    - Cu target (optional)
-    - Magnet (optional)
+    - Cu target (only in photon_runs branch)
+    - Magnet (only in photon_runs branch)
     - 3 MIMOSA Telescope planes
     - 2nd trigger scintilator
     - 3rd thick scintilator
@@ -25,11 +25,11 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
         -- Slot26 - Sensor + absorber
         -- SLot27 - Sensor + absorber
         -- Slot28 - Sensor + absorber
-        -- SLot29 - TAB glued Sensor + absorber (not used in the analysis)
+        -- SLot29 - TAB glued Sensor + absorber (was badly glued in the test beam)
 
     -- Slot width - 4.5 mm
     -- Absorber thickness - 3.5 mm
-    -- Sensor thicknes - 0.8 mm
+    -- Sensor thicknes - +-0.8 mm
 
 2- PHYSICS LIST
     
@@ -38,25 +38,25 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
   
 3- ACTION INITALIZATION
     
-    Standart action initialization class to support multi-threading
+    Standart action initialization class
 
 4- PRIMARY GENERATOR
     
-    GPS settings are tuned in startRun.mac macro.
-
-    It defines particle type, energy, position, energy smearing, angular smearing, size 
+    Gun settings are tuned in startRun.mac macro.
+    There you can define particle type, energy, position, energy smearing, angular smearing, size, etc.
  
-5- RUNS and EVENTS
-    Event class used only for printout to check speed of cimputation
-    Run class is used for writing collected data by Senstivive detector in the root file
-    In the end of each event.
+5- RUNS
 
-    Run class also simulates electronic noise smearing.
-    NOISE.TXT file is needed in ../ directory of comlied code
+    Run class is used for writing data in a  output root file by virtual RecordEvent
+    function of a base class which is called in the end of each event.
+
+    Run class also simulates electronic noise energy smearing.
+    You need NOISE.TXT file for this in the upstream directory (../)
+    If you don't have it, remove all lines which use this file and fApvNoise array in LCRun class
    
 6- DETECTOR RESPONSE
       
-    Energy deposited and IsPrimaryParticle are accounted in sensors pads
+    Energy deposited and IsPrimaryParticle are counted in sensors pads
     using sensitive detector.
     The physics quantities are stored in LCHit via LCSensitiveDetector
     objects. Sensitive detector is set to logical volume of the pad
@@ -76,15 +76,16 @@ This is Geant4 simulation of LumiCal test beam setup in 2016
     cmake --build . --target install
     cp ../noise.txt /path/to/
 
-    Copy noise file one folder up. Or comment noise simulation in Run class
-
+    Copy noise file one folder up. Or comment noise simulation in LCRun class
 
     To Run in Qt5 visualization mode:
+    Change MACRO PATH in Lucas.cc file, then:
     ./Lucas
     (IT WILL NOT WORK TILL YOU CHANGE MACRO PATH IN Lucas.cc)
-    It will not find init_vis.mac
+    Otherwise it will not find init_vis.mac
 
     To Run in batch mode:
     ./Lucas ../startRun.mac
 
-    It will produce 2 output root files. One of them is empty. Use only which has significat size
+    It will produce 2 output root files in the multi-threading mode. One of them is empty.
+    Use only which has significat size
