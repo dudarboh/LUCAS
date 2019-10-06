@@ -2,7 +2,8 @@
 #define LCSensitiveDetector_h 1
 
 #include "G4VSensitiveDetector.hh"
-#include "LCHit.hh"
+#include "LCTrHit.hh"
+#include "LCCalHit.hh"
 
 class G4Step;
 class G4HCofThisEvent;
@@ -16,7 +17,8 @@ class LCSensitiveDetector : public G4VSensitiveDetector{
         virtual G4bool ProcessHits(G4Step *step, G4TouchableHistory *history);
 
     private:
-        LCHitsCollection *fHitsCollection;
+        LCCalHitsCollection *fCalHC;
+        LCTrHitsCollection *fTrHC;
 };
 
 #endif

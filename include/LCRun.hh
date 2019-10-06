@@ -1,7 +1,8 @@
 #ifndef LCRun_h
 #define LCRun_h 1
 
-#include "LCHit.hh"
+#include "LCTrHit.hh"
+#include "LCCalHit.hh"
 
 #include "G4Run.hh"
 #include "g4root.hh"
@@ -18,11 +19,44 @@ class LCRun:public G4Run{
         void SimulateNoise();
     private:
         //Vectors to be written as branches in the output root file
-        std::vector<G4int> hit_sector;
-        std::vector<G4int> hit_pad;
-        std::vector<G4int> hit_layer;
-        std::vector<G4double> hit_energy;
-        std::vector<G4int> hit_primary;
+        std::vector<G4int> tr1_hit_sector;
+        std::vector<G4int> tr1_hit_pad;
+        std::vector<G4int> tr1_hit_layer;
+        std::vector<G4double> tr1_hit_energy;
+        std::vector<G4double> tr1_hit_length;
+        std::vector<G4int> tr1_hit_n_particles;
+
+        std::vector<G4double> tr1_particle_x;
+        std::vector<G4double> tr1_particle_y;
+        std::vector<G4double> tr1_particle_z;
+        std::vector<G4double> tr1_particle_px;
+        std::vector<G4double> tr1_particle_py;
+        std::vector<G4double> tr1_particle_pz;
+        std::vector<G4double> tr1_particle_energy;
+        std::vector<G4int> tr1_particle_type;
+        std::vector<G4int> tr1_particle_primary;
+
+        std::vector<G4int> tr2_hit_sector;
+        std::vector<G4int> tr2_hit_pad;
+        std::vector<G4int> tr2_hit_layer;
+        std::vector<G4double> tr2_hit_energy;
+        std::vector<G4double> tr2_hit_length;
+        std::vector<G4int> tr2_hit_n_particles;
+
+        std::vector<G4double> tr2_particle_x;
+        std::vector<G4double> tr2_particle_y;
+        std::vector<G4double> tr2_particle_z;
+        std::vector<G4double> tr2_particle_px;
+        std::vector<G4double> tr2_particle_py;
+        std::vector<G4double> tr2_particle_pz;
+        std::vector<G4double> tr2_particle_energy;
+        std::vector<G4int> tr2_particle_type;
+        std::vector<G4int> tr2_particle_primary;
+
+        std::vector<G4int> cal_hit_sector;
+        std::vector<G4int> cal_hit_pad;
+        std::vector<G4int> cal_hit_layer;
+        std::vector<G4double> cal_hit_energy;
 
         //This array stores APV channels noise sigmas
         // 4 sectors, 64 pads, 8 layers

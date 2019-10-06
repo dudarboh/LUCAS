@@ -1,5 +1,6 @@
 #include "LCRun.hh"
-#include "LCHit.hh"
+#include "LCTrHit.hh"
+#include "LCCalHit.hh"
 
 #include "G4SDManager.hh"
 #include "G4RunManager.hh"
@@ -31,15 +32,50 @@ LCRun::LCRun(){
     //Merge in the end if you run on multiple threads
     analysisManager->SetNtupleMerging(true);
     //Create a tree
-    analysisManager->CreateNtuple("LumiCal", "LumiCal TB simulation");
+    analysisManager->CreateNtuple("mc", "LumiCal TB16 simulation");
 
     //Columns for the tree to be written
-    analysisManager->CreateNtupleIColumn("hit_n");
-    analysisManager->CreateNtupleIColumn("hit_sector", hit_sector);
-    analysisManager->CreateNtupleIColumn("hit_pad", hit_pad);
-    analysisManager->CreateNtupleIColumn("hit_layer", hit_layer);
-    analysisManager->CreateNtupleDColumn("hit_energy", hit_energy);
-    analysisManager->CreateNtupleIColumn("hit_primary", hit_primary);
+    analysisManager->CreateNtupleIColumn("tr1_n_hits");
+    analysisManager->CreateNtupleIColumn("tr2_n_hits");
+    analysisManager->CreateNtupleIColumn("cal_n_hits");
+    analysisManager->CreateNtupleIColumn("tr1_hit_sector", tr1_hit_sector);
+    analysisManager->CreateNtupleIColumn("tr1_hit_pad", tr1_hit_pad);
+    analysisManager->CreateNtupleIColumn("tr1_hit_layer", tr1_hit_layer);
+    analysisManager->CreateNtupleDColumn("tr1_hit_energy", tr1_hit_energy);
+    analysisManager->CreateNtupleDColumn("tr1_hit_length", tr1_hit_length);
+    analysisManager->CreateNtupleIColumn("tr1_hit_n_particles", tr1_hit_n_particles);
+
+    analysisManager->CreateNtupleDColumn("tr1_particle_x", tr1_particle_x);
+    analysisManager->CreateNtupleDColumn("tr1_particle_y", tr1_particle_y);
+    analysisManager->CreateNtupleDColumn("tr1_particle_z", tr1_particle_z);
+    analysisManager->CreateNtupleDColumn("tr1_particle_px", tr1_particle_px);
+    analysisManager->CreateNtupleDColumn("tr1_particle_py", tr1_particle_py);
+    analysisManager->CreateNtupleDColumn("tr1_particle_pz", tr1_particle_pz);
+    analysisManager->CreateNtupleDColumn("tr1_particle_energy", tr1_particle_energy);
+    analysisManager->CreateNtupleIColumn("tr1_particle_type", tr1_particle_type);
+    analysisManager->CreateNtupleIColumn("tr1_particle_primary", tr1_particle_primary);
+
+    analysisManager->CreateNtupleIColumn("tr2_hit_sector", tr2_hit_sector);
+    analysisManager->CreateNtupleIColumn("tr2_hit_pad", tr2_hit_pad);
+    analysisManager->CreateNtupleIColumn("tr2_hit_layer", tr2_hit_layer);
+    analysisManager->CreateNtupleDColumn("tr2_hit_energy", tr2_hit_energy);
+    analysisManager->CreateNtupleDColumn("tr2_hit_length", tr2_hit_length);
+    analysisManager->CreateNtupleIColumn("tr2_hit_n_particles", tr2_hit_n_particles);
+
+    analysisManager->CreateNtupleDColumn("tr2_particle_x", tr2_particle_x);
+    analysisManager->CreateNtupleDColumn("tr2_particle_y", tr2_particle_y);
+    analysisManager->CreateNtupleDColumn("tr2_particle_z", tr2_particle_z);
+    analysisManager->CreateNtupleDColumn("tr2_particle_px", tr2_particle_px);
+    analysisManager->CreateNtupleDColumn("tr2_particle_py", tr2_particle_py);
+    analysisManager->CreateNtupleDColumn("tr2_particle_pz", tr2_particle_pz);
+    analysisManager->CreateNtupleDColumn("tr2_particle_energy", tr2_particle_energy);
+    analysisManager->CreateNtupleIColumn("tr2_particle_type", tr2_particle_type);
+    analysisManager->CreateNtupleIColumn("tr2_particle_primary", tr2_particle_primary);
+
+    analysisManager->CreateNtupleIColumn("cal_hit_sector", cal_hit_sector);
+    analysisManager->CreateNtupleIColumn("cal_hit_pad", cal_hit_pad);
+    analysisManager->CreateNtupleIColumn("cal_hit_layer", cal_hit_layer);
+    analysisManager->CreateNtupleDColumn("cal_hit_energy", cal_hit_energy);
 
     analysisManager->FinishNtuple();
 }
@@ -80,19 +116,24 @@ void LCRun::RecordEvent(const G4Event* event){
         G4cout<<"Time elapsed: "<<timeElapsed.count()<<" sec"<<G4endl;
     }
 
-    //Get hits collection ID for this event
-    G4int HCID = G4SDManager::GetSDMpointer()->GetCollectionID("LumiCalHitsCollection"); 
+    //Get hits collections IDs
+    G4int CalHCID = G4SDManager::GetSDMpointer()->GetCollectionID("LCCalHC"); 
+    G4int TrHCID = G4SDManager::GetSDMpointer()->GetCollectionID("LCTrHC"); 
 
     G4HCofThisEvent* HCE = event->GetHCofThisEvent();
 
     if(HCE){
-        //Get hits collection for this event
-        auto HitsCollection = static_cast<LCHitsCollection*>(HCE->GetHC(HCID));
+        //Get cal and tracker hits collection for this event
+        auto CalHC = static_cast<LCCalHitsCollection*>(HCE->GetHC(CalHCID));
+        auto TrHC = static_cast<LCTrHitsCollection*>(HCE->GetHC(TrHCID));
 
         G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();
 
-        G4int hit_n = 0;
-        LCHit *hit;
+        G4int cal_n_hits = 0;
+        G4int tr1_n_hits = 0;
+        G4int tr2_n_hits = 0;
+        LCCalHit *cal_hit;
+        LCTrHit *tr_hit;
         
         //Simulation of efficiency of the calorimeter
         G4double S0_cal = 0.819;
@@ -103,54 +144,145 @@ void LCRun::RecordEvent(const G4Event* event){
         G4double noise_energy;
         G4double energy_in_mips;
 
-        // Loop over all hits
-        for(G4int i=0; i<HitsCollection->entries(); i++){
-            hit = (*HitsCollection)[i];
+        // Loop over calorimeter hits
+        for(G4int i=0; i<CalHC->entries(); i++){
+            cal_hit = (*CalHC)[i];
 
-            if(hit->GetEnergy() <= 0.) continue;
+            if(cal_hit->hit_energy <= 0.) continue;
 
             //Extract hits coordinates
-            sector = hit->GetSector();
-            pad = hit->GetPad();
-            layer = hit->GetLayer();
+            sector = cal_hit->hit_sector;
+            pad = cal_hit->hit_pad;
+            layer = cal_hit->hit_layer;
 
             //Calculate electronic noise as a Gauss with mean - 0, sigma - 0.6*apvNoise
             noise_energy = G4RandGauss::shoot(0., 0.6*fApvNoise[sector][pad][layer]);
             //Add this to the hit energy
-            hit->AddHitEnergy(noise_energy);
+            cal_hit->hit_energy += noise_energy;
 
             // Convert energy from MeV into MIPs
-            energy_in_mips = (hit->GetEnergy())/0.0885;
-
-            //This is COMPLETELY MY ANALYSIS CUT region to lower a computation time a bit
-            // if(energy_in_mips <= 0. || sector == 0 || sector == 3 || pad < 20) continue;
+            energy_in_mips = (cal_hit->hit_energy)/0.0885;
 
             // If hit is in calorimeter - reject hit with a probability based on efficiency curve
             // measured for the paper
-            if(layer > 1){
-                if(G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
-            }
+            if(G4UniformRand() > (1. + std::erf((energy_in_mips - S0_cal) / p1_cal)) * p0) continue;
              
             // Write hit in the root file
-            hit_sector.push_back(sector);
-            hit_pad.push_back(pad);
-            hit_layer.push_back(layer);
-            hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
-            hit_primary.push_back(hit->GetIsPrimary());
+            cal_hit_sector.push_back(sector);
+            cal_hit_pad.push_back(pad);
+            cal_hit_layer.push_back(layer);
+            cal_hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
         
-            hit_n ++;
+            cal_n_hits ++;
         }
         // Write number of hits
-        analysisManager->FillNtupleIColumn(0, hit_n);
+        analysisManager->FillNtupleIColumn(2, cal_n_hits);
         
+        for(G4int i=0; i<TrHC->entries(); i++){
+            tr_hit = (*TrHC)[i];
+
+            //Extract hits coordinates
+            sector = tr_hit->hit_sector;
+            pad = tr_hit->hit_pad;
+            layer = tr_hit->hit_layer;
+
+            //Calculate electronic noise as a Gauss with mean - 0, sigma - 0.6*apvNoise
+            noise_energy = G4RandGauss::shoot(0., 0.6*fApvNoise[sector][pad][layer]);
+            //Add this to the hit energy
+            tr_hit->hit_energy += noise_energy;
+
+            // Convert energy from MeV into MIPs
+            energy_in_mips = (tr_hit->hit_energy)/0.0885;
+             
+            // Write tr1 hit in the root file
+            if(layer == 0){
+                tr1_hit_sector.push_back(sector);
+                tr1_hit_pad.push_back(pad);
+                tr1_hit_layer.push_back(layer);
+                tr1_hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
+                tr1_hit_length.push_back(tr_hit->hit_length);
+                tr1_hit_n_particles.push_back(tr_hit->hit_n_particles);
+                for(G4int j=0; j<tr_hit->hit_n_particles; j++){
+                    tr1_particle_x.push_back(tr_hit->particle_x[j]);
+                    tr1_particle_y.push_back(tr_hit->particle_y[j]);
+                    tr1_particle_z.push_back(tr_hit->particle_z[j]);
+                    tr1_particle_px.push_back(tr_hit->particle_px[j]);
+                    tr1_particle_py.push_back(tr_hit->particle_py[j]);
+                    tr1_particle_pz.push_back(tr_hit->particle_pz[j]);
+                    tr1_particle_energy.push_back(tr_hit->particle_energy[j]);
+                    tr1_particle_type.push_back(tr_hit->particle_type[j]);
+                    tr1_particle_primary.push_back(tr_hit->particle_primary[j]);
+                }
+                tr1_n_hits ++;
+
+            }
+            // Write tr2 hit in the root file
+            if(layer == 1){
+                tr2_hit_sector.push_back(sector);
+                tr2_hit_pad.push_back(pad);
+                tr2_hit_layer.push_back(layer);
+                tr2_hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
+                tr2_hit_length.push_back(tr_hit->hit_length);
+                tr2_hit_n_particles.push_back(tr_hit->hit_n_particles);
+                for(G4int j=0; j<tr_hit->hit_n_particles; j++){
+                    tr2_particle_x.push_back(tr_hit->particle_x[j]);
+                    tr2_particle_y.push_back(tr_hit->particle_y[j]);
+                    tr2_particle_z.push_back(tr_hit->particle_z[j]);
+                    tr2_particle_px.push_back(tr_hit->particle_px[j]);
+                    tr2_particle_py.push_back(tr_hit->particle_py[j]);
+                    tr2_particle_pz.push_back(tr_hit->particle_pz[j]);
+                    tr2_particle_energy.push_back(tr_hit->particle_energy[j]);
+                    tr2_particle_type.push_back(tr_hit->particle_type[j]);
+                    tr2_particle_primary.push_back(tr_hit->particle_primary[j]);
+                }
+                tr2_n_hits ++;
+            }
+        }
+        // Write number of hits
+        analysisManager->FillNtupleIColumn(0, tr1_n_hits);
+        analysisManager->FillNtupleIColumn(1, tr2_n_hits);
+
         analysisManager->AddNtupleRow();
 
         // Clear all vectors
-        hit_sector.clear();
-        hit_pad.clear();
-        hit_layer.clear();
-        hit_energy.clear();
-        hit_primary.clear();
+        tr1_hit_sector.clear();
+        tr1_hit_pad.clear();
+        tr1_hit_layer.clear();
+        tr1_hit_energy.clear();
+        tr1_hit_length.clear();
+        tr1_hit_n_particles.clear();
+
+        tr1_particle_x.clear();
+        tr1_particle_y.clear();
+        tr1_particle_z.clear();
+        tr1_particle_px.clear();
+        tr1_particle_py.clear();
+        tr1_particle_pz.clear();
+        tr1_particle_energy.clear();
+        tr1_particle_type.clear();
+        tr1_particle_primary.clear();
+
+        tr2_hit_sector.clear();
+        tr2_hit_pad.clear();
+        tr2_hit_layer.clear();
+        tr2_hit_energy.clear();
+        tr2_hit_length.clear();
+        tr2_hit_n_particles.clear();
+
+        tr2_particle_x.clear();
+        tr2_particle_y.clear();
+        tr2_particle_z.clear();
+        tr2_particle_px.clear();
+        tr2_particle_py.clear();
+        tr2_particle_pz.clear();
+        tr2_particle_energy.clear();
+        tr2_particle_type.clear();
+        tr2_particle_primary.clear();
+
+        cal_hit_sector.clear();
+        cal_hit_pad.clear();
+        cal_hit_layer.clear();
+        cal_hit_energy.clear();
     }
     //Idk why I need it, but its in the example and works fine
     G4Run::RecordEvent(event);
