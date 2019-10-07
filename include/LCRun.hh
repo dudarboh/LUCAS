@@ -23,8 +23,7 @@ class LCRun:public G4Run{
         std::vector<G4int> tr1_hit_pad;
         std::vector<G4int> tr1_hit_layer;
         std::vector<G4double> tr1_hit_energy;
-        std::vector<G4double> tr1_hit_length;
-        std::vector<G4int> tr1_hit_n_particles;
+        std::vector<G4int> tr1_hit_type;
 
         std::vector<G4double> tr1_particle_x;
         std::vector<G4double> tr1_particle_y;
@@ -33,15 +32,12 @@ class LCRun:public G4Run{
         std::vector<G4double> tr1_particle_py;
         std::vector<G4double> tr1_particle_pz;
         std::vector<G4double> tr1_particle_energy;
-        std::vector<G4int> tr1_particle_type;
-        std::vector<G4int> tr1_particle_primary;
 
         std::vector<G4int> tr2_hit_sector;
         std::vector<G4int> tr2_hit_pad;
         std::vector<G4int> tr2_hit_layer;
         std::vector<G4double> tr2_hit_energy;
-        std::vector<G4double> tr2_hit_length;
-        std::vector<G4int> tr2_hit_n_particles;
+        std::vector<G4int> tr2_hit_type;
 
         std::vector<G4double> tr2_particle_x;
         std::vector<G4double> tr2_particle_y;
@@ -50,8 +46,6 @@ class LCRun:public G4Run{
         std::vector<G4double> tr2_particle_py;
         std::vector<G4double> tr2_particle_pz;
         std::vector<G4double> tr2_particle_energy;
-        std::vector<G4int> tr2_particle_type;
-        std::vector<G4int> tr2_particle_primary;
 
         std::vector<G4int> cal_hit_sector;
         std::vector<G4int> cal_hit_pad;

@@ -46,6 +46,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4int layer = prePoint->GetTouchable()->GetCopyNumber(3);
     G4int pad = prePoint->GetTouchable()->GetReplicaNumber(0);
     G4int sector = prePoint->GetTouchable()->GetReplicaNumber(1);
+    auto particle_name = step->GetTrack()->GetParticleDefinition()->GetParticleName();
 
     G4double e_dep = step->GetTotalEnergyDeposit();
     if(layer > 1 && e_dep > 0.){
@@ -54,7 +55,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
         LCCalHit *hit = (*fCalHC)[cellID];
 
         //Add step energy to it
-        hit->hit_energy += e_dep;
+        hit->energy += e_dep;
         return true;
     }
 
@@ -64,7 +65,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
         for(G4int j=0; j<fTrHC->entries(); j++){
             LCTrHit* existed_hit = (*fTrHC)[j];
 
-            if(existed_hit->hit_sector == sector && existed_hit->hit_pad == pad){
+            if(existed_hit->sector == sector && existed_hit->pad == pad && existed_hit->layer == layer){
                 hit = (*fTrHC)[j];
                 break;
             }
@@ -74,42 +75,61 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
             fTrHC->insert(hit);
         }
         // Add energy
-        hit->hit_energy += e_dep;
-
-        //Add charged track length
-        if(step->GetTrack()->GetDefinition()->GetPDGCharge() != 0.){
-            hit->hit_length += step->GetStepLength();
-        }
+        hit->energy += e_dep;
 
         //If enters the volume add particles properties
-        if(prePoint->GetStepStatus() == fGeomBoundary){
-            hit->hit_n_particles ++;
-            G4ThreeVector position = prePoint->GetPosition();
-            hit->particle_x.push_back(position.getX());
-            hit->particle_y.push_back(position.getY());
-            hit->particle_z.push_back(position.getZ());
-            
-            G4ThreeVector momentum = prePoint->GetMomentum();
-            hit->particle_px.push_back(momentum.getX());
-            hit->particle_py.push_back(momentum.getY());
-            hit->particle_pz.push_back(momentum.getZ());
+        if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 0 && hit->type != 1){
+            //Assign hit type:
+            // 0 - mixed
+            // 1 - primary
+            // 2 - scattered
+            // 3 - back-scattered electron
+            // 4 - back-scattered gamma
+            // 5 - back-scattered positron
+            // 6 - back-scattered neutron
+            // 7 - back-scattered pi-
+            // 7 - back-scattered pi+
+            // If hit wasn't assigned yet, make an assignment
+            if(hit->type == -1){
+                //Make primary
+                if (step->GetTrack()->GetTrackID() == 1) hit->type = 1;
+                // Make scattered
+                else if (prePoint->GetMomentum().getZ() > 0.) hit->type = 2;
+                // Make back-scattered
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-") hit->type = 3;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma") hit->type = 4;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+") hit->type = 5;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron") hit->type = 6;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-") hit->type = 7;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+") hit->type = 8;
+                else{
+                    G4cout<<"THE UNASSIGNED PARTICLE:"<<particle_name<<G4endl;
+                }
+                G4ThreeVector position = prePoint->GetPosition();
+                hit->particle_x = position.getX();
+                hit->particle_y = position.getY();
+                hit->particle_z = position.getZ();
+                
+                G4ThreeVector momentum = prePoint->GetMomentum();
+                hit->particle_px = momentum.getX();
+                hit->particle_py = momentum.getY();
+                hit->particle_pz = momentum.getZ();
 
-            G4double kin_energy = prePoint->GetKineticEnergy();
-            hit->particle_energy.push_back(kin_energy);
-
-            G4int type = step->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
-
-            hit->particle_type.push_back(type);
-
-            if(step->GetTrack()->GetTrackID() == 1){
-                hit->particle_primary.push_back(1);
+                hit->particle_energy = prePoint->GetKineticEnergy();
             }
+            // If was assignmed before, check whether it mixed or not
             else{
-                hit->particle_primary.push_back(0);
+                if (prePoint->GetMomentum().getZ() > 0. && hit->type != 2) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-" && hit->type != 3) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma" && hit->type != 4) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+" && hit->type != 5) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron" && hit->type != 6) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-" && hit->type != 7) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+" && hit->type != 8) hit->type = 0;
             }
-        }
+        } // end if boundary
         return true;
-    }
+    } // end if tracker
     return false;
 }
 

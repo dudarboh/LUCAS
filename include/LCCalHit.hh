@@ -7,15 +7,15 @@
 
 class LCCalHit:public G4VHit{
     public:
-        LCCalHit(G4int sector, G4int pad, G4int layer);
+        LCCalHit(G4int s, G4int p, G4int l);
 
         virtual ~LCCalHit();
 
         inline void* operator new(size_t);
         inline void  operator delete(void*);
 
-        G4int hit_sector, hit_pad, hit_layer;
-        G4double hit_energy;
+        G4int sector, pad, layer;
+        G4double energy;
 };  
 
 // You just need this part. Dont change it

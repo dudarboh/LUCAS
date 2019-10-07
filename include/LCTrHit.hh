@@ -5,34 +5,25 @@
 #include "G4THitsCollection.hh"
 #include "G4Types.hh"
 
-#include <vector>
-
 class LCTrHit:public G4VHit{
     public:
-        LCTrHit(G4int sector, G4int pad, G4int layer);
+        LCTrHit(G4int s, G4int p, G4int l);
 
         virtual ~LCTrHit();
 
         inline void* operator new(size_t);
         inline void  operator delete(void*);
 
-        // Adds energy to the pad
-        void AddHitEnergy(G4double energy);
+        G4int sector, pad, layer, type;
+        G4double energy;
 
-        G4int hit_sector, hit_pad, hit_layer, hit_n_particles;
-        G4double hit_energy;
-        G4double hit_length;
-
-        std::vector<G4double> particle_x;
-        std::vector<G4double> particle_y;
-        std::vector<G4double> particle_z;
-        std::vector<G4int> particle_type;
-        std::vector<G4double> particle_px;
-        std::vector<G4double> particle_py;
-        std::vector<G4double> particle_pz;
-        std::vector<G4double> particle_energy;
-        std::vector<G4int> particle_primary;
-
+        G4double particle_x;
+        G4double particle_y;
+        G4double particle_z;
+        G4double particle_px;
+        G4double particle_py;
+        G4double particle_pz;
+        G4double particle_energy;
 };  
 
 // You just need this part. Dont change it
