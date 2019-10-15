@@ -10,52 +10,127 @@
 
 LCSensitiveDetector::LCSensitiveDetector(G4String detector_name)
     :G4VSensitiveDetector(detector_name){
-    collectionName.insert("LumiCalHitsCollection");
+    collectionName.insert("LCCalHC");
+    collectionName.insert("LCTrHC");
 }
 
 LCSensitiveDetector::~LCSensitiveDetector(){}
 
 void LCSensitiveDetector::Initialize(G4HCofThisEvent *HCE){
-    fHitsCollection = new LCHitsCollection(SensitiveDetectorName, collectionName[0]);
-    HCE->AddHitsCollection(GetCollectionID(0), fHitsCollection);
+    fCalHC = new LCCalHitsCollection(SensitiveDetectorName, collectionName[0]);
+    HCE->AddHitsCollection(GetCollectionID(0), fCalHC);
+
+    fTrHC = new LCTrHitsCollection(SensitiveDetectorName, collectionName[1]);
+    HCE->AddHitsCollection(GetCollectionID(1), fTrHC);
 
     // Create LCHit object for each pad position and add it to the hit collection.
     // Hit collection is created at the begining of each event
-    for(G4int layer=0; layer<8; layer++){
+    for(G4int layer=2; layer<8; layer++){
         for(G4int sector=0; sector<4; sector++){
             for(G4int pad=0; pad<64; pad++){
-                fHitsCollection->insert(new LCHit(sector, pad, layer));
+                fCalHC->insert(new LCCalHit(sector, pad, layer));
             }
         }
     }
 }
 
 G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
-    // If step has no energy deposit - skip
-    G4double step_energy = step->GetTotalEnergyDeposit();
-    if(step_energy == 0.) return false;
-
-    G4StepPoint* prePoint = step->GetPreStepPoint();
-
-    //Calculate pad,sector,layer position based on replica number or Copy number
+    // 1) Check the layer to see is it calorimeter or Tracker hit
+    // 2) If calorimeter hit, just add the energy to the cell
+    // 3) If tracker hit:
+    // 3.1) Create LCTrHit if doesn't exist
+    // 3.2) Add energy
+    // 3.3) Add particle if enters the Tracker volome
+    // Carbon fiber copy number
+    auto prePoint = step->GetPreStepPoint();
+    G4int layer = prePoint->GetTouchable()->GetCopyNumber(3);
     G4int pad = prePoint->GetTouchable()->GetReplicaNumber(0);
     G4int sector = prePoint->GetTouchable()->GetReplicaNumber(1);
-    //Carbon fiber copy number
-    G4int layer = prePoint->GetTouchable()->GetCopyNumber(3);
+    auto particle_name = step->GetTrack()->GetParticleDefinition()->GetParticleName();
 
-    // Get the hit from the collection corresponding to this position
-    G4int cellID = pad + 64 * sector + 256 * layer;
-    LCHit *hit = (*fHitsCollection)[cellID];
+    G4double e_dep = step->GetTotalEnergyDeposit();
+    if(layer > 1 && e_dep > 0.){
+        // Get the hit from the collection corresponding to this position
+        G4int cellID = pad + 64 * sector + 256 * (layer-2);
+        LCCalHit *hit = (*fCalHC)[cellID];
 
-    //Add step energy to it
-    hit->AddHitEnergy(step_energy);
-
-    //Check if Step from a primary particle. If so, set IsPrimary to 1
-    if(hit->GetIsPrimary() == 0 && step->GetTrack()->GetTrackID() == 1){
-        hit->SetIsPrimary();
+        //Add step energy to it
+        hit->energy += e_dep;
+        return true;
     }
 
-    return true;
+    if(layer <= 1){
+        LCTrHit *hit = NULL;
+        //Loop over collection and check whether this hit already exists
+        for(G4int j=0; j<fTrHC->entries(); j++){
+            LCTrHit* existed_hit = (*fTrHC)[j];
+
+            if(existed_hit->sector == sector && existed_hit->pad == pad && existed_hit->layer == layer){
+                hit = (*fTrHC)[j];
+                break;
+            }
+        }
+        if(!hit){
+            hit = new LCTrHit(sector, pad, layer);
+            fTrHC->insert(hit);
+        }
+        // Add energy
+        hit->energy += e_dep;
+
+        //If enters the volume add particles properties
+        if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 0 && hit->type != 1){
+            //Assign hit type:
+            // 0 - mixed
+            // 1 - primary
+            // 2 - scattered
+            // 3 - back-scattered electron
+            // 4 - back-scattered gamma
+            // 5 - back-scattered positron
+            // 6 - back-scattered neutron
+            // 7 - back-scattered pi-
+            // 7 - back-scattered pi+
+            // If hit wasn't assigned yet, make an assignment
+            if(hit->type == -1){
+                //Make primary
+                if (step->GetTrack()->GetTrackID() == 1) hit->type = 1;
+                // Make scattered
+                else if (prePoint->GetMomentum().getZ() > 0.) hit->type = 2;
+                // Make back-scattered
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-") hit->type = 3;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma") hit->type = 4;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+") hit->type = 5;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron") hit->type = 6;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-") hit->type = 7;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+") hit->type = 8;
+                else{
+                    G4cout<<"THE UNASSIGNED PARTICLE:"<<particle_name<<G4endl;
+                }
+                G4ThreeVector position = prePoint->GetPosition();
+                hit->particle_x = position.getX();
+                hit->particle_y = position.getY();
+                hit->particle_z = position.getZ();
+                
+                G4ThreeVector momentum = prePoint->GetMomentum();
+                hit->particle_px = momentum.getX();
+                hit->particle_py = momentum.getY();
+                hit->particle_pz = momentum.getZ();
+
+                hit->particle_energy = prePoint->GetKineticEnergy();
+            }
+            // If was assignmed before, check whether it mixed or not
+            else{
+                if (prePoint->GetMomentum().getZ() > 0. && hit->type != 2) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-" && hit->type != 3) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma" && hit->type != 4) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+" && hit->type != 5) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron" && hit->type != 6) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-" && hit->type != 7) hit->type = 0;
+                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+" && hit->type != 8) hit->type = 0;
+            }
+        } // end if boundary
+        return true;
+    } // end if tracker
+    return false;
 }
 
 

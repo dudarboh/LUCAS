@@ -9,7 +9,8 @@
 #include "LCActionInitialization.hh"
 #include "LCPrimaryGeneratorAction.hh"
 #include "LCSensitiveDetector.hh"
-#include "LCHit.hh"
+#include "LCTrHit.hh"
+#include "LCCalHit.hh"
 
 #include "G4PhysListFactory.hh"
 
