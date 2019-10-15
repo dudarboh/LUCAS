@@ -198,7 +198,7 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
     //Place sensors and absorbers in the box slots
     //ySlotPos shifts detector down so electrons hit in the same area as 5 GeV electrons in the TB16 data
-    G4double ySlotPos = -(164.3 - 80. - (195.2 - 80.) / 2.)*mm;
+    G4double ySlotPos = -(168.3 - 80. - (195.2 - 80.) / 2.)*mm;
     G4double zSlot = 4.5*mm;
     // misalignments of each plane is taken from Itamar simulation
     G4double misalignment[8] = {-0.11*mm, -1.26*mm, 0.46*mm, -0.275644*mm, 1.87705*mm, -1.2183*mm, 0.53323*mm, 0.*mm};
@@ -275,7 +275,11 @@ void LCDetectorConstruction::ConstructSDandField(){
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
 
-    fMagField = new G4UniformMagField(7/80.*tesla, 0.*tesla, 0.*tesla);
+    // Add uniform magnetic field
+    // B Value theoreticaly is close to the data ones, but IS NOT TESTED!!!
+    fMagField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
+
+    // Create field manager and set chord finder
     fFieldMgr = new G4FieldManager();
     fFieldMgr->SetDetectorField(fMagField);
     fFieldMgr->CreateChordFinder(fMagField);

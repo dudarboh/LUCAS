@@ -23,7 +23,7 @@
 
 # Set the point of rotation for the viewer
 # for easy observation of the details
-/vis/viewer/set/targetPoint 0 -25.4 6767 mm
+/vis/viewer/set/targetPoint 0 -25.4 2118. mm
 #/vis/viewer/set/targetPoint 0 0 0 mm
 
 # Draw trajectories
