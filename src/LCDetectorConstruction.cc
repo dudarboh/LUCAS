@@ -275,8 +275,7 @@ void LCDetectorConstruction::ConstructSDandField(){
     G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
     SetSensitiveDetector("logicSensorPad", SDetector);
 
-    // Add uniform magnetic field
-    // B Value theoreticaly is close to the data ones, but IS NOT TESTED!!!
+    // Add uniform magnetic field. B Value is close to the data ones
     fMagField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
 
     // Create field manager and set chord finder
