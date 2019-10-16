@@ -15,7 +15,7 @@ class LCTrHit:public G4VHit{
         inline void  operator delete(void*);
 
         G4int sector, pad, layer, type;
-        G4double energy;
+        G4double energy, track_len;
 
         G4double particle_x;
         G4double particle_y;

@@ -43,6 +43,7 @@ LCRun::LCRun(){
     analysisManager->CreateNtupleIColumn("tr1_hit_layer", tr1_hit_layer);
     analysisManager->CreateNtupleDColumn("tr1_hit_energy", tr1_hit_energy);
     analysisManager->CreateNtupleIColumn("tr1_hit_type", tr1_hit_type);
+    analysisManager->CreateNtupleDColumn("tr1_hit_track_len", tr1_hit_track_len);
 
     analysisManager->CreateNtupleDColumn("tr1_particle_x", tr1_particle_x);
     analysisManager->CreateNtupleDColumn("tr1_particle_y", tr1_particle_y);
@@ -57,6 +58,7 @@ LCRun::LCRun(){
     analysisManager->CreateNtupleIColumn("tr2_hit_layer", tr2_hit_layer);
     analysisManager->CreateNtupleDColumn("tr2_hit_energy", tr2_hit_energy);
     analysisManager->CreateNtupleIColumn("tr2_hit_type", tr2_hit_type);
+    analysisManager->CreateNtupleDColumn("tr2_hit_track_len", tr2_hit_track_len);
 
     analysisManager->CreateNtupleDColumn("tr2_particle_x", tr2_particle_x);
     analysisManager->CreateNtupleDColumn("tr2_particle_y", tr2_particle_y);
@@ -197,6 +199,7 @@ void LCRun::RecordEvent(const G4Event* event){
                 tr1_hit_layer.push_back(layer);
                 tr1_hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
                 tr1_hit_type.push_back(tr_hit->type);
+                tr1_hit_track_len.push_back(tr_hit->track_len);
 
                 tr1_particle_x.push_back(tr_hit->particle_x);
                 tr1_particle_y.push_back(tr_hit->particle_y);
@@ -215,6 +218,7 @@ void LCRun::RecordEvent(const G4Event* event){
                 tr2_hit_layer.push_back(layer);
                 tr2_hit_energy.push_back(energy_in_mips); // Write energy in MIPs not MeV
                 tr2_hit_type.push_back(tr_hit->type);
+                tr2_hit_track_len.push_back(tr_hit->track_len);
 
                 tr2_particle_x.push_back(tr_hit->particle_x);
                 tr2_particle_y.push_back(tr_hit->particle_y);
@@ -238,6 +242,7 @@ void LCRun::RecordEvent(const G4Event* event){
         tr1_hit_layer.clear();
         tr1_hit_energy.clear();
         tr1_hit_type.clear();
+        tr1_hit_track_len.clear();
 
         tr1_particle_x.clear();
         tr1_particle_y.clear();
@@ -252,6 +257,7 @@ void LCRun::RecordEvent(const G4Event* event){
         tr2_hit_layer.clear();
         tr2_hit_energy.clear();
         tr2_hit_type.clear();
+        tr2_hit_track_len.clear();
 
         tr2_particle_x.clear();
         tr2_particle_y.clear();

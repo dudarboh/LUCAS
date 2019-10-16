@@ -48,7 +48,10 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4int sector = prePoint->GetTouchable()->GetReplicaNumber(1);
     auto particle_name = step->GetTrack()->GetParticleDefinition()->GetParticleName();
 
+
     G4double e_dep = step->GetTotalEnergyDeposit();
+
+    // If calorimeter:
     if(layer > 1 && e_dep > 0.){
         // Get the hit from the collection corresponding to this position
         G4int cellID = pad + 64 * sector + 256 * (layer-2);
@@ -59,6 +62,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
         return true;
     }
 
+    // If tracker:
     if(layer <= 1){
         LCTrHit *hit = NULL;
         //Loop over collection and check whether this hit already exists
@@ -74,34 +78,30 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
             hit = new LCTrHit(sector, pad, layer);
             fTrHC->insert(hit);
         }
-        // Add energy
+        // Add energy and track length
         hit->energy += e_dep;
+        G4double stepLength = 0.;
+        if(step->GetTrack()->GetDefinition()->GetPDGCharge() != 0.) stepLength = step->GetStepLength();
+        hit->track_len += stepLength;
 
         //If enters the volume add particles properties
         if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 0 && hit->type != 1){
             //Assign hit type:
             // 0 - mixed
             // 1 - primary
-            // 2 - scattered
-            // 3 - back-scattered electron
-            // 4 - back-scattered gamma
-            // 5 - back-scattered positron
-            // 6 - back-scattered neutron
-            // 7 - back-scattered pi-
-            // 7 - back-scattered pi+
+            // 2 - electron
+            // 3 - gamma
+            // 4 - positron
+            // 5 - hadrons
             // If hit wasn't assigned yet, make an assignment
             if(hit->type == -1){
                 //Make primary
                 if (step->GetTrack()->GetTrackID() == 1) hit->type = 1;
-                // Make scattered
-                else if (prePoint->GetMomentum().getZ() > 0.) hit->type = 2;
                 // Make back-scattered
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-") hit->type = 3;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma") hit->type = 4;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+") hit->type = 5;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron") hit->type = 6;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-") hit->type = 7;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+") hit->type = 8;
+                else if (particle_name == "e-") hit->type = 2;
+                else if (particle_name == "gamma") hit->type = 3;
+                else if (particle_name == "e+") hit->type = 4;
+                else if (particle_name == "pi-" || particle_name == "pi+" || particle_name == "neutron" || particle_name == "proton") hit->type = 5;
                 else{
                     G4cout<<"THE UNASSIGNED PARTICLE:"<<particle_name<<G4endl;
                 }
@@ -119,13 +119,13 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
             }
             // If was assignmed before, check whether it mixed or not
             else{
-                if (prePoint->GetMomentum().getZ() > 0. && hit->type != 2) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e-" && hit->type != 3) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "gamma" && hit->type != 4) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "e+" && hit->type != 5) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "neutron" && hit->type != 6) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi-" && hit->type != 7) hit->type = 0;
-                else if (prePoint->GetMomentum().getZ() < 0. && particle_name == "pi+" && hit->type != 8) hit->type = 0;
+                if (particle_name == "e-" && hit->type != 2) hit->type = 0;
+                else if (particle_name == "gamma" && hit->type != 3) hit->type = 0;
+                else if (particle_name == "e+" && hit->type != 4) hit->type = 0;
+                else if ((particle_name == "pi-"
+                        || particle_name == "pi+"
+                        || particle_name == "neutron"
+                        || particle_name == "proton") && hit->type != 5) hit->type = 0;
             }
         } // end if boundary
         return true;
