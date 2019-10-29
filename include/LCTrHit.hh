@@ -17,6 +17,7 @@ class LCTrHit:public G4VHit{
         G4int sector, pad, layer, type;
         G4double energy, track_len;
 
+        G4int track_id;
         G4double particle_x;
         G4double particle_y;
         G4double particle_z;

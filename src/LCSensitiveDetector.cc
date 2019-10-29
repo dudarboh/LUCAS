@@ -47,6 +47,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4int pad = prePoint->GetTouchable()->GetReplicaNumber(0);
     G4int sector = prePoint->GetTouchable()->GetReplicaNumber(1);
     auto particle_name = step->GetTrack()->GetParticleDefinition()->GetParticleName();
+    auto track_id = step->GetTrack()->GetTrackID();
 
 
     G4double e_dep = step->GetTotalEnergyDeposit();
@@ -96,7 +97,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
             // If hit wasn't assigned yet, make an assignment
             if(hit->type == -1){
                 //Make primary
-                if (step->GetTrack()->GetTrackID() == 1) hit->type = 1;
+                if (track_id == 1) hit->type = 1;
                 // Make back-scattered
                 else if (particle_name == "e-") hit->type = 2;
                 else if (particle_name == "gamma") hit->type = 3;
@@ -116,6 +117,7 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
                 hit->particle_pz = momentum.getZ();
 
                 hit->particle_energy = prePoint->GetKineticEnergy();
+                hit->track_id = track_id;
             }
             // If was assignmed before, check whether it mixed or not
             else{
