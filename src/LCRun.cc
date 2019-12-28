@@ -278,6 +278,6 @@ void LCRun::RecordEvent(const G4Event* event){
         cal_hit_layer.clear();
         cal_hit_energy.clear();
     }
-    //Idk why I need it, but its in the example and works fine
+    //numberOfEvent++;
     G4Run::RecordEvent(event);
 }

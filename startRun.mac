@@ -38,6 +38,6 @@
 /gps/pos/halfy 2.5 mm
 
 # Number of events to proceed
-/run/beamOn 500
+/run/beamOn 1000
 
 
