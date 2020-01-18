@@ -19,9 +19,11 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         virtual G4VPhysicalVolume *Construct();
         virtual void ConstructSDandField();
     private:
+    #ifdef RUN_PH
         G4LogicalVolume *logicMagnet;
         static G4ThreadLocal G4UniformMagField* fMagField;
         static G4ThreadLocal G4FieldManager* fFieldMgr;
+    #endif
 };
 
 
