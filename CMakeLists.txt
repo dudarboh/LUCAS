@@ -1,6 +1,4 @@
-# Tested only with 3.3 version
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-# Project name
 project(Lucas)
 
 # Print all warning to possibly improve the code
@@ -28,6 +26,8 @@ option(RUN_PH "Compile a run with a magnet and target for photons" OFF)
 if(RUN_PH)
     add_definitions("-DRUN_PH")
 endif()
+message("NOTICE: To make simulation of a photon run, rerun last cmake command with option -DRUN_PH=ON".
+    By default electron run geometry is generated.)
 
 
 
