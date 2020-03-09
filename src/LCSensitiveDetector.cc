@@ -86,19 +86,23 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
         hit->track_len += stepLength;
 
         //If enters the volume add particles properties
-        if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 0 && hit->type != 1){
+        if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 1){
             //Assign hit type:
-            // 0 - mixed
             // 1 - primary
             // 2 - electron
             // 3 - gamma
             // 4 - positron
             // 5 - hadrons
-            // If hit wasn't assigned yet, make an assignment
-            if(hit->type == -1){
+            // If hit wasn't assigned yet
+            // or it has gamma writen instead of electron
+            // or electron is with lower energy is written instead of the bigger one
+            // make an assignment
+            if((hit->type == -1)
+               || (hit->type == 3 && particle_name != "gamma")
+               || (hit->type != 3 && (hit->particle_energy < prePoint->GetKineticEnergy()))){
                 //Make primary
                 if (track_id == 1) hit->type = 1;
-                // Make back-scattered
+                // Make 2nd
                 else if (particle_name == "e-") hit->type = 2;
                 else if (particle_name == "gamma") hit->type = 3;
                 else if (particle_name == "e+") hit->type = 4;
@@ -118,16 +122,6 @@ G4bool LCSensitiveDetector::ProcessHits(G4Step *step, G4TouchableHistory*){
 
                 hit->particle_energy = prePoint->GetKineticEnergy();
                 hit->track_id = track_id;
-            }
-            // If was assignmed before, check whether it mixed or not
-            else{
-                if (particle_name == "e-" && hit->type != 2) hit->type = 0;
-                else if (particle_name == "gamma" && hit->type != 3) hit->type = 0;
-                else if (particle_name == "e+" && hit->type != 4) hit->type = 0;
-                else if ((particle_name == "pi-"
-                        || particle_name == "pi+"
-                        || particle_name == "neutron"
-                        || particle_name == "proton") && hit->type != 5) hit->type = 0;
             }
         } // end if boundary
         return true;

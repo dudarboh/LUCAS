@@ -9,6 +9,7 @@ LCTrHit::LCTrHit(G4int s, G4int p, G4int l):G4VHit(), sector(s),
                                                       layer(l),
                                                       type(-1),
                                                       energy(0.),
-                                                      track_len(0.){}
+                                                      track_len(0.),
+                                                      particle_energy(0.){}
 
 LCTrHit::~LCTrHit(){}
