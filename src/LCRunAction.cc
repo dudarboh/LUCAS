@@ -10,7 +10,7 @@
 
 LCRunAction::LCRunAction(LCEventAction* eventAction):
 G4UserRunAction(), fEventAction(eventAction){
-    std::cout<<"Start of LCRunAction::LCRunAction"<<std::endl;
+    // std::cout<<"Start of LCRunAction::LCRunAction"<<std::endl;
     // Create the analysis manager using a new factory method.
     // The choice of analysis technology is done via the function argument.
     auto analysisManager = G4Analysis::ManagerInstance("root");
@@ -70,7 +70,7 @@ G4UserRunAction(), fEventAction(eventAction){
 
       analysisManager->FinishNtuple();
     }
-    std::cout<<"End of LCRunAction::LCRunAction"<<std::endl;
+    // std::cout<<"End of LCRunAction::LCRunAction"<<std::endl;
 }
 
 LCRunAction::~LCRunAction(){
@@ -78,8 +78,12 @@ LCRunAction::~LCRunAction(){
 }
 
 void LCRunAction::BeginOfRunAction(const G4Run* ){
-    std::cout<<"Start of LCRunAction::BeginOfRunAction"<<std::endl;
-
+    // std::cout<<"Start of LCRunAction::BeginOfRunAction"<<std::endl;
+    #ifdef RUN_PH
+    std::cout<<"Start of Photon Run"<<std::endl;
+    #else
+    std::cout<<"Start of Electron Run"<<std::endl;
+    #endif
     // automatic (time-based) random seeds for each run
     long seeds[2];
     time_t systime = time(NULL);
@@ -99,13 +103,13 @@ void LCRunAction::BeginOfRunAction(const G4Run* ){
     // it can be overwritten in a macro
     analysisManager->OpenFile();
 
-    std::cout<<"End of LCRunAction::BeginOfRunAction"<<std::endl;
+    // std::cout<<"End of LCRunAction::BeginOfRunAction"<<std::endl;
 }
 // Write and close output root file
 void LCRunAction::EndOfRunAction(const G4Run*){
-    std::cout<<"Start of LCRunAction::EndOfRunAction"<<std::endl;
+    // std::cout<<"Start of LCRunAction::EndOfRunAction"<<std::endl;
     auto analysisManager = G4AnalysisManager::Instance();
     analysisManager->Write();
     analysisManager->CloseFile();
-    std::cout<<"End of LCRunAction::EndOfRunAction"<<std::endl;
+    // std::cout<<"End of LCRunAction::EndOfRunAction"<<std::endl;
 }

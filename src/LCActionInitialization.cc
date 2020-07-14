@@ -12,10 +12,10 @@ void LCActionInitialization::BuildForMaster() const{
 }
 
 void LCActionInitialization::Build() const{
-    std::cout<<"Start of LCActionInitialization::Build()"<<std::endl;
+    // std::cout<<"Start of LCActionInitialization::Build()"<<std::endl;
     SetUserAction(new LCPrimaryGeneratorAction);
     LCEventAction* eventAction = new LCEventAction;
     SetUserAction(eventAction);
     SetUserAction(new LCRunAction(eventAction));
-    std::cout<<"End of LCActionInitialization::Build()"<<std::endl;
+    // std::cout<<"End of LCActionInitialization::Build()"<<std::endl;
 }

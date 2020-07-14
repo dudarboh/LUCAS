@@ -38,7 +38,7 @@ fLogicSc3(nullptr)
 LCDetectorConstruction::~LCDetectorConstruction(){}
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
-    std::cout<<"Start of LCDetectorConstruction::Construct"<<std::endl;
+    // std::cout<<"Start of LCDetectorConstruction::Construct"<<std::endl;
 
     //***Build materials***//
     G4NistManager *materials = G4NistManager::Instance();
@@ -332,11 +332,14 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     fLogicCalPad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     fLogicTr1Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     fLogicTr2Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
+    // std::cout<<"End of LCDetectorConstruction::Construct"<<std::endl;
 
     return physicWorld;
 }
 
 void LCDetectorConstruction::ConstructSDandField(){
+    // std::cout<<"Start of LCDetectorConstruction::ConstructSDandField"<<std::endl;
+
     //Sensitive detector
     auto sdManager = G4SDManager::GetSDMpointer();
 
@@ -368,6 +371,6 @@ void LCDetectorConstruction::ConstructSDandField(){
     fFieldMgr->CreateChordFinder(fMagField);
     fLogicMagnet->SetFieldManager(fFieldMgr, true);
 #endif
-std::cout<<"End of LCDetectorConstruction::Construct"<<std::endl;
+// std::cout<<"End of LCDetectorConstruction::ConstructSDandField"<<std::endl;
 
 }

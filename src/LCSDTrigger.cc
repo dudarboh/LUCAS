@@ -17,13 +17,13 @@ fTriggerHCID(-1){
 LCSDTrigger::~LCSDTrigger(){}
 
 void LCSDTrigger::Initialize(G4HCofThisEvent *HCE){
-    std::cout<<"Start of LCSDTrigger::Initialize"<<std::endl;
+    // std::cout<<"Start of LCSDTrigger::Initialize"<<std::endl;
     fTriggerHC = new LCTriggerHC(SensitiveDetectorName, collectionName[0]);
     if (fTriggerHCID<0) fTriggerHCID = G4SDManager::GetSDMpointer()->GetCollectionID(fTriggerHC);
     HCE->AddHitsCollection(fTriggerHCID, fTriggerHC);
     // Add only 1 trigger hit
     fTriggerHC->insert(new LCHitTrigger());
-    std::cout<<"End of LCSDTrigger::Initialize"<<std::endl;
+    // std::cout<<"End of LCSDTrigger::Initialize"<<std::endl;
 }
 
 G4bool LCSDTrigger::ProcessHits(G4Step *step, G4TouchableHistory*){

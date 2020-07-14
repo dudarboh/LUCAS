@@ -17,7 +17,7 @@ fCalHCID(-1){
 LCSDCalorimeter::~LCSDCalorimeter(){}
 
 void LCSDCalorimeter::Initialize(G4HCofThisEvent *HCE){
-    std::cout<<"Start of LCSDCalorimeter::Initialize"<<std::endl;
+    // std::cout<<"Start of LCSDCalorimeter::Initialize"<<std::endl;
 
     fCalHC = new LCCalorimeterHC(SensitiveDetectorName, collectionName[0]);
     if (fCalHCID<0) fCalHCID = G4SDManager::GetSDMpointer()->GetCollectionID(fCalHC);
@@ -32,7 +32,7 @@ void LCSDCalorimeter::Initialize(G4HCofThisEvent *HCE){
             }
         }
     }
-    std::cout<<"End of LCSDCalorimeter::Initialize"<<std::endl;
+    // std::cout<<"End of LCSDCalorimeter::Initialize"<<std::endl;
 }
 
 G4bool LCSDCalorimeter::ProcessHits(G4Step *step, G4TouchableHistory*){

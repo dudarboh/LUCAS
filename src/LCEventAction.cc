@@ -49,7 +49,7 @@ LCEventAction::~LCEventAction(){}
 
 
 void LCEventAction::BeginOfEventAction(const G4Event* /*event*/){
-    std::cout<<"Start of LCEventAction::BeginOfEventAction"<<std::endl;
+    // std::cout<<"Start of LCEventAction::BeginOfEventAction"<<std::endl;
     // Find hit collections by names (just once)
     // and save them in the data members of this class
     if( (fCalHCID == -1)
@@ -65,15 +65,15 @@ void LCEventAction::BeginOfEventAction(const G4Event* /*event*/){
         fTriggerHCID = sdManager->GetCollectionID("Trigger/LCTriggerHC");
     }
 
-    std::cout<<"CalHCID: "<<fCalHCID<<std::endl;
-    std::cout<<"Tracker1HCID: "<<fTracker1HCID<<std::endl;
-    std::cout<<"Tracker2HCID: "<<fTracker2HCID<<std::endl;
-    std::cout<<"TriggerHCID: "<<fTriggerHCID<<std::endl;
-    std::cout<<"End of LCEventAction::BeginOfEventAction"<<std::endl;
+    // std::cout<<"CalHCID: "<<fCalHCID<<std::endl;
+    // std::cout<<"Tracker1HCID: "<<fTracker1HCID<<std::endl;
+    // std::cout<<"Tracker2HCID: "<<fTracker2HCID<<std::endl;
+    // std::cout<<"TriggerHCID: "<<fTriggerHCID<<std::endl;
+    // std::cout<<"End of LCEventAction::BeginOfEventAction"<<std::endl;
 }
 
 void LCEventAction::EndOfEventAction(const G4Event* event){
-    std::cout<<"Start of LCEventAction::EndOfEventAction"<<std::endl;
+    // std::cout<<"Start of LCEventAction::EndOfEventAction"<<std::endl;
     // Fill ntuple
     // Get analysis manager
     auto analysisManager = G4AnalysisManager::Instance();
@@ -85,7 +85,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
     analysisManager->FillNtupleIColumn(1, trigger_hit->trigger1);
     analysisManager->FillNtupleIColumn(2, trigger_hit->trigger2);
     analysisManager->FillNtupleIColumn(3, trigger_hit->trigger3);
-    std::cout<<"LCEventAction::EndOfEventAction Trigger is filled"<<std::endl;
+    // std::cout<<"LCEventAction::EndOfEventAction Trigger is filled"<<std::endl;
 
     ////////////////////////////////////////////////////////
     //Analyse Calorimeter
@@ -102,7 +102,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
         fCalEnergy.push_back(cal_hit->energy);
     }
     analysisManager->FillNtupleIColumn(4, CalNHits);
-    std::cout<<"LCEventAction::EndOfEventAction Calorimeter is filled"<<std::endl;
+    // std::cout<<"LCEventAction::EndOfEventAction Calorimeter is filled"<<std::endl;
 
     ////////////////////////////////////////////////////////
     //Analyse Tracker1
@@ -127,7 +127,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
         fTr1Pz.push_back(tr1_hit->pz);
         fTr1PEnergy.push_back(tr1_hit->p_energy);
     }
-    std::cout<<"LCEventAction::EndOfEventAction Tracker1 is filled"<<std::endl;
+    // std::cout<<"LCEventAction::EndOfEventAction Tracker1 is filled"<<std::endl;
 
     ////////////////////////////////////////////////////////
     //Analyse Tracker2
@@ -152,11 +152,11 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
         fTr2Pz.push_back(tr2_hit->pz);
         fTr2PEnergy.push_back(tr2_hit->p_energy);
     }
-    std::cout<<"LCEventAction::EndOfEventAction Tracker2 is filled"<<std::endl;
+    // std::cout<<"LCEventAction::EndOfEventAction Tracker2 is filled"<<std::endl;
 
     analysisManager->AddNtupleRow();
     ClearVectors();
-    std::cout<<"End of LCEventAction::EndOfEventAction"<<std::endl;
+    // std::cout<<"End of LCEventAction::EndOfEventAction"<<std::endl;
 }
 
 void LCEventAction::ClearVectors(){

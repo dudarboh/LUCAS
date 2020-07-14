@@ -17,12 +17,12 @@ fTrackerHCID(-1){
 LCSDTracker::~LCSDTracker(){}
 
 void LCSDTracker::Initialize(G4HCofThisEvent *HCE){
-    std::cout<<"Start of LCSDTracker::Initialize"<<std::endl;
+    // std::cout<<"Start of LCSDTracker::Initialize"<<std::endl;
 
     fTrackerHC = new LCTrackerHC(SensitiveDetectorName, collectionName[0]);
     if (fTrackerHCID<0) fTrackerHCID = G4SDManager::GetSDMpointer()->GetCollectionID(fTrackerHC);
     HCE->AddHitsCollection(fTrackerHCID, fTrackerHC);
-    std::cout<<"End of LCSDTracker::Initialize"<<std::endl;
+    // std::cout<<"End of LCSDTracker::Initialize"<<std::endl;
 }
 
 G4bool LCSDTracker::ProcessHits(G4Step *step, G4TouchableHistory*){

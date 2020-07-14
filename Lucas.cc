@@ -13,7 +13,7 @@
 
 
 int main(int argc, char** argv){
-    std::cout<<"Start of main"<<std::endl;
+    // std::cout<<"Start of main"<<std::endl;
 
     //Set random seeds
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
@@ -56,7 +56,7 @@ int main(int argc, char** argv){
         delete ui;
     }
 
-    std::cout<<"End of main"<<std::endl;
     delete visManager;
     delete runManager;
+    // std::cout<<"End of main"<<std::endl;
 }

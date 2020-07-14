@@ -9,7 +9,7 @@ LCPrimaryGeneratorAction::~LCPrimaryGeneratorAction(){
     delete gps;
 }
 void LCPrimaryGeneratorAction::GeneratePrimaries(G4Event *evt){
-    std::cout<<"Start of LCPrimaryGeneratorAction::GeneratePrimaries"<<std::endl;
+    // std::cout<<"Start of LCPrimaryGeneratorAction::GeneratePrimaries"<<std::endl;
     gps->GeneratePrimaryVertex(evt);
-    std::cout<<"End of LCPrimaryGeneratorAction::GeneratePrimaries"<<std::endl;
+    // std::cout<<"End of LCPrimaryGeneratorAction::GeneratePrimaries"<<std::endl;
 }
