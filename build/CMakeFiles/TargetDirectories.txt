@@ -1,7 +1,0 @@
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/install/strip.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/edit_cache.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/Lucas.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/rebuild_cache.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/list_install_components.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/install/local.dir
-/home/foxwise/Documents/LUCAS/build/CMakeFiles/install.dir
