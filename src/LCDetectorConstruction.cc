@@ -1,5 +1,7 @@
 #include "LCDetectorConstruction.hh"
-#include "LCSensitiveDetector.hh"
+#include "LCSDTrigger.hh"
+#include "LCSDTracker.hh"
+#include "LCSDCalorimeter.hh"
 
 #include "G4TransportationManager.hh"
 
@@ -15,18 +17,29 @@
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
 
+#include "G4SystemOfUnits.hh"
 
 #ifdef RUN_PH
 G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagField = 0;
 G4ThreadLocal G4FieldManager* LCDetectorConstruction::fFieldMgr = 0;
 #endif
 
-LCDetectorConstruction::LCDetectorConstruction():G4VUserDetectorConstruction(){}
+LCDetectorConstruction::LCDetectorConstruction()
+:G4VUserDetectorConstruction(),
+fLogicCalPad(nullptr),
+fLogicTr1Pad(nullptr),
+fLogicTr2Pad(nullptr),
+fLogicSc1(nullptr),
+fLogicSc2(nullptr),
+fLogicSc3(nullptr)
+{}
 
 
 LCDetectorConstruction::~LCDetectorConstruction(){}
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
+    std::cout<<"Start of LCDetectorConstruction::Construct"<<std::endl;
+
     //***Build materials***//
     G4NistManager *materials = G4NistManager::Instance();
 
@@ -134,9 +147,9 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
     //***Build logics***//
     G4LogicalVolume *logicWorld = new G4LogicalVolume(solidWorld, Air, "logicWorld", 0, 0, 0);
-    G4LogicalVolume *logicSc1 = new G4LogicalVolume(solidSc1, matSc, "logicSc1", 0, 0, 0);
-    G4LogicalVolume *logicSc2 = new G4LogicalVolume(solidSc2, matSc, "logicSc2", 0, 0, 0);
-    G4LogicalVolume *logicSc3 = new G4LogicalVolume(solidSc3, matSc, "logicSc3", 0, 0, 0);
+    fLogicSc1 = new G4LogicalVolume(solidSc1, matSc, "logicSc1", 0, 0, 0);
+    fLogicSc2 = new G4LogicalVolume(solidSc2, matSc, "logicSc2", 0, 0, 0);
+    fLogicSc3 = new G4LogicalVolume(solidSc3, matSc, "logicSc3", 0, 0, 0);
 
     // Mimosa telescope detector logic volumes
     G4LogicalVolume *logicMimosaSi = new G4LogicalVolume(solidMimosaSi, Si, "logicMimosaSi", 0, 0, 0);
@@ -145,7 +158,7 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
 #ifdef RUN_PH
     G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, Cu, "logicTarget", 0, 0, 0); // Copper target
-    logicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
+    fLogicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
 #endif
 
     // Absorbers
@@ -153,24 +166,49 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4LogicalVolume *logicAbsorberMSG = new G4LogicalVolume(solidAbsorberMSG, matAbsorberMSG, "logicAbsorberMSG", 0, 0, 0);
 
     // Sensor parts
-    G4LogicalVolume *logicCarbonFiber = new G4LogicalVolume(solidCarbonFiber, matCarbonFiber, "logicCarbonFiber", 0, 0, 0);
+    G4LogicalVolume *logicCalCarbonFiber = new G4LogicalVolume(solidCarbonFiber, matCarbonFiber, "logicCalCarbonFiber", 0, 0, 0);
+    G4LogicalVolume *logicTr1CarbonFiber = new G4LogicalVolume(solidCarbonFiber, matCarbonFiber, "logicTr1CarbonFiber", 0, 0, 0);
+    G4LogicalVolume *logicTr2CarbonFiber = new G4LogicalVolume(solidCarbonFiber, matCarbonFiber, "logicTr2CarbonFiber", 0, 0, 0);
     G4LogicalVolume *logicFrontFanout = new G4LogicalVolume(solidFanout, matFrontFanout, "logicFrontFanout", 0, 0, 0);
     G4LogicalVolume *logicBackFanout = new G4LogicalVolume(solidFanout, matBackFanout, "logicBackFanout", 0, 0, 0);
     G4LogicalVolume *logicAl = new G4LogicalVolume(solidAl, Al, "logicAl", 0, 0, 0);
 
-    //Mother Sensor
-    G4LogicalVolume *logicSensor = new G4LogicalVolume(solidSensor, Air, "logicSensor", 0, 0, 0);
-    G4LogicalVolume *logicSensorStripe = new G4LogicalVolume(solidSensorStripe, Air, "logicSensorStripe", 0, 0, 0);
-    G4LogicalVolume *logicSensorPad = new G4LogicalVolume(solidSensorPad, Si, "logicSensorPad", 0, 0, 0);
+    //Sensors for the tracker and calorimeter
+    G4LogicalVolume *logicCalSensor = new G4LogicalVolume(solidSensor, Si, "logicCalSensor", 0, 0, 0);
+    G4LogicalVolume *logicCalStripe = new G4LogicalVolume(solidSensorStripe, Si, "logicCalStripe", 0, 0, 0);
+    fLogicCalPad = new G4LogicalVolume(solidSensorPad, Si, "logicCalPad", 0, 0, 0);
+
+    // Subdivide Sensor logic volume into 4 sector stripes
+    new G4PVReplica("SiCalStripe", logicCalStripe, logicCalSensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStripe logic volume into 64 pad.
+    new G4PVReplica("SiCalPad", fLogicCalPad, logicCalStripe, kRho, 64, 1.8*mm, 80.*mm);
+
+    G4LogicalVolume *logicTr1Sensor = new G4LogicalVolume(solidSensor, Si, "logicTr1Sensor", 0, 0, 0);
+    G4LogicalVolume *logicTr1Stripe = new G4LogicalVolume(solidSensorStripe, Si, "logicTr1Stripe", 0, 0, 0);
+    fLogicTr1Pad = new G4LogicalVolume(solidSensorPad, Si, "logicTr1Pad", 0, 0, 0);
+
+    // Subdivide Sensor logic volume into 4 sector stripes
+    new G4PVReplica("SiTr1Stripe", logicTr1Stripe, logicTr1Sensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStripe logic volume into 64 pad.
+    new G4PVReplica("SiTr1Pad", fLogicTr1Pad, logicTr1Stripe, kRho, 64, 1.8*mm, 80.*mm);
+
+    G4LogicalVolume *logicTr2Sensor = new G4LogicalVolume(solidSensor, Si, "logicTr2Sensor", 0, 0, 0);
+    G4LogicalVolume *logicTr2Stripe = new G4LogicalVolume(solidSensorStripe, Si, "logicTr2Stripe", 0, 0, 0);
+    fLogicTr2Pad = new G4LogicalVolume(solidSensorPad, Si, "logicTr2Pad", 0, 0, 0);
+
+    // Subdivide Sensor logic volume into 4 sector stripes
+    new G4PVReplica("SiTr2Stripe", logicTr2Stripe, logicTr2Sensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStripe logic volume into 64 pad.
+    new G4PVReplica("SiTr2Pad", fLogicTr2Pad, logicTr2Stripe, kRho, 64, 1.8*mm, 80.*mm);
 
     //***Place logical volumes***//
     //Origin of the world at the exit from colimator
     G4VPhysicalVolume *physicWorld = new G4PVPlacement(0, G4ThreeVector(), logicWorld, "World", 0, false, 0, 1);
     // Distances are taken from the logBook drawing (see ReadMe)
     // Place scintilators
-    new G4PVPlacement(0, G4ThreeVector(0., 0., (450.+2.064)*mm), logicSc1, "Sc1", logicWorld, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., (3607.+2.064)*mm), logicSc2, "Sc2", logicWorld, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., 0., (4607.+14.)*mm), logicSc3, "Sc3", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., (450.+2.064)*mm), fLogicSc1, "Sc1", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., (3607.+2.064)*mm), fLogicSc2, "Sc2", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., (4607.+14.)*mm), fLogicSc3, "Sc3", logicWorld, false, 0, 1);
     // Construct MIMOSA26 plane from Si and Kapton volumes
     new G4PVPlacement(0, G4ThreeVector(), logicMimosaSi, "logicMimosaSi", logicMimosa26, false, 0, 1);
     new G4PVPlacement(0, G4ThreeVector(0., 0., -0.0375*mm), logicMimosaKapton, "logicMimosaKapton", logicMimosa26, false, 0, 1);
@@ -184,13 +222,11 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3528.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 4, 1);
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3578.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 5, 1);
 
-
-
 #ifdef RUN_PH
     //Place target
     new G4PVPlacement(0, G4ThreeVector(0., 0., 1351.*mm), logicTarget, "logicTarget", logicWorld, false, 0, 1);
     // //Place magnet
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 2118.*mm), logicMagnet, "logicMagnet", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., 0., 2118.*mm), fLogicMagnet, "logicMagnet", logicWorld, false, 0, 1);
 #endif
 
     // Construct sensor mounted in carbon fiber
@@ -200,11 +236,27 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4double zSiPos = zAlFrontPos + 0.01*mm + 0.16*mm;
     G4double zAlBackPos = zSiPos + 0.16*mm + 0.01*mm;
     G4double zFanoutBackPos = zAlBackPos + 0.01*mm + 0.075*mm;
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFrontFanout, "FanoutFront", logicCarbonFiber, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "AlFront", logicCarbonFiber, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicSensor, "SiSensor", logicCarbonFiber, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "AlBack", logicCarbonFiber, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicBackFanout, "FanoutBack", logicCarbonFiber, false, 0, 1);
+    //For calorimeter
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFrontFanout, "CalFanoutFront", logicCalCarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "CalAlFront", logicCalCarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicCalSensor, "SiCalSensor", logicCalCarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "CalAlBack", logicCalCarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicBackFanout, "CalFanoutBack", logicCalCarbonFiber, false, 0, 1);
+
+    //For trackers
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFrontFanout, "Tr1FanoutFront", logicTr1CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "Tr1AlFront", logicTr1CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicTr1Sensor, "SiTr1Sensor", logicTr1CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "Tr1AlBack", logicTr1CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicBackFanout, "Tr1FanoutBack", logicTr1CarbonFiber, false, 0, 1);
+
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutFrontPos), logicFrontFanout, "Tr2FanoutFront", logicTr2CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlFrontPos), logicAl, "Tr2AlFront", logicTr2CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zSiPos), logicTr2Sensor, "SiTr2Sensor", logicTr2CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zAlBackPos), logicAl, "Tr2AlBack", logicTr2CarbonFiber, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., yPos, zFanoutBackPos), logicBackFanout, "Tr2FanoutBack", logicTr2CarbonFiber, false, 0, 1);
+
+
 
     //Place sensors and absorbers in the box slots
     //ySlotPos shifts detector down so electrons hit in the same area as 5 GeV electrons in the TB16 data
@@ -228,8 +280,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     //Place trackers planes in 1th and 6th slots of the box
     G4double zTr1Pos = zSlotPos[0] - 0.395*mm;
     G4double zTr2Pos = zSlotPos[5] - 0.395*mm;
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[0], zTr1Pos), logicCarbonFiber, "CarbonFiber", logicWorld, false, 0, 1);
-    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[1], zTr2Pos), logicCarbonFiber, "CarbonFiber", logicWorld, false, 1, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[0], zTr1Pos), logicTr1CarbonFiber, "Tr1CarbonFiber", logicWorld, false, 0, 1);
+    new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[1], zTr2Pos), logicTr2CarbonFiber, "Tr2CarbonFiber", logicWorld, false, 1, 1);
 
 
 
@@ -244,52 +296,67 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     for(G4int i=23; i<28; i++){
         zSensorPos = zSlotPos[i] - 0.395*mm;
         zAbsorberPos = zSlotPos[i] + 1.75*mm;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicCarbonFiber, "CarbonFiber", logicWorld, false, i-21, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicCalCarbonFiber, "CalCarbonFiber", logicWorld, false, i-21, 1);
         new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zAbsorberPos), logicAbsorberPL, "AbsorberPL", logicWorld, false, 0, 1);
     }
     //Final TAB Sensor + MSG absorber (badly glued - not simulated)
     for(G4int i=28; i<29; i++){
         zSensorPos = zSlotPos[i] - 0.395*mm;
         zAbsorberPos = zSlotPos[i] + 1.785*mm;
-        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicCarbonFiber, "CarbonFiber", logicWorld, false, i-21, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zSensorPos), logicCalCarbonFiber, "CalCarbonFiber", logicWorld, false, i-21, 1);
         new G4PVPlacement(0, G4ThreeVector(0., ySlotPos + misalignment[i-21], zAbsorberPos), logicAbsorberMSG, "AbsorberMSG", logicWorld, false, 0, 1);
     }
 
-    // Subdivide Sensor logic volume into 4 sector stripes
-    new G4PVReplica("SiSensorStripe", logicSensorStripe, logicSensor, kPhi, 4, 7.5*deg, 75.*deg);
-    //Subdivide SensorStripe logic volume into 64 pad.
-    new G4PVReplica("SiSensorPad", logicSensorPad, logicSensorStripe, kRho, 64, 1.8*mm, 80.*mm);
-    // This gives individual logic volume for each pad separetely: INCRESES COMPUTATIONAL TIME A LOT
-
-    //x,y,z dimensions of the Scintilators/Magnet/MIMOSA planes might be not precise
-
     //***Make fancy visualisation***//
     logicWorld->SetVisAttributes(G4Color(0.79, 1.00, 0.90, 0.1));
-    logicSc1->SetVisAttributes(G4Colour(0.2, 0., 0.2));
-    logicSc2->SetVisAttributes(G4Colour(0.2, 0., 0.2));
-    logicSc3->SetVisAttributes(G4Colour(0.2, 0., 0.2));
+    fLogicSc1->SetVisAttributes(G4Colour(0.2, 0., 0.2));
+    fLogicSc2->SetVisAttributes(G4Colour(0.2, 0., 0.2));
+    fLogicSc3->SetVisAttributes(G4Colour(0.2, 0., 0.2));
     logicMimosaSi->SetVisAttributes(G4VisAttributes::Invisible);
     logicMimosaKapton->SetVisAttributes(G4VisAttributes::Invisible);
     logicMimosa26->SetVisAttributes(G4Color(0.847, 0.835, 0.047));
     logicAbsorberPL->SetVisAttributes(G4Color(0.23, 0.48, 0.34));
     logicAbsorberMSG->SetVisAttributes(G4Color(0.25, 0.51, 0.43));
-    logicCarbonFiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logicCalCarbonFiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr1CarbonFiber->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr2CarbonFiber->SetVisAttributes(G4VisAttributes::Invisible);
     logicFrontFanout->SetVisAttributes(G4VisAttributes::Invisible);
     logicBackFanout->SetVisAttributes(G4VisAttributes::Invisible);
-    logicSensor->SetVisAttributes(G4VisAttributes::Invisible);
-    logicSensorStripe->SetVisAttributes(G4VisAttributes::Invisible);
-    logicSensorPad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     logicAl->SetVisAttributes(G4VisAttributes::Invisible);
+    logicCalSensor->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr1Sensor->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr2Sensor->SetVisAttributes(G4VisAttributes::Invisible);
+    logicCalStripe->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr1Stripe->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr2Stripe->SetVisAttributes(G4VisAttributes::Invisible);
+    fLogicCalPad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
+    fLogicTr1Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
+    fLogicTr2Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
 
     return physicWorld;
 }
 
-// Assign Sensitive detector to SensorPad logic volume
 void LCDetectorConstruction::ConstructSDandField(){
-    LCSensitiveDetector *SDetector = new LCSensitiveDetector("LumiCalSD");
-    G4SDManager::GetSDMpointer()->AddNewDetector(SDetector);
-    SetSensitiveDetector("logicSensorPad", SDetector);
+    //Sensitive detector
+    auto sdManager = G4SDManager::GetSDMpointer();
 
+    LCSDCalorimeter *calorimeter = new LCSDCalorimeter("Calorimeter");
+    sdManager->AddNewDetector(calorimeter);
+    fLogicCalPad->SetSensitiveDetector(calorimeter);
+
+    LCSDTracker *tracker1 = new LCSDTracker("Tracker1");
+    sdManager->AddNewDetector(tracker1);
+    fLogicTr1Pad->SetSensitiveDetector(tracker1);
+
+    LCSDTracker *tracker2 = new LCSDTracker("Tracker2");
+    sdManager->AddNewDetector(tracker2);
+    fLogicTr2Pad->SetSensitiveDetector(tracker2);
+
+    LCSDTrigger *trigger = new LCSDTrigger("Trigger");
+    sdManager->AddNewDetector(trigger);
+    fLogicSc1->SetSensitiveDetector(trigger);
+    fLogicSc2->SetSensitiveDetector(trigger);
+    fLogicSc3->SetSensitiveDetector(trigger);
 
 #ifdef RUN_PH
     // Add uniform magnetic field. B Value is close to the data ones
@@ -299,7 +366,8 @@ void LCDetectorConstruction::ConstructSDandField(){
     fFieldMgr = new G4FieldManager();
     fFieldMgr->SetDetectorField(fMagField);
     fFieldMgr->CreateChordFinder(fMagField);
-    logicMagnet->SetFieldManager(fFieldMgr, true);
+    fLogicMagnet->SetFieldManager(fFieldMgr, true);
 #endif
+std::cout<<"End of LCDetectorConstruction::Construct"<<std::endl;
 
 }

@@ -1,84 +1,62 @@
-#ifdef G4MULTITHREADED
-    #include "G4MTRunManager.hh"
-#else
-    #include "G4RunManager.hh"
-#endif
-
-#include "LCRunAction.hh"
 #include "LCDetectorConstruction.hh"
 #include "LCActionInitialization.hh"
-#include "LCPrimaryGeneratorAction.hh"
-#include "LCSensitiveDetector.hh"
-#include "LCTrHit.hh"
-#include "LCCalHit.hh"
+#include "G4RunManager.hh"
 
+#include "G4UImanager.hh"
 #include "G4PhysListFactory.hh"
 
-#include "G4UIExecutive.hh"
-#include "G4SystemOfUnits.hh"
 #include "G4VisExecutive.hh"
-#include "G4UImanager.hh"
+#include "G4UIExecutive.hh"
+
+#include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
 
 int main(int argc, char** argv){
+    std::cout<<"Start of main"<<std::endl;
+
     //Set random seeds
     G4Random::setTheEngine(new CLHEP::RanecuEngine);
-    G4int seed = time(NULL);
-    G4Random::setTheSeed(seed);
 
     // If no arguments passed - visualization mode
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
-    // Set here the number of threads for multithreaded mode.
-    // Not 100% tested. But seems to work good
-    #ifdef G4MULTITHREADED
-        G4MTRunManager *runManager = new G4MTRunManager;
-        runManager->SetNumberOfThreads(1);
-    #else
-        G4RunManager *runManager = new G4RunManager;
-    #endif
+    G4RunManager *runManager = new G4RunManager;
+    G4cout<<"After RunManager is created"<<G4endl;
 
-    // Define detector construction
-    LCDetectorConstruction *detector = new LCDetectorConstruction;
-    runManager->SetUserInitialization(detector);
+    runManager->SetUserInitialization(new LCDetectorConstruction);
 
-    //Physics list
-    // EMY and EMZ - claimed by Sasha to give different results at low angles
     G4PhysListFactory factory;
-    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT");
-    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMY");
-    // G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("QGSP_BERT_EMZ");
-
-    // 5 mkm Cut
-    physicsList->SetDefaultCutValue(0.005*mm);
+    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("FTFP_BERT");
+    physicsList->SetDefaultCutValue(0.001*mm);
     runManager->SetUserInitialization(physicsList);
 
-    LCActionInitialization *action = new LCActionInitialization;
-    runManager->SetUserInitialization(action);
+    runManager->SetUserInitialization(new LCActionInitialization);
+    G4cout<<"After ActionInitialization is created"<<G4endl;
 
     // Visualization
-    G4VisManager *visManager = new G4VisExecutive;
+    auto visManager = new G4VisExecutive;
     visManager->Initialise();
 
-    G4UImanager *uiManager = G4UImanager::GetUIpointer();
+    auto UIManager = G4UImanager::GetUIpointer();
 
     if(!ui){
         // batch mode execute filname.mac
         G4String command = "/control/execute ";
         G4String fileName = argv[1];
-        uiManager->ApplyCommand(command+fileName);
+        UIManager->ApplyCommand(command+fileName);
     }
     else{
         // interactive mode
         // CHANGE THIS macroPath so it can find init_vis.mac
-        uiManager->ApplyCommand("/control/macroPath ../");
-        uiManager->ApplyCommand("/control/execute init_vis.mac");
+        UIManager->ApplyCommand("/control/macroPath ../");
+        UIManager->ApplyCommand("/control/execute init_vis.mac");
         ui->SessionStart();
         delete ui;
     }
 
+    std::cout<<"End of main"<<std::endl;
     delete visManager;
     delete runManager;
 }
