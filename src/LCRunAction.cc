@@ -8,7 +8,7 @@
 #include "G4SystemOfUnits.hh"
 #include "g4analysis.hh"
 
-LCRunAction::LCRunAction(LCEventAction* eventAction):
+LCRunAction::LCRunAction(LCEventAction* eventAction, G4String OutputFileName):
 G4UserRunAction(), fEventAction(eventAction){
     // std::cout<<"Start of LCRunAction::LCRunAction"<<std::endl;
     // Create the analysis manager using a new factory method.
@@ -18,7 +18,7 @@ G4UserRunAction(), fEventAction(eventAction){
     // Note: merging ntuples is available only with Root output
     analysisManager->SetNtupleMerging(true);
     analysisManager->SetVerboseLevel(1);
-    analysisManager->SetFileName("lumical");
+    analysisManager->SetFileName(OutputFileName);
 
     // Creating ntuple
     if (fEventAction) {

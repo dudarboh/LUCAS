@@ -22,8 +22,17 @@ int main(int argc, char** argv){
     G4UIExecutive* ui = 0;
     if(argc == 1) ui = new G4UIExecutive(argc, argv);
 
+    // If 3 arguments passed - 2nd for mac file, 3rd for output root file name
+    G4String OutputFileName;
+    if(argc == 3){
+        OutputFileName = argv[2];
+    }
+    else{
+        OutputFileName = "lucas";
+    }
+
     G4RunManager *runManager = new G4RunManager;
-    G4cout<<"After RunManager is created"<<G4endl;
+    // G4cout<<"After RunManager is created"<<G4endl;
 
     runManager->SetUserInitialization(new LCDetectorConstruction);
 
@@ -32,8 +41,8 @@ int main(int argc, char** argv){
     physicsList->SetDefaultCutValue(0.001*mm);
     runManager->SetUserInitialization(physicsList);
 
-    runManager->SetUserInitialization(new LCActionInitialization);
-    G4cout<<"After ActionInitialization is created"<<G4endl;
+    runManager->SetUserInitialization(new LCActionInitialization(OutputFileName));
+    // G4cout<<"After ActionInitialization is created"<<G4endl;
 
     // Visualization
     auto visManager = new G4VisExecutive;

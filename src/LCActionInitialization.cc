@@ -3,12 +3,15 @@
 #include "LCRunAction.hh"
 #include "LCEventAction.hh"
 
-LCActionInitialization::LCActionInitialization():G4VUserActionInitialization(){}
+LCActionInitialization::LCActionInitialization(G4String OutputFileName)
+:G4VUserActionInitialization(){
+    fOutputFileName = OutputFileName;
+}
 LCActionInitialization::~LCActionInitialization(){}
 
 void LCActionInitialization::BuildForMaster() const{
     LCEventAction* eventAction = new LCEventAction;
-    SetUserAction(new LCRunAction(eventAction));
+    SetUserAction(new LCRunAction(eventAction, fOutputFileName));
 }
 
 void LCActionInitialization::Build() const{
@@ -16,6 +19,6 @@ void LCActionInitialization::Build() const{
     SetUserAction(new LCPrimaryGeneratorAction);
     LCEventAction* eventAction = new LCEventAction;
     SetUserAction(eventAction);
-    SetUserAction(new LCRunAction(eventAction));
+    SetUserAction(new LCRunAction(eventAction, fOutputFileName));
     // std::cout<<"End of LCActionInitialization::Build()"<<std::endl;
 }

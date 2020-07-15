@@ -10,7 +10,7 @@ class G4Run;
 
 class LCRunAction : public G4UserRunAction{
     public:
-        LCRunAction(LCEventAction* eventAction);
+        LCRunAction(LCEventAction* eventAction, G4String OutputFileName);
         virtual ~LCRunAction();
 
         virtual void BeginOfRunAction(const G4Run*);
