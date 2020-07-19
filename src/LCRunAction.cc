@@ -93,7 +93,7 @@ void LCRunAction::BeginOfRunAction(const G4Run* ){
     G4Random::showEngineStatus();
 
     //inform the runManager to save random number seed
-    G4RunManager::GetRunManager()->SetRandomNumberStore(true);
+    // G4RunManager::GetRunManager()->SetRandomNumberStore(true);
 
     // Get analysis manager
     auto analysisManager = G4AnalysisManager::Instance();
