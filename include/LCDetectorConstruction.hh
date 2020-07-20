@@ -3,7 +3,7 @@
 
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
-#include "G4MagneticField.hh"
+#include "G4UniformMagField.hh"
 #include "G4FieldManager.hh"
 
 class G4VPhysicalVolume;
