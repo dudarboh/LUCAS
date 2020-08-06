@@ -32,9 +32,19 @@ G4bool LCSDTracker::ProcessHits(G4Step *step, G4TouchableHistory*){
     // hit types:
     // 1 - primary electron
     // 2 - 2ndary electron
-    // 3 - gamma
-    // 4 - positron
-    // 5 - hadrons
+    // 3 - positron
+    // 4 - mu-
+    // 5 - mu+
+    // 6 - proton
+    // 7 - deuteron
+    // 8 - pi-
+    // 9 - pi+
+    // 10 - gamma
+    // 11 - neutron
+    // 12 - nu_e
+    // 13 - anti_nu_e
+    // 14 - nu_mu
+    // 15 - anti_nu_mu
 
     // If hit wasn't assigned yet
     // or it has gamma writen instead of electron
@@ -78,20 +88,31 @@ G4bool LCSDTracker::ProcessHits(G4Step *step, G4TouchableHistory*){
     auto charge = step->GetTrack()->GetDefinition()->GetPDGCharge();
     if(charge != 0.) hit->track_len += step->GetStepLength();
 
+    auto type_unassigned = hit->type == -1;
+    auto type_neutral = hit->type > 9;
+
     //If enters the volume and not primary check particles properties
     if(prePoint->GetStepStatus() == fGeomBoundary && hit->type != 1){
-        if((hit->type == -1)
-        || (hit->type == 3 && particle_name != "gamma")
-        || (hit->type != 3 &&
-           (hit->p_energy < prePoint->GetKineticEnergy()))){
+        if(type_unassigned || (type_neutral && charge != 0.)
+        || (!type_neutral && (hit->p_energy < prePoint->GetKineticEnergy()))){
             //Change its type and pos+mom
             //Make primary
             if(track_id == 1) hit->type = 1;
             // Make 2nd
             else if (particle_name == "e-") hit->type = 2;
-            else if (particle_name == "gamma") hit->type = 3;
-            else if (particle_name == "e+") hit->type = 4;
-            else if (particle_name == "pi-" || particle_name == "pi+" || particle_name == "neutron" || particle_name == "proton") hit->type = 5;
+            else if (particle_name == "e+") hit->type = 3;
+            else if (particle_name == "mu-") hit->type = 4;
+            else if (particle_name == "mu+") hit->type = 5;
+            else if (particle_name == "proton") hit->type = 6;
+            else if (particle_name == "deuteron") hit->type = 7;
+            else if (particle_name == "pi-") hit->type = 8;
+            else if (particle_name == "pi+") hit->type = 9;
+            else if (particle_name == "gamma") hit->type = 10;
+            else if (particle_name == "neutron") hit->type = 11;
+            else if (particle_name == "nu_e") hit->type = 12;
+            else if (particle_name == "anti_nu_e") hit->type = 13;
+            else if (particle_name == "nu_mu") hit->type = 14;
+            else if (particle_name == "anti_nu_mu") hit->type = 15;
             else G4cout<<"THE UNASSIGNED PARTICLE: "<<particle_name<<G4endl;
 
             G4ThreeVector position = prePoint->GetPosition();
