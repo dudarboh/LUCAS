@@ -13,7 +13,7 @@
 /gps/pos/rot1 1 1 0
 /gps/pos/rot2 0 -1 0
 
-# Set theta smeating range.
+# Set theta smearing range.
 /gps/ang/mintheta 0. rad
 /gps/ang/maxtheta 0.752 mrad
 
@@ -26,7 +26,7 @@
 /gps/ene/mono 5. GeV
 /gps/ene/sigma 0.105 GeV
 
-# Particle Sourse is plane square
+# Particle Source is plane square
 /gps/pos/type Plane
 /gps/pos/shape Square
 
@@ -38,4 +38,4 @@
 /gps/pos/halfy 2.5 mm
 
 # Number of events to proceed
-/run/beamOn 500
+/run/beamOn 20

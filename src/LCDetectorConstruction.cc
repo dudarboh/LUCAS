@@ -1,7 +1,6 @@
 #include "LCDetectorConstruction.hh"
 #include "LCSDTrigger.hh"
-#include "LCSDTracker.hh"
-#include "LCSDCalorimeter.hh"
+#include "LCSD.hh"
 
 #include "G4TransportationManager.hh"
 
@@ -23,19 +22,6 @@
 G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagField = 0;
 G4ThreadLocal G4FieldManager* LCDetectorConstruction::fFieldMgr = 0;
 #endif
-
-LCDetectorConstruction::LCDetectorConstruction()
-:G4VUserDetectorConstruction(),
-fLogicCalPad(nullptr),
-fLogicTr1Pad(nullptr),
-fLogicTr2Pad(nullptr),
-fLogicSc1(nullptr),
-fLogicSc2(nullptr),
-fLogicSc3(nullptr)
-{}
-
-
-LCDetectorConstruction::~LCDetectorConstruction(){}
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     // std::cout<<"Start of LCDetectorConstruction::Construct"<<std::endl;
@@ -138,10 +124,10 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4Tubs *solidAl = new G4Tubs("solidAl", 80.*mm, 195.2*mm, 0.01*mm, 75.*deg, 30.*deg);
 
     //Mother volume where to put Si,Al, Fanout.
-    // To access each pad separately in sensitive detector SensorStripe and SensorPad are replicated
+    // To access each pad separately in sensitive detector SensorStrip and SensorPad are replicated
     // inside Sensor
     G4Tubs *solidSensor = new G4Tubs("solidSensor", 80.*mm, 195.2*mm, 0.16*mm, 75.*deg, 30.*deg);
-    G4Tubs *solidSensorStripe = new G4Tubs("solidSensorStripe", 80.*mm, 195.2*mm, 0.16*mm, -3.75*deg, 7.5*deg);
+    G4Tubs *solidSensorStrip = new G4Tubs("solidSensorStrip", 80.*mm, 195.2*mm, 0.16*mm, -3.75*deg, 7.5*deg);
     G4Tubs *solidSensorPad = new G4Tubs("solidSensorPad", 80.*mm, 195.2*mm, 0.16*mm, -3.75*deg, 7.5*deg);
 
 
@@ -175,31 +161,31 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
     //Sensors for the tracker and calorimeter
     G4LogicalVolume *logicCalSensor = new G4LogicalVolume(solidSensor, Si, "logicCalSensor", 0, 0, 0);
-    G4LogicalVolume *logicCalStripe = new G4LogicalVolume(solidSensorStripe, Si, "logicCalStripe", 0, 0, 0);
+    G4LogicalVolume *logicCalStrip = new G4LogicalVolume(solidSensorStrip, Si, "logicCalStrip", 0, 0, 0);
     fLogicCalPad = new G4LogicalVolume(solidSensorPad, Si, "logicCalPad", 0, 0, 0);
 
-    // Subdivide Sensor logic volume into 4 sector stripes
-    new G4PVReplica("SiCalStripe", logicCalStripe, logicCalSensor, kPhi, 4, 7.5*deg, 75.*deg);
-    //Subdivide SensorStripe logic volume into 64 pad.
-    new G4PVReplica("SiCalPad", fLogicCalPad, logicCalStripe, kRho, 64, 1.8*mm, 80.*mm);
+    // Subdivide Sensor logic volume into 4 sector Strips
+    new G4PVReplica("SiCalStrip", logicCalStrip, logicCalSensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStrip logic volume into 64 pad.
+    new G4PVReplica("SiCalPad", fLogicCalPad, logicCalStrip, kRho, 64, 1.8*mm, 80.*mm);
 
     G4LogicalVolume *logicTr1Sensor = new G4LogicalVolume(solidSensor, Si, "logicTr1Sensor", 0, 0, 0);
-    G4LogicalVolume *logicTr1Stripe = new G4LogicalVolume(solidSensorStripe, Si, "logicTr1Stripe", 0, 0, 0);
+    G4LogicalVolume *logicTr1Strip = new G4LogicalVolume(solidSensorStrip, Si, "logicTr1Strip", 0, 0, 0);
     fLogicTr1Pad = new G4LogicalVolume(solidSensorPad, Si, "logicTr1Pad", 0, 0, 0);
 
-    // Subdivide Sensor logic volume into 4 sector stripes
-    new G4PVReplica("SiTr1Stripe", logicTr1Stripe, logicTr1Sensor, kPhi, 4, 7.5*deg, 75.*deg);
-    //Subdivide SensorStripe logic volume into 64 pad.
-    new G4PVReplica("SiTr1Pad", fLogicTr1Pad, logicTr1Stripe, kRho, 64, 1.8*mm, 80.*mm);
+    // Subdivide Sensor logic volume into 4 sector Strips
+    new G4PVReplica("SiTr1Strip", logicTr1Strip, logicTr1Sensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStrip logic volume into 64 pad.
+    new G4PVReplica("SiTr1Pad", fLogicTr1Pad, logicTr1Strip, kRho, 64, 1.8*mm, 80.*mm);
 
     G4LogicalVolume *logicTr2Sensor = new G4LogicalVolume(solidSensor, Si, "logicTr2Sensor", 0, 0, 0);
-    G4LogicalVolume *logicTr2Stripe = new G4LogicalVolume(solidSensorStripe, Si, "logicTr2Stripe", 0, 0, 0);
+    G4LogicalVolume *logicTr2Strip = new G4LogicalVolume(solidSensorStrip, Si, "logicTr2Strip", 0, 0, 0);
     fLogicTr2Pad = new G4LogicalVolume(solidSensorPad, Si, "logicTr2Pad", 0, 0, 0);
 
-    // Subdivide Sensor logic volume into 4 sector stripes
-    new G4PVReplica("SiTr2Stripe", logicTr2Stripe, logicTr2Sensor, kPhi, 4, 7.5*deg, 75.*deg);
-    //Subdivide SensorStripe logic volume into 64 pad.
-    new G4PVReplica("SiTr2Pad", fLogicTr2Pad, logicTr2Stripe, kRho, 64, 1.8*mm, 80.*mm);
+    // Subdivide Sensor logic volume into 4 sector Strips
+    new G4PVReplica("SiTr2Strip", logicTr2Strip, logicTr2Sensor, kPhi, 4, 7.5*deg, 75.*deg);
+    //Subdivide SensorStrip logic volume into 64 pad.
+    new G4PVReplica("SiTr2Pad", fLogicTr2Pad, logicTr2Strip, kRho, 64, 1.8*mm, 80.*mm);
 
     //***Place logical volumes***//
     //Origin of the world at the exit from colimator
@@ -269,6 +255,7 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4double zSlot = 4.5*mm;
     // misalignments of each plane is taken from Itamar simulation
     G4double misalignment[8] = {-0.11*mm, -1.26*mm, 0.46*mm, -0.275644*mm, 1.87705*mm, -1.2183*mm, 0.53323*mm, 0.*mm};
+    // G4double misalignment[8] = {0.*mm};
 
     // 6.7 meters away from a collimator exit
     G4double zBoxPos = 6724*mm;
@@ -326,9 +313,9 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     logicCalSensor->SetVisAttributes(G4VisAttributes::Invisible);
     logicTr1Sensor->SetVisAttributes(G4VisAttributes::Invisible);
     logicTr2Sensor->SetVisAttributes(G4VisAttributes::Invisible);
-    logicCalStripe->SetVisAttributes(G4VisAttributes::Invisible);
-    logicTr1Stripe->SetVisAttributes(G4VisAttributes::Invisible);
-    logicTr2Stripe->SetVisAttributes(G4VisAttributes::Invisible);
+    logicCalStrip->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr1Strip->SetVisAttributes(G4VisAttributes::Invisible);
+    logicTr2Strip->SetVisAttributes(G4VisAttributes::Invisible);
     fLogicCalPad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     fLogicTr1Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
     fLogicTr2Pad->SetVisAttributes(G4Color(0., 0., 1., 0.5));
@@ -340,36 +327,28 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 void LCDetectorConstruction::ConstructSDandField(){
     // std::cout<<"Start of LCDetectorConstruction::ConstructSDandField"<<std::endl;
 
-    //Sensitive detector
-    auto sdManager = G4SDManager::GetSDMpointer();
+    G4SDManager::GetSDMpointer()->SetVerboseLevel(1);
 
-    LCSDCalorimeter *calorimeter = new LCSDCalorimeter("Calorimeter");
-    sdManager->AddNewDetector(calorimeter);
-    fLogicCalPad->SetSensitiveDetector(calorimeter);
+    auto lumicalSD = new LCSD("LumicalSD", "LumicalHCName");
+    G4SDManager::GetSDMpointer()->AddNewDetector(lumicalSD);
+    fLogicCalPad->SetSensitiveDetector(lumicalSD);
+    fLogicTr1Pad->SetSensitiveDetector(lumicalSD);
+    fLogicTr2Pad->SetSensitiveDetector(lumicalSD);
 
-    LCSDTracker *tracker1 = new LCSDTracker("Tracker1");
-    sdManager->AddNewDetector(tracker1);
-    fLogicTr1Pad->SetSensitiveDetector(tracker1);
-
-    LCSDTracker *tracker2 = new LCSDTracker("Tracker2");
-    sdManager->AddNewDetector(tracker2);
-    fLogicTr2Pad->SetSensitiveDetector(tracker2);
-
-    LCSDTrigger *trigger = new LCSDTrigger("Trigger");
-    sdManager->AddNewDetector(trigger);
-    fLogicSc1->SetSensitiveDetector(trigger);
-    fLogicSc2->SetSensitiveDetector(trigger);
-    fLogicSc3->SetSensitiveDetector(trigger);
+    auto triggerSD = new LCSDTrigger("TriggerSD", "TriggerHCName");
+    G4SDManager::GetSDMpointer()->AddNewDetector(triggerSD);
+    fLogicSc1->SetSensitiveDetector(triggerSD);
+    fLogicSc2->SetSensitiveDetector(triggerSD);
+    fLogicSc3->SetSensitiveDetector(triggerSD);
 
 #ifdef RUN_PH
-    // Add uniform magnetic field. B Value is close to the data ones
-    fMagField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
+    G4MagneticField* magField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
 
-    // Create field manager and set chord finder
-    fFieldMgr = new G4FieldManager();
-    fFieldMgr->SetDetectorField(fMagField);
-    fFieldMgr->CreateChordFinder(fMagField);
-    fLogicMagnet->SetFieldManager(fFieldMgr, true);
+    G4FieldManager* fieldManager = new G4FieldManager();
+    fieldManager->SetDetectorField(magField);
+    fieldManager->CreateChordFinder(magField);
+    fLogicMagnet->SetFieldManager(fieldManager, true);
+
 #endif
 // std::cout<<"End of LCDetectorConstruction::ConstructSDandField"<<std::endl;
 

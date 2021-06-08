@@ -11,61 +11,88 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
+namespace {
+  void PrintUsage() {
+    G4cerr << " Usage: " << G4endl;
+    G4cerr << " LUCAS [-m macro ] [-u UIsession] [-o outputRootFile]" << G4endl;
+  }
+}
 
 int main(int argc, char** argv){
     // std::cout<<"Start of main"<<std::endl;
 
-    //Set random seeds
-    G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    if ( argc > 7 ) {
+        PrintUsage();
+        return 1;
+    }
 
-    // If no arguments passed - visualization mode
+    G4String macro;
+    G4String session;
+    G4String output="lucas";
+    for ( G4int i=1; i<argc; i=i+2 ) {
+        if ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
+        else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
+        else if ( G4String(argv[i]) == "-o" ) output = argv[i+1];
+        else {
+            PrintUsage();
+            return 1;
+        }
+    }
+
+    // Detect interactive mode (if no macro provided) and define UI session
+    //
     G4UIExecutive* ui = 0;
-    if(argc == 1) ui = new G4UIExecutive(argc, argv);
-
-    // If 3 arguments passed - 2nd for mac file, 3rd for output root file name
-    G4String OutputFileName;
-    if(argc == 3){
-        OutputFileName = argv[2];
-    }
-    else{
-        OutputFileName = "lucas";
+    if ( ! macro.size() ) {
+        ui = new G4UIExecutive(argc, argv, session);
     }
 
-    G4RunManager *runManager = new G4RunManager;
-    // G4cout<<"After RunManager is created"<<G4endl;
 
-    runManager->SetUserInitialization(new LCDetectorConstruction);
+    //Set random seeds
+    // Optionally: choose a different Random engine...
+    //
+    // G4Random::setTheEngine(new CLHEP::RanecuEngine);
+    // G4Random::setTheEngine(new CLHEP::MTwistEngine);
+
+    // Construct the default run manager
+    //
+    G4RunManager* runManager = new G4RunManager;
+
+    // Set mandatory initialization classes
+    //
+    auto detConstruction = new LCDetectorConstruction();
+    runManager->SetUserInitialization(detConstruction);
 
     G4PhysListFactory factory;
     G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("FTFP_BERT");
     physicsList->SetDefaultCutValue(0.001*mm);
     runManager->SetUserInitialization(physicsList);
 
-    runManager->SetUserInitialization(new LCActionInitialization(OutputFileName));
-    // G4cout<<"After ActionInitialization is created"<<G4endl;
+    auto actionInitialization = new LCActionInitialization(output);
+    runManager->SetUserInitialization(actionInitialization);
 
-    // Visualization
+    // Initialize visualization
     auto visManager = new G4VisExecutive;
-    visManager->Initialise();
+    // G4VisExecutive can take a verbosity argument - see /vis/verbose guidance.
+    // G4VisManager* visManager = new G4VisExecutive("Quiet");
+    visManager->Initialize();
 
-    auto UIManager = G4UImanager::GetUIpointer();
+    // Get the pointer to the User Interface manager
+    auto UImanager = G4UImanager::GetUIpointer();
 
-    if(!ui){
-        // batch mode execute filname.mac
-        G4String command = "/control/execute ";
-        G4String fileName = argv[1];
-        UIManager->ApplyCommand(command+fileName);
+    // Process macro or start UI session
+    //
+    if ( macro.size() ) {
+      // batch mode
+      G4String command = "/control/execute ";
+      UImanager->ApplyCommand(command+macro);
     }
-    else{
-        // interactive mode
-        // CHANGE THIS macroPath so it can find init_vis.mac
-        UIManager->ApplyCommand("/control/macroPath ../");
-        UIManager->ApplyCommand("/control/execute init_vis.mac");
-        ui->SessionStart();
-        delete ui;
+    else  {
+      // interactive mode : define UI session
+      UImanager->ApplyCommand("/control/execute init_vis.mac");
+      ui->SessionStart();
+      delete ui;
     }
 
     delete visManager;
     delete runManager;
-    // std::cout<<"End of main"<<std::endl;
 }

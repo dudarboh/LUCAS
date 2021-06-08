@@ -1,14 +1,19 @@
-# Verbosities
 /control/verbose 2
+/control/saveHistory
 /run/verbose 2
-/vis/verbose warnings
 
 /run/initialize
+
 
 /vis/open OGL 600x600-0+0
 /vis/ogl/set/displayListLimit 1000000
 
 /vis/drawVolume
+
+#################################################
+#################VIEWER SETTINGS###############
+#################################################
+
 
 # Fancy viewer
 /vis/viewer/set/viewpointVector -1 0 0
@@ -19,24 +24,31 @@
 /vis/viewer/set/style surface
 /vis/viewer/set/hiddenMarker true
 /vis/viewer/set/viewpointThetaPhi 120 150
-/vis/viewer/set/autoRefresh true
-
-# Set the point of rotation for the viewer
-# for easy observation of the details
-/vis/viewer/set/targetPoint 0 -25.4 2118. mm
+/vis/viewer/set/targetPoint 0 -25.4 6724. mm
 #/vis/viewer/set/targetPoint 0 0 0 mm
 
+
+#################################################
+#################DRAW TRAJECTORIES###############
+#################################################
+
+
 # Draw trajectories
+/vis/scene/add/trajectories smooth
 /vis/modeling/trajectories/create/drawByCharge
 /vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
-/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 1
+# (if too many tracks cause core dump => /tracking/storeTrajectory 0)
 
-# Draw gps source
+
+# Draw hits at end of event:
+#/vis/scene/add/hits
+
+#################################################
+#################PARTICLE SOURCE#################
+#################################################
+
 /vis/scene/add/gps
-/vis/scene/add/trajectories smooth
-/vis/scene/endOfEventAction accumulate
-
-# Define electron gun
 
 # Angular isotropic distribution
 /gps/ang/type iso
@@ -69,3 +81,12 @@
 # Half sizes of the beam
 /gps/pos/halfx 2.5 mm
 /gps/pos/halfy 2.5 mm
+
+#################################################
+#################################################
+#################################################
+
+
+# Re-establish auto refreshing and verbosity:
+/vis/viewer/set/autoRefresh true
+/vis/verbose warnings

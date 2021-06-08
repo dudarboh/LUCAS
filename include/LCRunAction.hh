@@ -17,6 +17,7 @@ class LCRunAction : public G4UserRunAction{
         virtual void EndOfRunAction (const G4Run*);
     private:
       LCEventAction* fEventAction;
+      G4String fOutputFileName;
 };
 
 #endif

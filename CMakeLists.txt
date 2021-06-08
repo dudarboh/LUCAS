@@ -68,5 +68,21 @@ add_executable(Lucas Lucas.cc ${sources} ${headers})
 # Link libraries
 target_link_libraries(Lucas ${Geant4_LIBRARIES})
 
+
+set(SCRIPTS
+  init_vis.mac
+  startRun.mac
+  )
+
+foreach(_script ${SCRIPTS})
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/${_script}
+    ${PROJECT_BINARY_DIR}/${_script}
+    COPYONLY
+    )
+endforeach()
+
+
+
 # Install - copies Lucas binary file to path/to/install/bin/ folder
 install(TARGETS Lucas DESTINATION bin)
