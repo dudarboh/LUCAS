@@ -11,34 +11,38 @@
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
+bool ph_run=false;
+
 namespace {
   void PrintUsage() {
     G4cerr << " Usage: " << G4endl;
-    G4cerr << " LUCAS [-m macro ] [-u UIsession] [-o outputRootFile]" << G4endl;
+    G4cerr << " LUCAS [-m macro ] [-u UIsession] [-o outputRootFile] [-ph off/on]" << G4endl;
   }
 }
 
 int main(int argc, char** argv){
     // std::cout<<"Start of main"<<std::endl;
 
-    if ( argc > 7 ) {
+    if ( argc > 9 ) {
         PrintUsage();
         return 1;
     }
 
     G4String macro;
     G4String session;
-    G4String output="lucas";
+    G4String output = "lucas";
+    G4String photon_run = "off";
     for ( G4int i=1; i<argc; i=i+2 ) {
         if ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
         else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
         else if ( G4String(argv[i]) == "-o" ) output = argv[i+1];
+        else if ( G4String(argv[i]) == "-ph" ) photon_run = argv[i+1];
         else {
             PrintUsage();
             return 1;
         }
     }
-
+    if(photon_run == "on") ph_run=true;
     // Detect interactive mode (if no macro provided) and define UI session
     //
     G4UIExecutive* ui = 0;

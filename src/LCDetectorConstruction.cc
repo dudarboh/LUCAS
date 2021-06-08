@@ -19,10 +19,10 @@
 
 #include "G4SystemOfUnits.hh"
 
-#ifdef RUN_PH
+extern bool ph_run;
+
 G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager* LCDetectorConstruction::fFieldMgr = 0;
-#endif
 
 G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     // std::cout<<"Start of LCDetectorConstruction::Construct"<<std::endl;
@@ -110,11 +110,6 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4Box *solidMimosaKapton = new G4Box("solidMimosaKapton", 10.6*mm, 5.3*mm, 0.0125*mm);
     G4Box *solidMimosa26 = new G4Box("solidMimosa26", 10.6*mm, 5.3*mm, 0.05*mm);
 
-#ifdef RUN_PH
-    G4Box *solidTarget = new G4Box("solidTarget", 70.*mm, 70.*mm, 0.75*mm);
-    G4Box *solidMagnet = new G4Box("solidMagnet", 750*mm, 175*mm, 500*mm);
-#endif
-
     // Absorbers
     G4Box *solidAbsorberPL = new G4Box("solidAbsorberPL", 70.0*mm, 70.0*mm, 1.75*mm);
     G4Box *solidAbsorberMSG = new G4Box("solidAbsorberMSG", 70.0*mm, 70.0*mm, 1.785*mm);
@@ -142,11 +137,6 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     G4LogicalVolume *logicMimosaSi = new G4LogicalVolume(solidMimosaSi, Si, "logicMimosaSi", 0, 0, 0);
     G4LogicalVolume *logicMimosaKapton = new G4LogicalVolume(solidMimosaKapton, Kapton, "logicMimosaKapton", 0, 0, 0);
     G4LogicalVolume *logicMimosa26 = new G4LogicalVolume(solidMimosa26, Air, "logicMimosa26", 0, 0, 0);
-
-#ifdef RUN_PH
-    G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, Cu, "logicTarget", 0, 0, 0); // Copper target
-    fLogicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
-#endif
 
     // Absorbers
     G4LogicalVolume *logicAbsorberPL = new G4LogicalVolume(solidAbsorberPL, matAbsorberPL, "logicAbsorberPL", 0, 0, 0);
@@ -209,12 +199,16 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3528.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 4, 1);
     new G4PVPlacement(0, G4ThreeVector(0., 0., (3578.+0.05)*mm), logicMimosa26, "logicMimosa", logicWorld, false, 5, 1);
 
-#ifdef RUN_PH
-    //Place target
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 1351.*mm), logicTarget, "logicTarget", logicWorld, false, 0, 1);
-    // //Place magnet
-    new G4PVPlacement(0, G4ThreeVector(0., 0., 2118.*mm), fLogicMagnet, "logicMagnet", logicWorld, false, 0, 1);
-#endif
+    if(ph_run){
+        G4Box *solidTarget = new G4Box("solidTarget", 70.*mm, 70.*mm, 0.75*mm);
+        G4Box *solidMagnet = new G4Box("solidMagnet", 750*mm, 175*mm, 500*mm);
+
+        G4LogicalVolume *logicTarget = new G4LogicalVolume(solidTarget, Cu, "logicTarget", 0, 0, 0); // Copper target
+        fLogicMagnet = new G4LogicalVolume(solidMagnet, Air, "logicMagnet", 0, 0, 0);
+
+        new G4PVPlacement(0, G4ThreeVector(0., 0., 1351.*mm), logicTarget, "logicTarget", logicWorld, false, 0, 1);
+        new G4PVPlacement(0, G4ThreeVector(0., 0., 2118.*mm), fLogicMagnet, "logicMagnet", logicWorld, false, 0, 1);
+    }
 
     // Construct sensor mounted in carbon fiber
     G4double yPos = -(80. + 0.5 * (195.2 - 80.))*mm;
@@ -247,11 +241,8 @@ G4VPhysicalVolume* LCDetectorConstruction::Construct(){
 
     //Place sensors and absorbers in the box slots
     //ySlotPos shifts detector down so electrons hit in the same area as 5 GeV electrons in the TB16 data
-#ifdef RUN_PH
-    G4double ySlotPos = -(168.3 - 80. - (195.2 - 80.) / 2.)*mm;
-#else
     G4double ySlotPos = -(164.3 - 80. - (195.2 - 80.) / 2.)*mm;
-#endif
+    if(ph_run) ySlotPos = -(168.3 - 80. - (195.2 - 80.) / 2.)*mm;
 
     G4double zSlot = 4.5*mm;
     // misalignments of each plane is taken from Itamar simulation
@@ -342,14 +333,14 @@ void LCDetectorConstruction::ConstructSDandField(){
     fLogicSc2->SetSensitiveDetector(triggerSD);
     fLogicSc3->SetSensitiveDetector(triggerSD);
 
-#ifdef RUN_PH
-    fMagneticField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
+    if(ph_run){
+        fMagneticField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
 
-    fFieldMgr = new G4FieldManager();
-    fFieldMgr->SetDetectorField(fMagneticField);
-    fFieldMgr->CreateChordFinder(fMagneticField);
-    fLogicMagnet->SetFieldManager(fFieldMgr, true);
-#endif
+        fFieldMgr = new G4FieldManager();
+        fFieldMgr->SetDetectorField(fMagneticField);
+        fFieldMgr->CreateChordFinder(fMagneticField);
+        fLogicMagnet->SetFieldManager(fFieldMgr, true);
+    }
 // std::cout<<"End of LCDetectorConstruction::ConstructSDandField"<<std::endl;
 
 }

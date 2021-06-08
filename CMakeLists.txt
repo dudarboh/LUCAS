@@ -23,13 +23,7 @@ if(NOT WIN32)
 endif()
 
 # Print all warning to possibly improve the code
-add_definitions("-Wall")
-
-# Default install directory if --prefix is not mentioned is
-# $HOME/Software/Lucas
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX $ENV{HOME}/Software/Lucas CACHE PATH "Lucas install prefix" FORCE)
-endif()
+add_definitions("-Wall -O3")
 
 # Change to off if you want to build without visualization drivers
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
@@ -42,18 +36,6 @@ else()
     find_package(Geant4 REQUIRED)
 endif()
 message(STATUS "Version of found Geant4: " ${Geant4_VERSION})
-
-# Adds RUN_PH option when compiling project to activate magnet and target in the geometry
-option(RUN_PH "Compile a run with a magnet and target for photons" OFF)
-
-if(RUN_PH)
-    add_definitions("-DRUN_PH")
-    message(STATUS ${BoldCyan}"Photon run is set"${ColourReset})
-else()
-    message(STATUS ${BoldCyan}"Electron run is set."${ColourReset})
-    message(STATUS ${BoldYellow}"Set photon run with -DRUN_PH=ON flag."${ColourReset})
-endif()
-
 
 # All include files directories
 include(${Geant4_USE_FILE})
@@ -82,7 +64,5 @@ foreach(_script ${SCRIPTS})
     )
 endforeach()
 
-
-
 # Install - copies Lucas binary file to path/to/install/bin/ folder
-install(TARGETS Lucas DESTINATION bin)
+install(TARGETS Lucas DESTINATION ${PROJECT_SOURCE_DIR}/bin)

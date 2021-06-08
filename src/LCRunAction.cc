@@ -59,11 +59,7 @@ LCRunAction::~LCRunAction(){
 
 void LCRunAction::BeginOfRunAction(const G4Run* ){
     // std::cout<<"Start of LCRunAction::BeginOfRunAction"<<std::endl;
-    #ifdef RUN_PH
-    // std::cout<<"Start of Photon Run"<<std::endl;
-    #else
-    // std::cout<<"Start of Electron Run"<<std::endl;
-    #endif
+
     // automatic (time-based) random seeds for each run
     long seeds[2];
     time_t systime = time(NULL);
