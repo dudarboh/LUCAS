@@ -15,11 +15,12 @@
 #include "G4Element.hh"
 #include "G4VisAttributes.hh"
 #include "G4Colour.hh"
+#include "G4MagneticField.hh"
 
 #include "G4SystemOfUnits.hh"
 
 #ifdef RUN_PH
-G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagField = 0;
+G4ThreadLocal G4UniformMagField* LCDetectorConstruction::fMagneticField = 0;
 G4ThreadLocal G4FieldManager* LCDetectorConstruction::fFieldMgr = 0;
 #endif
 
@@ -342,13 +343,12 @@ void LCDetectorConstruction::ConstructSDandField(){
     fLogicSc3->SetSensitiveDetector(triggerSD);
 
 #ifdef RUN_PH
-    G4MagneticField* magField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
+    fMagneticField = new G4UniformMagField(G4ThreeVector(0.095*tesla, 0.*tesla, 0.*tesla));
 
-    G4FieldManager* fieldManager = new G4FieldManager();
-    fieldManager->SetDetectorField(magField);
-    fieldManager->CreateChordFinder(magField);
-    fLogicMagnet->SetFieldManager(fieldManager, true);
-
+    fFieldMgr = new G4FieldManager();
+    fFieldMgr->SetDetectorField(fMagneticField);
+    fFieldMgr->CreateChordFinder(fMagneticField);
+    fLogicMagnet->SetFieldManager(fFieldMgr, true);
 #endif
 // std::cout<<"End of LCDetectorConstruction::ConstructSDandField"<<std::endl;
 

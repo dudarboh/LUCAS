@@ -3,9 +3,10 @@
 
 #include "globals.hh"
 #include "G4VUserDetectorConstruction.hh"
+#include "G4FieldManager.hh"
+#include "G4UniformMagField.hh"
 
 class G4VPhysicalVolume;
-class G4GlobalMagFieldMessenger;
 
 class LCDetectorConstruction : public G4VUserDetectorConstruction{
     public:
@@ -16,6 +17,10 @@ class LCDetectorConstruction : public G4VUserDetectorConstruction{
         virtual void ConstructSDandField();
 
     private:
+
+    static G4ThreadLocal G4UniformMagField* fMagneticField;
+    static G4ThreadLocal G4FieldManager* fFieldMgr;
+
     G4LogicalVolume* fLogicCalPad;
     G4LogicalVolume* fLogicTr1Pad;
     G4LogicalVolume* fLogicTr2Pad;
