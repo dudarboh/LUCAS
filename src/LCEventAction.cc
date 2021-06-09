@@ -69,6 +69,7 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
         G4int maxEdepIdx = std::max_element(hit->fMcContEdep.begin(), hit->fMcContEdep.end()) - hit->fMcContEdep.begin();
         // std::cout<< "Max dep idx: "<< max_edep_idx<<std::endl;
         // std::cout<< "Size: "<< hit->mc_pos.size()<<std::endl;
+        fNMcCont.push_back(hit->fMcContId.size());
         fMcContId.push_back(hit->fMcContId[maxEdepIdx]);
         fMcContPosX.push_back(hit->fMcContPos[maxEdepIdx].x());
         fMcContPosY.push_back(hit->fMcContPos[maxEdepIdx].y());
@@ -80,7 +81,6 @@ void LCEventAction::EndOfEventAction(const G4Event* event){
         fMcContEdep.push_back(hit->fMcContEdep[maxEdepIdx]);
         fMcContTrackLen.push_back(hit->fMcContTrackLen[maxEdepIdx]);
         fMcContPdg.push_back(hit->fMcContPdg[maxEdepIdx]);
-
     }
     analysisManager->FillNtupleIColumn(4, nHits);
 
@@ -93,6 +93,7 @@ void LCEventAction::ClearVectors(){
     fSector.clear();
     fPad.clear();
     fLayer.clear();
+    fNMcCont.clear();
     fIsPrimary.clear();
     fTotalEdep.clear();
     fTotalTrackLen.clear();

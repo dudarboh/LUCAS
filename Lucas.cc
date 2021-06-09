@@ -16,14 +16,19 @@ bool ph_run=false;
 namespace {
   void PrintUsage() {
     G4cerr << " Usage: " << G4endl;
-    G4cerr << " LUCAS [-m macro ] [-u UIsession] [-o outputRootFile] [-ph off/on]" << G4endl;
+    G4cerr << " LUCAS [-m macro ] [-u UIsession] [-o outputRootFile] [-r gamma] [-p physListName]" << G4endl;
+    G4cerr << " -m (macro) file to execute" << G4endl;
+    G4cerr << " -u UI session. Usually [ Qt, Xm, GAG, tcsh, csh ]. Didn't work for me. Leave empty for the default one" << G4endl;
+    G4cerr << " -o name of the output root file" << G4endl;
+    G4cerr << " -r run scenario e/gamma. Places the Cu target and turns on the magnet if gamma" << G4endl;
+    G4cerr << " -p physics list name" << G4endl;
   }
 }
 
 int main(int argc, char** argv){
     // std::cout<<"Start of main"<<std::endl;
 
-    if ( argc > 9 ) {
+    if ( argc > 11 ) {
         PrintUsage();
         return 1;
     }
@@ -31,18 +36,24 @@ int main(int argc, char** argv){
     G4String macro;
     G4String session;
     G4String output = "lucas";
-    G4String photon_run = "off";
+    G4String run = "e";
+    G4String physListName;
     for ( G4int i=1; i<argc; i=i+2 ) {
         if ( G4String(argv[i]) == "-m" ) macro = argv[i+1];
         else if ( G4String(argv[i]) == "-u" ) session = argv[i+1];
         else if ( G4String(argv[i]) == "-o" ) output = argv[i+1];
-        else if ( G4String(argv[i]) == "-ph" ) photon_run = argv[i+1];
+        else if ( G4String(argv[i]) == "-r" ) run = argv[i+1];
+        else if ( G4String(argv[i]) == "-p" ) physListName = argv[i+1];
         else {
             PrintUsage();
             return 1;
         }
     }
-    if(photon_run == "on") ph_run=true;
+    if(run == "gamma") ph_run=true;
+    else if (run != "e"){
+        PrintUsage();
+        return 1;
+    }
     // Detect interactive mode (if no macro provided) and define UI session
     //
     G4UIExecutive* ui = 0;
@@ -67,8 +78,20 @@ int main(int argc, char** argv){
     runManager->SetUserInitialization(detConstruction);
 
     G4PhysListFactory factory;
-    G4VModularPhysicsList *physicsList = factory.GetReferencePhysList("FTFP_BERT");
-    physicsList->SetDefaultCutValue(0.001*mm);
+    G4VModularPhysicsList* physicsList = nullptr;
+
+    // Check if the name is known to the factory
+    if ( physListName.size() &&  (! factory.IsReferencePhysList(physListName) ) ) {
+        PrintUsage();
+        G4cerr << "Physics list " << physListName << " is not available in PhysListFactory." <<"Try FTFP_BERT_EMV/EMX/EMY/EMZ"<< G4endl;
+        return 1;
+    }
+
+    // If name is not defined use FTFP_BERT
+    if ( ! physListName.size() ) physListName = "FTFP_BERT";
+
+    // Reference PhysicsList via its name
+    physicsList = factory.GetReferencePhysList(physListName);
     runManager->SetUserInitialization(physicsList);
 
     auto actionInitialization = new LCActionInitialization(output);

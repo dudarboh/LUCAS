@@ -33,4 +33,4 @@
 /gps/ene/sigma 0.105 GeV
 
 # Number of events to proceed
-/run/beamOn 50
+/run/beamOn 5000

@@ -1,0 +1,12 @@
+executable = /afs/desy.de/user/d/dudarboh/FCAL/LUCAS/job/job.sh
+
+arguments = $(ProcId) FTFP_BERT /afs/desy.de/user/d/dudarboh/FCAL/LUCAS/build/startRun.mac e
+
+initialdir = /nfs/dust/ilc/user/dudarboh/job_files/jobs
+should_transfer_files = NO
+
+log = ../log/e_run_$(ProcId).log
+output = ../out/e_run_$(ProcId).out
+error = ../err/e_run_$(ProcId).err
+
+queue 2000

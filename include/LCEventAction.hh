@@ -23,6 +23,7 @@ class LCEventAction : public G4UserEventAction{
         std::vector<G4int> fIsPrimary;
         std::vector<G4double> fTotalEdep;
         std::vector<G4double> fTotalTrackLen;
+        std::vector<G4int> fNMcCont;
         std::vector<G4int> fMcContId;
         std::vector<G4double> fMcContPosX;
         std::vector<G4double> fMcContPosY;

@@ -35,7 +35,7 @@ else()
     # Find geant without vis drivers
     find_package(Geant4 REQUIRED)
 endif()
-message(STATUS "Version of found Geant4: " ${Geant4_VERSION})
+message(STATUS ${Green}"Version of found Geant4: " ${Geant4_VERSION} ${ColourReset})
 
 # All include files directories
 include(${Geant4_USE_FILE})

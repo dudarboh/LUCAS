@@ -11,7 +11,7 @@
 LCRunAction::LCRunAction(LCEventAction* eventAction, G4String OutputFileName):
 G4UserRunAction(), fEventAction(eventAction), fOutputFileName(OutputFileName){
     // std::cout<<"Start of LCRunAction::LCRunAction"<<std::endl;
-    G4RunManager::GetRunManager()->SetPrintProgress(1);
+    G4RunManager::GetRunManager()->SetPrintProgress(200);
 
     // Create the analysis manager using a new factory method.
     // The choice of analysis technology is done via the function argument.
@@ -24,30 +24,30 @@ G4UserRunAction(), fEventAction(eventAction), fOutputFileName(OutputFileName){
     analysisManager->CreateNtuple("lumical", "mc");
 
     // Branches for trigger analysis
-    analysisManager->CreateNtupleIColumn("n_triggers");  // column Id = 0
-    analysisManager->CreateNtupleIColumn("trigger1");  // column Id = 1
-    analysisManager->CreateNtupleIColumn("trigger2");  // column Id = 2
-    analysisManager->CreateNtupleIColumn("trigger3");  // column Id = 3
+    analysisManager->CreateNtupleIColumn("n_triggers");
+    analysisManager->CreateNtupleIColumn("trigger1");
+    analysisManager->CreateNtupleIColumn("trigger2");
+    analysisManager->CreateNtupleIColumn("trigger3");
 
-    // Branches for calorimeter analysis
-    analysisManager->CreateNtupleIColumn("n_hits");  // column Id = 4
-    analysisManager->CreateNtupleIColumn("sector", fEventAction->fSector); //Id = 5
-    analysisManager->CreateNtupleIColumn("pad", fEventAction->fPad); // Id = 6
-    analysisManager->CreateNtupleIColumn("layer", fEventAction->fLayer); // Id = 7
-    analysisManager->CreateNtupleIColumn("primary", fEventAction->fIsPrimary); // Id = 7
-    analysisManager->CreateNtupleDColumn("total_edep", fEventAction->fTotalEdep); // Id = 8
-    analysisManager->CreateNtupleDColumn("total_track_len", fEventAction->fTotalTrackLen); // Id = 8
-    analysisManager->CreateNtupleIColumn("mc_cont_id", fEventAction->fMcContId); // Id = 9
-    analysisManager->CreateNtupleDColumn("mc_cont_posx", fEventAction->fMcContPosX); // Id = 10
-    analysisManager->CreateNtupleDColumn("mc_cont_posy", fEventAction->fMcContPosY); // Id = 11
-    analysisManager->CreateNtupleDColumn("mc_cont_posz", fEventAction->fMcContPosZ); // Id = 12
-    analysisManager->CreateNtupleDColumn("mc_cont_momx", fEventAction->fMcContMomX); // Id = 13
-    analysisManager->CreateNtupleDColumn("mc_cont_momy", fEventAction->fMcContMomY); // Id = 14
-    analysisManager->CreateNtupleDColumn("mc_cont_momz", fEventAction->fMcContMomZ); // Id = 15
-    analysisManager->CreateNtupleDColumn("mc_cont_energy", fEventAction->fMcContEnergy); // Id = 16
-    analysisManager->CreateNtupleDColumn("mc_cont_edep", fEventAction->fMcContEdep); // Id = 17
-    analysisManager->CreateNtupleDColumn("mc_cont_track_len", fEventAction->fMcContTrackLen); // Id = 18
-    analysisManager->CreateNtupleIColumn("mc_cont_pdg", fEventAction->fMcContPdg); // Id = 19
+    analysisManager->CreateNtupleIColumn("n_hits");
+    analysisManager->CreateNtupleIColumn("sector", fEventAction->fSector);
+    analysisManager->CreateNtupleIColumn("pad", fEventAction->fPad);
+    analysisManager->CreateNtupleIColumn("layer", fEventAction->fLayer);
+    analysisManager->CreateNtupleDColumn("energy", fEventAction->fTotalEdep);
+    analysisManager->CreateNtupleIColumn("primary", fEventAction->fIsPrimary);
+    analysisManager->CreateNtupleDColumn("track_len", fEventAction->fTotalTrackLen);
+    analysisManager->CreateNtupleIColumn("n_mc_cont", fEventAction->fNMcCont);
+    analysisManager->CreateNtupleIColumn("mc_cont_id", fEventAction->fMcContId);
+    analysisManager->CreateNtupleDColumn("mc_cont_posx", fEventAction->fMcContPosX);
+    analysisManager->CreateNtupleDColumn("mc_cont_posy", fEventAction->fMcContPosY);
+    analysisManager->CreateNtupleDColumn("mc_cont_posz", fEventAction->fMcContPosZ);
+    analysisManager->CreateNtupleDColumn("mc_cont_momx", fEventAction->fMcContMomX);
+    analysisManager->CreateNtupleDColumn("mc_cont_momy", fEventAction->fMcContMomY);
+    analysisManager->CreateNtupleDColumn("mc_cont_momz", fEventAction->fMcContMomZ);
+    analysisManager->CreateNtupleDColumn("mc_cont_energy", fEventAction->fMcContEnergy);
+    analysisManager->CreateNtupleDColumn("mc_cont_edep", fEventAction->fMcContEdep);
+    analysisManager->CreateNtupleDColumn("mc_cont_track_len", fEventAction->fMcContTrackLen);
+    analysisManager->CreateNtupleIColumn("mc_cont_pdg", fEventAction->fMcContPdg);
 
     analysisManager->FinishNtuple();
     // std::cout<<"End of LCRunAction::LCRunAction"<<std::endl;
