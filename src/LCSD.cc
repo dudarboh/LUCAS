@@ -60,11 +60,12 @@ G4bool LCSD::ProcessHits(G4Step *step, G4TouchableHistory*){
     G4double dAzimutal = r*std::sin( 3.75/180.*M_PI - std::abs(phi));
     G4double dRadial = 0.9 - std::abs(r - (80. + 0.9 + 1.8*pad) );
 
+    G4double edge = 0.1;
     auto hit = (*fHitsCollection)[cellID];
-    if (dRadial < 0.3 || dAzimutal < 0.3){
+    if (dRadial < edge || dAzimutal < edge){
         // radial pad is closest
         if (dRadial < dAzimutal){
-            G4double fraction = 0.5 + 0.5/0.3*dRadial;
+            G4double fraction = 0.5 + 0.5/edge*dRadial;
             RecordEnergyDeposition(step, hit, fraction);
             // top side
             if (r - (80. + 0.9 + 1.8*pad) > 0 && pad != 63){
@@ -78,7 +79,7 @@ G4bool LCSD::ProcessHits(G4Step *step, G4TouchableHistory*){
             }
         }
         else{
-            G4double fraction = 0.5 + 0.5/0.3*dAzimutal;
+            G4double fraction = 0.5 + 0.5/edge*dAzimutal;
             RecordEnergyDeposition(step, hit, fraction);
             // right side
             if (phi > 0 && sector != 3){

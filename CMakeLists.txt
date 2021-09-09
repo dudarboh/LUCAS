@@ -23,7 +23,7 @@ if(NOT WIN32)
 endif()
 
 # Print all warning to possibly improve the code
-add_definitions("-Wall -O3")
+add_definitions("-O3 -pedantic -Wall -Wextra")
 
 # Change to off if you want to build without visualization drivers
 option(WITH_GEANT4_UIVIS "Build example with Geant4 UI and Vis drivers" ON)
