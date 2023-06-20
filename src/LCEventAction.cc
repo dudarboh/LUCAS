@@ -14,25 +14,23 @@
 #include "g4root.hh"
 #include "Randomize.hh"
 
-namespace {
-    // Utility function which finds a hit collection with the given Id
-    // and print warnings if not found
-    G4VHitsCollection* GetHC(const G4Event* event, G4int collId) {
-        auto hce = event->GetHCofThisEvent();
-        if(!hce){
-            G4ExceptionDescription msg;
-            msg << "No hits collection of this event found." << G4endl;
-            G4Exception("LCEventAction::EndOfEventAction()", "LCCode001", JustWarning, msg);
-            return nullptr;
-        }
-        auto hc = hce->GetHC(collId);
-        if(!hc){
-            G4ExceptionDescription msg;
-            msg << "Hits collection " << collId << " of this event not found." << G4endl;
-            G4Exception("LCEventAction::EndOfEventAction()", "LCCode001", JustWarning, msg);
-        }
-        return hc;
+// Utility function which finds a hit collection with the given Id
+// and print warnings if not found
+G4VHitsCollection* GetHC(const G4Event* event, G4int collId) {
+    auto hce = event->GetHCofThisEvent();
+    if(!hce){
+        G4ExceptionDescription msg;
+        msg << "No hits collection of this event found." << G4endl;
+        G4Exception("LCEventAction::EndOfEventAction()", "LCCode001", JustWarning, msg);
+        return nullptr;
     }
+    auto hc = hce->GetHC(collId);
+    if(!hc){
+        G4ExceptionDescription msg;
+        msg << "Hits collection " << collId << " of this event not found." << G4endl;
+        G4Exception("LCEventAction::EndOfEventAction()", "LCCode001", JustWarning, msg);
+    }
+    return hc;
 }
 
 
@@ -46,7 +44,6 @@ LCEventAction::LCEventAction()
 }
 
 LCEventAction::~LCEventAction(){}
-
 
 void LCEventAction::BeginOfEventAction(const G4Event* /*event*/){
     // std::cout<<"Start of LCEventAction::BeginOfEventAction"<<std::endl;

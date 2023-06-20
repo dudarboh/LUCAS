@@ -38,35 +38,18 @@ G4UserRunAction(), fEventAction(eventAction){
       analysisManager->CreateNtupleDColumn("cal_energy", fEventAction->fCalEnergy); // Id = 8
 
       // Branches for Tracker1 analysis
-      analysisManager->CreateNtupleIColumn("tr1_n_hits");  // column Id = 9
-      analysisManager->CreateNtupleIColumn("tr1_sector", fEventAction->fTr1Sector); // Id = 10
-      analysisManager->CreateNtupleIColumn("tr1_pad", fEventAction->fTr1Pad); // Id = 11
-      analysisManager->CreateNtupleIColumn("tr1_layer", fEventAction->fTr1Layer); // Id = 12
-      analysisManager->CreateNtupleDColumn("tr1_energy", fEventAction->fTr1Energy); // Id = 13
-      analysisManager->CreateNtupleIColumn("tr1_type", fEventAction->fTr1Type); // Id = 14
-      analysisManager->CreateNtupleDColumn("tr1_track_len", fEventAction->fTr1TrackLen); // Id = 15
-      analysisManager->CreateNtupleDColumn("tr1_x", fEventAction->fTr1X); // Id = 16
-      analysisManager->CreateNtupleDColumn("tr1_y", fEventAction->fTr1Y); // Id = 17
-      analysisManager->CreateNtupleDColumn("tr1_z", fEventAction->fTr1Z); // Id = 18
-      analysisManager->CreateNtupleDColumn("tr1_px", fEventAction->fTr1Px); // Id = 19
-      analysisManager->CreateNtupleDColumn("tr1_py", fEventAction->fTr1Py); // Id = 20
-      analysisManager->CreateNtupleDColumn("tr1_pz", fEventAction->fTr1Pz); // Id = 21
-      analysisManager->CreateNtupleDColumn("tr1_p_energy", fEventAction->fTr1PEnergy); // Id = 22
-
-      analysisManager->CreateNtupleIColumn("tr2_n_hits");  // column Id = 23
-      analysisManager->CreateNtupleIColumn("tr2_sector", fEventAction->fTr2Sector); // Id = 24
-      analysisManager->CreateNtupleIColumn("tr2_pad", fEventAction->fTr2Pad); // Id = 25
-      analysisManager->CreateNtupleIColumn("tr2_layer", fEventAction->fTr2Layer); // Id = 26
-      analysisManager->CreateNtupleDColumn("tr2_energy", fEventAction->fTr2Energy); // Id = 27
-      analysisManager->CreateNtupleIColumn("tr2_type", fEventAction->fTr2Type); // Id = 28
-      analysisManager->CreateNtupleDColumn("tr2_track_len", fEventAction->fTr2TrackLen); // Id = 29
-      analysisManager->CreateNtupleDColumn("tr2_x", fEventAction->fTr2X); // Id = 30
-      analysisManager->CreateNtupleDColumn("tr2_y", fEventAction->fTr2Y); // Id = 31
-      analysisManager->CreateNtupleDColumn("tr2_z", fEventAction->fTr2Z); // Id = 32
-      analysisManager->CreateNtupleDColumn("tr2_px", fEventAction->fTr2Px); // Id = 33
-      analysisManager->CreateNtupleDColumn("tr2_py", fEventAction->fTr2Py); // Id = 34
-      analysisManager->CreateNtupleDColumn("tr2_pz", fEventAction->fTr2Pz); // Id = 35
-      analysisManager->CreateNtupleDColumn("tr2_p_energy", fEventAction->fTr2PEnergy); // Id = 36
+      analysisManager->CreateNtupleIColumn("tr_id");  // column Id = 23
+      analysisManager->CreateNtupleIColumn("tr_n_hits");  // column Id = 23
+      analysisManager->CreateNtupleIColumn("tr_sector", fEventAction->fTr2Sector); // Id = 24
+      analysisManager->CreateNtupleIColumn("tr_pad", fEventAction->fTr2Pad); // Id = 25
+      analysisManager->CreateNtupleIColumn("tr_layer", fEventAction->fTr2Layer); // Id = 26
+      analysisManager->CreateNtupleDColumn("tr_energy", fEventAction->fTr2Energy); // Id = 27
+      analysisManager->CreateNtupleIColumn("tr_pdg", fEventAction->fTr2Type); // Id = 28
+      analysisManager->CreateNtupleIColumn("tr_primary", fEventAction->fTr2Type); // Id = 28
+      analysisManager->CreateNtupleDColumn("tr_track_len", fEventAction->fTr2TrackLen); // Id = 29
+      analysisManager->CreateNtupleDColumn("tr_pos", fEventAction->fTr2X); // Id = 30
+      analysisManager->CreateNtupleDColumn("tr_mom", fEventAction->fTr2Px); // Id = 33
+      analysisManager->CreateNtupleDColumn("tr_p_energy", fEventAction->fTr2PEnergy); // Id = 36
 
       analysisManager->FinishNtuple();
     }

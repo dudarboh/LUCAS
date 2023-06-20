@@ -5,9 +5,11 @@
 LCPrimaryGeneratorAction::LCPrimaryGeneratorAction(){
     gps = new G4GeneralParticleSource();
 }
+
 LCPrimaryGeneratorAction::~LCPrimaryGeneratorAction(){
     delete gps;
 }
+
 void LCPrimaryGeneratorAction::GeneratePrimaries(G4Event *evt){
     // std::cout<<"Start of LCPrimaryGeneratorAction::GeneratePrimaries"<<std::endl;
     gps->GeneratePrimaryVertex(evt);

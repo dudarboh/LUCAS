@@ -8,8 +8,7 @@
 #include "G4String.hh"
 #include "Randomize.hh"
 
-LCSDTracker::LCSDTracker(G4String detector_name)
-:G4VSensitiveDetector(detector_name),
+LCSDTracker::LCSDTracker(G4String detector_name) :G4VSensitiveDetector(detector_name),
 fTrackerHCID(-1){
     collectionName.insert("LCTrackerHC");
 }
@@ -27,24 +26,6 @@ void LCSDTracker::Initialize(G4HCofThisEvent *HCE){
 
 G4bool LCSDTracker::ProcessHits(G4Step *step, G4TouchableHistory*){
     // std::cout<<"Start of LCSDTracker::ProcessHits"<<std::endl;
-
-    //For layer Carbon fiber copy number is used
-    // hit types:
-    // 1 - primary electron
-    // 2 - 2ndary electron
-    // 3 - positron
-    // 4 - mu-
-    // 5 - mu+
-    // 6 - proton
-    // 7 - deuteron
-    // 8 - pi-
-    // 9 - pi+
-    // 10 - gamma
-    // 11 - neutron
-    // 12 - nu_e
-    // 13 - anti_nu_e
-    // 14 - nu_mu
-    // 15 - anti_nu_mu
 
     // If hit wasn't assigned yet
     // or it has gamma writen instead of electron
@@ -70,9 +51,7 @@ G4bool LCSDTracker::ProcessHits(G4Step *step, G4TouchableHistory*){
     //If hit exists
     for(unsigned int j=0; j<fTrackerHC->entries(); j++){
         LCHitTracker* existed_hit = (*fTrackerHC)[j];
-        if(existed_hit->sector == sector
-            && existed_hit->pad == pad
-            && existed_hit->layer == layer){
+        if(existed_hit->sector == sector && existed_hit->pad == pad && existed_hit->layer == layer){
             hit = existed_hit;
             break;
         }
